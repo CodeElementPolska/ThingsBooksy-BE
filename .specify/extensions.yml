@@ -106,6 +106,13 @@ hooks:
     prompt: Commit plan changes?
     description: Auto-commit after implementation planning
     condition: null
+  - extension: api-contract
+    command: api-contract-emit
+    enabled: true
+    optional: false
+    prompt: Emit v1 api-contract.md draft after plan?
+    description: Auto-emit draft FE-BE API contract after implementation planning
+    condition: null
   after_tasks:
   - extension: git
     command: speckit.git.commit
@@ -113,6 +120,13 @@ hooks:
     optional: true
     prompt: Commit task changes?
     description: Auto-commit after task generation
+    condition: null
+  - extension: fe-tasks
+    command: fe-tasks.augment
+    enabled: true
+    optional: false
+    prompt: Augment tasks.md with FE per-component tasks?
+    description: Generates frontend tasks (1 per component) from FE Surface in spec.md and endpoints in api-contract.md. Skips if Scope=be-only.
     condition: null
   after_implement:
   - extension: git

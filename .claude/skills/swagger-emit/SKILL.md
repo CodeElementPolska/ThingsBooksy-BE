@@ -126,7 +126,7 @@ Write the rendered JSON to the output path using the `Write` tool. Use 2-space i
 
 ### Phase 4 — Validate
 
-Validation is split into two checks. Each failure triggers a retry (cap 2 retries — i.e. 3 total attempts).
+Validation is split into three checks. Each failure triggers a retry (cap 2 retries — i.e. 3 total attempts). 4a and 4c run unconditionally; 4b runs when `npx` is available, otherwise it is skipped with a WARNING in the final report.
 
 **4a — Structural JSON validity (deterministic, via PowerShell)**
 
@@ -141,7 +141,29 @@ Expected: exit code 0 and no stderr. On failure:
 - If retries remain → return to Phase 2, re-render with the captured error as feedback (e.g. "trailing comma at offset X"), re-write, re-validate.
 - If retries exhausted → ABORT (see Failure mode).
 
-**4b — Semantic self-check vs api-contract.md (LLM, deterministic checklist)**
+**4b — OpenAPI 3.0 schema validation (deterministic, via npx swagger-cli)**
+
+Probe for `npx` availability first:
+```bash
+npx --version
+```
+
+If the probe fails (non-zero exit or "command not found"), skip 4b entirely — log `Validation 4b: SKIPPED (npx unavailable — install Node.js to enable schema validation)` and proceed to 4c. Do not retry, do not abort.
+
+If `npx` is available, run:
+```bash
+npx --yes @apidevtools/swagger-cli validate "{absolute-output-path}"
+```
+
+Expected: exit code 0 and a `... is valid` line on stdout. On failure (non-zero exit):
+- Capture stdout + stderr verbatim (swagger-cli outputs precise pointers, e.g. `#/paths/~1users~1{id}/get/responses/200/content/application~1json/schema — Schema is missing`).
+- Increment retry counter.
+- If retries remain → return to Phase 2, re-render with the captured error as feedback (verbatim, including the JSONPointer), re-write, re-run 4a then 4b.
+- If retries exhausted → ABORT (see Failure mode).
+
+This check catches issues that 4a (pure JSON parse) and 4c (LLM self-check vs api-contract.md) both miss: invalid `$ref` targets, missing required OpenAPI keywords, wrong field shapes per the OpenAPI 3.0 meta-schema, malformed `parameters` arrays, illegal nullable/required combinations. It is the strongest gate in the pipeline and the reason a successful 4b is recorded explicitly in the final report.
+
+**4c — Semantic self-check vs api-contract.md (LLM, deterministic checklist)**
 
 After 4a passes, perform a deterministic self-check by re-reading both files and comparing. Run **every** check on the list — do not stop at the first match. Record each check as `PASS` or `FAIL` with a short reason.
 
@@ -158,7 +180,7 @@ After 4a passes, perform a deterministic self-check by re-reading both files and
 
 If any check returns `FAIL`:
 - Increment retry counter.
-- If retries remain → return to Phase 2, re-render with the failing checks as feedback (verbatim, e.g. "Check 6 FAIL: UserSummary.displayName missing in JSON schema"), re-write, re-run Phase 4a then 4b.
+- If retries remain → return to Phase 2, re-render with the failing checks as feedback (verbatim, e.g. "Check 6 FAIL: UserSummary.displayName missing in JSON schema"), re-write, re-run Phase 4a, 4b, then 4c.
 - If retries exhausted → ABORT (see Failure mode).
 
 If every check passes, proceed to Phase 5.
@@ -176,8 +198,15 @@ Endpoints: {N}
 Schemas: {M}
 Validation:
   4a structural (pwsh ConvertFrom-Json): PASS
-  4b semantic self-check (10/10): PASS
+  4b OpenAPI 3.0 schema (npx swagger-cli validate): PASS | SKIPPED (npx unavailable)
+  4c semantic self-check (10/10): PASS
 Retries used: {0|1|2}
+```
+
+If 4b was skipped because `npx` is unavailable, append a single advisory line at the end of the report:
+
+```
+Advisory: install Node.js to enable Phase 4b — npx @apidevtools/swagger-cli validate.
 ```
 
 ## Failure mode
@@ -188,12 +217,12 @@ After 2 failed retries (i.e. 3 total attempts with the same root cause), abort w
 ## SWAGGER-EMIT ABORTED
 
 File: {absolute path to swagger.json}
-Failed phase: {4a|4b}
+Failed phase: {4a|4b|4c}
 Retries used: 2
 Last error:
   {verbatim error message or list of failed checks}
 
-Manual fallback:
+Manual diagnosis:
   npx @apidevtools/swagger-cli validate {absolute-output-path}
 
 Action: inspect both api-contract.md and swagger.json side-by-side, then re-invoke /swagger-emit after the discrepancy is resolved.

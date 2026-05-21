@@ -335,21 +335,64 @@ Run this once. Do not skip. Formatting does not compile.
 
 **Scope restriction:** Pass only the absolute path to the IntegrationTests `.csproj`. Never pass a solution file path, a directory, or any other project's path. This agent must not reformat files outside its own IntegrationTests project.
 
-### Step 2 — Set Docker host and run tests
+### Step 2 — Docker pre-flight check (fail-fast)
 
-Integration tests use Testcontainers, which requires Docker access via TCP on this machine:
+Integration tests use Testcontainers, which spins up a PostgreSQL container at the start of every run. Docker on this machine runs inside WSL and is exposed over TCP on `localhost:2375`. If Docker is not reachable, Testcontainers will hang for minutes before timing out — verify reachability **before** invoking `dotnet test`:
+
+```powershell
+$reachable = Test-NetConnection -ComputerName localhost -Port 2375 -InformationLevel Quiet -WarningAction SilentlyContinue
+if (-not $reachable) {
+    wsl docker info 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Docker not reachable. Diagnose with: wsl docker info"
+        exit 1
+    }
+}
+```
+
+If this check fails, stop immediately and report under `Blocked` in Phase 5:
+
+```
+Blocked: Docker unavailable on tcp://localhost:2375 — verify WSL is running and Docker daemon exposes TCP on 2375.
+```
+
+Do not attempt `dotnet test` when Docker is unreachable — it is not a test failure, it is an environment failure.
+
+### Step 3 — Run tests with hang/crash protection
 
 ```powershell
 $env:DOCKER_HOST = "tcp://localhost:2375"
-dotnet test "{absolutePathToIntegrationTestsCsproj}" --logger "console;verbosity=normal"
+dotnet test "{absolutePathToIntegrationTestsCsproj}" `
+    --logger "console;verbosity=normal" `
+    --logger "trx;LogFileName=test-results.trx" `
+    --results-directory "TestResults" `
+    --blame-hang-timeout 3m `
+    --blame-crash `
+    --nologo
 ```
 
-Parse the output:
-- Count lines matching `Passed` and `Failed`.
-- If any test fails: read the failure message, identify the root cause (test logic error vs. production bug vs. missing precondition), fix the test file, re-run. Repeat until all tests pass or you identify a production code defect that is out of scope.
-- If a failure is caused by a production code defect (not a test error), do NOT fix production code — report it under `Blocked` in the final output.
+**Mandatory Bash tool timeout:** when invoking this command via the Bash tool, **always pass `timeout: 300000` (5 minutes)**. The default 120s is too short for a first run (Testcontainers image pull + container start + EF migrations + N tests). Without an explicit timeout the Bash tool will kill the process at 2 minutes and you will receive a generic abort message instead of a real test result.
 
-Do not produce the final output block until the test run completes.
+**Why each flag matters:**
+- `--blame-hang-timeout 3m` — kills and dumps any single test that hangs (e.g. Testcontainers cannot reach Docker mid-run, deadlocked async). Without this the run can stall indefinitely.
+- `--blame-crash` — produces a dump if the xUnit test host process crashes.
+- `trx` logger + `--results-directory` — deterministic XML artifact at `TestResults/test-results.trx` that you can read with the Read tool if console output is truncated or ambiguous.
+- `--nologo` — reduces irrelevant header noise so failure lines are easier to spot.
+
+### Step 4 — Parse results and react
+
+1. **Count outcomes** — look for the summary line (`Passed: N, Failed: N, Skipped: N`).
+2. **If any test failed or the summary is missing:**
+   - First, read the console output for `[FAIL]` blocks and their stack traces.
+   - If the console output is truncated, unclear, or the run was killed by `--blame-hang-timeout`, read `TestResults/test-results.trx` directly — it contains the full failure message, stack trace, and any captured stdout per test.
+3. **Classify the failure:**
+   - Test logic error (wrong assertion, wrong setup, wrong route) → fix the test file and re-run.
+   - Missing precondition (e.g. forgot to seed a related entity) → fix the Factory or Arrange block and re-run.
+   - Production bug (handler returns wrong status, persists wrong data) → **do NOT fix production code**. Stop and report under `Blocked` in Phase 5 with the exact failing test name and observed vs. expected behavior.
+   - Environment issue (Docker died mid-run, port collision) → re-run once; if it persists, report under `Blocked`.
+4. **Cap retries at 3 iterations** of test-only fixes. If you cannot get the tests green after 3 rounds without touching production code, stop and report what remains failing under `Blocked`.
+
+Do not produce the final output block until the test run completes (passed, failed with diagnosis, or blocked).
 
 ---
 
@@ -378,7 +421,10 @@ Blocked:
 ```
 
 If there are no blockers, write `Blocked: (none)`.
-If a blocker exists (missing project, production defect, missing contract), describe it on a separate line with a reason.
+If a blocker exists, describe it on a separate line with a reason. Examples:
+- `Blocked: Docker unavailable on tcp://localhost:2375 — verify WSL is running and Docker daemon exposes TCP on 2375.`
+- `Blocked: Production defect in CreateGroupHandler — POST /management-groups returns 500 instead of 201 (test CreateGroup_WithValidData_Returns201AndPersistsInDb).`
+- `Blocked: No IntegrationTests project found for module {ModuleName}.`
 
 ---
 

@@ -7,6 +7,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -75,7 +76,7 @@ export class CreateResourceModalComponent {
       if (this.open()) {
         const preset = this.preselectedSchemaId();
         this.selectedSchemaId.set(preset ?? null);
-        this.rebuildPropertyControls(this.properties());
+        this.rebuildPropertyControls(untracked(() => this.properties()));
         this.form.controls.name.reset('');
         this.form.controls.description.reset(null);
       }

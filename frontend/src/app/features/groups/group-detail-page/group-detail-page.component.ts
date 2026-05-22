@@ -63,7 +63,7 @@ export class GroupDetailPageComponent implements OnInit {
   readonly initialLoading = this.store.initialLoading;
   readonly initialError = this.store.initialError;
   readonly group = this.store.group;
-  readonly schemas = this.store.schemas;
+  readonly schemas = this.store.schemasWithCounts;
   readonly resources = this.store.resources;
   readonly members = this.store.members;
 

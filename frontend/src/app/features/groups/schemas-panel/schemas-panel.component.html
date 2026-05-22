@@ -44,10 +44,6 @@
               (click)="selectSchema.emit(schema.id)"
             >
               <span class="schemas-panel__name">{{ schema.name }}</span>
-              <div class="schemas-panel__row-end">
-                <tb-count-chip [count]="schema.propertyDefinitionsCount" accent="secondary" />
-                <tb-icon-chevron [size]="12" direction="right" />
-              </div>
             </button>
             @if (isOwner()) {
               <div class="schemas-panel__row-actions">
@@ -87,6 +83,14 @@
                 </button>
               </div>
             }
+            <div
+              class="schemas-panel__row-end"
+              aria-hidden="true"
+              (click)="selectSchema.emit(schema.id)"
+            >
+              <tb-count-chip [count]="schema.resourceCount" accent="secondary" />
+              <tb-icon-chevron [size]="12" direction="right" />
+            </div>
           </div>
         </li>
       }

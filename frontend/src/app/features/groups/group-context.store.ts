@@ -18,6 +18,7 @@ export interface SchemaSummary {
   readonly description: string | null;
   readonly propertyDefinitionsCount: number;
   readonly propertyDefinitions: PropertyDefinitionDto[];
+  readonly resourceCount: number;
 }
 
 export interface CursorPage<T> {
@@ -51,6 +52,13 @@ export class GroupContextStore {
 
   readonly group = this._group.asReadonly();
   readonly schemas = this._schemas.asReadonly();
+  readonly schemasWithCounts = computed(() => {
+    const resourceItems = this._resources().items;
+    return this._schemas().map(s => ({
+      ...s,
+      resourceCount: resourceItems.filter(r => r.resourceTypeId === s.id).length,
+    }));
+  });
   readonly members = this._members.asReadonly();
   readonly resources = this._resources.asReadonly();
   readonly initialLoading = this._initialLoading.asReadonly();
@@ -189,6 +197,7 @@ export class GroupContextStore {
       description: schema.description ?? null,
       propertyDefinitionsCount: schema.propertyDefinitions?.length ?? 0,
       propertyDefinitions: schema.propertyDefinitions ?? [],
+      resourceCount: 0,
     };
   }
 }

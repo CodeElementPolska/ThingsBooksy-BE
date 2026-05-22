@@ -164,29 +164,24 @@
 
   &__item {
     display: contents;
+
+    &:last-child .schemas-panel__row-wrapper {
+      border-bottom: none;
+    }
   }
 
   &__row {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    width: 100%;
+    flex: 1;
     padding: var(--space-3) var(--space-2);
     border: none;
-    border-bottom: 1px solid var(--color-border);
     background: transparent;
     color: inherit;
     text-align: left;
     cursor: pointer;
     transition: background var(--transition-base);
-
-    &:last-of-type {
-      border-bottom: none;
-    }
-
-    &:hover {
-      background: var(--color-surface-raised);
-    }
 
     &:focus-visible {
       outline: 2px solid var(--color-accent-primary);
@@ -212,29 +207,32 @@
     align-items: center;
     gap: var(--space-3);
     flex-shrink: 0;
+    padding: 0 var(--space-2);
     color: var(--color-text-muted);
+    cursor: pointer;
   }
 
   &__row-wrapper {
     position: relative;
     display: flex;
     align-items: stretch;
+    border-bottom: 1px solid var(--color-border);
 
     &:hover .schemas-panel__row-actions {
       opacity: 1;
       pointer-events: auto;
     }
+
+    &:hover .schemas-panel__row {
+      background: var(--color-surface-raised);
+    }
   }
 
   &__row-actions {
-    position: absolute;
-    right: var(--space-3);
-    top: 50%;
-    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
-    padding-right: var(--space-7); // space for the chevron
+    padding: 0 var(--space-2);
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-fast);

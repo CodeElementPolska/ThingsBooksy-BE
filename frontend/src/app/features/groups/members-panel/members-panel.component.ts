@@ -8,6 +8,7 @@ import {
 import { ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGroupMemberDto } from '../../../api/data-contracts';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 import { CountChipComponent } from '../../../shared/components/count-chip/count-chip.component';
+import { IconPlusComponent } from '../../../shared/components/icon-plus/icon-plus.component';
 import { InfiniteScrollDirective } from '../../../shared/directives/infinite-scroll.directive';
 
 function getInitials(email: string | null | undefined): string {
@@ -21,7 +22,7 @@ function getInitials(email: string | null | undefined): string {
 @Component({
   selector: 'tb-members-panel',
   standalone: true,
-  imports: [AvatarComponent, CountChipComponent, InfiniteScrollDirective],
+  imports: [AvatarComponent, CountChipComponent, IconPlusComponent, InfiniteScrollDirective],
   templateUrl: './members-panel.component.html',
   styleUrl: './members-panel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

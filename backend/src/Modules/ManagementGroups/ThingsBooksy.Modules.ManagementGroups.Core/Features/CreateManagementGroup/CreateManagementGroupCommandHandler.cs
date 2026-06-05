@@ -37,6 +37,9 @@ internal sealed class CreateManagementGroupCommandHandler : ICommandHandler<Crea
         if (string.IsNullOrWhiteSpace(command.Name))
             throw new ManagementGroupsDomainException("Group name cannot be empty.");
 
+        if (!TimeZoneInfo.TryFindSystemTimeZoneById(command.TimeZoneId, out _))
+            throw new ManagementGroupsDomainException("Invalid timezone identifier.");
+
         var trimmedName = command.Name.Trim();
 
         if (await _provider.OwnerNameExistsAsync(command.OwnerId, trimmedName, cancellationToken))
@@ -46,6 +49,6 @@ internal sealed class CreateManagementGroupCommandHandler : ICommandHandler<Crea
         await _provider.AddAsync(group, cancellationToken);
         await _provider.SaveChangesAsync(cancellationToken);
         _httpContextAccessor.HttpContext?.Items.TryAdd(CreatedGroupIdKey, group.Id);
-        await _messageBroker.PublishAsync(new GroupCreated(group.Id, group.OwnerId), cancellationToken);
+        await _messageBroker.PublishAsync(new GroupCreated(group.Id, group.OwnerId, group.TimeZoneId), cancellationToken);
     }
 }

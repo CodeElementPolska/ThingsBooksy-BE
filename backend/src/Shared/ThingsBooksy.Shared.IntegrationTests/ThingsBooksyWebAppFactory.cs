@@ -38,6 +38,8 @@ public class ThingsBooksyWebAppFactory : WebApplicationFactory<Program>, IAsyncL
                 ["logger:file:enabled"] = "false",
                 ["managementgroups:module:enabled"] = "true",
                 ["resources:module:enabled"] = "true",
+                ["calendar:module:enabled"] = "true",
+                ["availability:module:enabled"] = "true",
             });
         });
     }
@@ -73,7 +75,7 @@ public class ThingsBooksyWebAppFactory : WebApplicationFactory<Program>, IAsyncL
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["users", "management_groups", "resources"],
+            SchemasToInclude = ["users", "management_groups", "resources", "calendar", "availability"],
             TablesToIgnore = [new Table("users", "Roles")],
         });
     }

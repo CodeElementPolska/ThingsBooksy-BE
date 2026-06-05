@@ -1,0 +1,285 @@
+@use 'styles/tokens' as *;
+
+:host {
+  display: block;
+}
+
+.calendar-preview {
+  background: var(--color-overlay-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(var(--blur-card));
+  padding: var(--space-4);
+
+  @media (min-width: $breakpoint-md) {
+    padding: var(--space-6);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-4);
+    gap: var(--space-2);
+  }
+
+  &__month-label {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+    margin: 0;
+    letter-spacing: var(--letter-spacing-tight);
+    flex: 1;
+    text-align: center;
+  }
+
+  &__nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-8);
+    height: var(--space-8);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-raised);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xl);
+    line-height: 1;
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    flex-shrink: 0;
+
+    &:hover {
+      background: var(--color-border);
+      color: var(--color-text-primary);
+      border-color: var(--color-border-strong);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent-primary);
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  &__grid {
+    width: 100%;
+  }
+
+  &__day-names {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: var(--space-1);
+  }
+
+  &__day-name {
+    text-align: center;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    letter-spacing: var(--letter-spacing-uppercase);
+    text-transform: uppercase;
+    padding: var(--space-2) 0;
+  }
+
+  &__week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-1);
+    margin-bottom: var(--space-1);
+  }
+
+  &__day {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: var(--space-10);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    padding: var(--space-1);
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+    overflow: visible;
+
+    @media (min-width: $breakpoint-md) {
+      min-height: var(--space-12);
+    }
+
+    &--outside {
+      background: var(--color-calendar-outside-bg);
+      border-color: transparent;
+
+      .calendar-preview__day-number {
+        color: var(--color-calendar-outside-text);
+      }
+    }
+
+    &--neutral {
+      background: var(--color-calendar-neutral-bg);
+      border-color: var(--color-calendar-neutral-border);
+    }
+
+    &--available {
+      background: var(--color-calendar-available-bg);
+      border-color: var(--color-calendar-available-border);
+
+      .calendar-preview__day-number {
+        color: var(--color-calendar-available-text);
+      }
+    }
+
+    &--unavailable {
+      background: var(--color-calendar-unavailable-bg);
+      border-color: var(--color-calendar-unavailable-border);
+
+      .calendar-preview__day-number {
+        color: var(--color-calendar-unavailable-text);
+      }
+    }
+
+    &--holiday {
+      background: var(--color-calendar-holiday-bg);
+      border-color: var(--color-calendar-holiday-border);
+
+      .calendar-preview__day-number {
+        color: var(--color-calendar-holiday-text);
+      }
+    }
+
+    // Available day that is also a holiday — holiday colour wins for border/bg
+    &--available-holiday {
+      background: var(--color-calendar-holiday-bg);
+      border-color: var(--color-calendar-holiday-border);
+
+      .calendar-preview__day-number {
+        color: var(--color-calendar-available-text);
+      }
+    }
+
+    // Unavailable day that is also a holiday
+    &--unavailable-holiday {
+      background: var(--color-calendar-holiday-bg);
+      border-color: var(--color-calendar-unavailable-border);
+
+      .calendar-preview__day-number {
+        color: var(--color-calendar-unavailable-text);
+      }
+    }
+
+    // Hover only for current-month days
+    &:not(&--outside):hover {
+      .calendar-preview__holiday-tooltip {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+    }
+  }
+
+  &__day-number {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    line-height: 1;
+  }
+
+  &__overnight-badge {
+    display: inline-block;
+    margin-top: var(--space-1);
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-sm);
+    background: var(--color-chip-primary-bg);
+    border: 1px solid var(--color-chip-primary-border);
+    color: var(--color-accent-primary);
+    font-size: var(--font-size-2xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  &__holiday-tooltip {
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    left: 50%;
+    transform: translateX(-50%) translateY(var(--space-1));
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-calendar-holiday-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-calendar-holiday-text);
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+    max-width: 12rem;
+    white-space: normal;
+    text-align: center;
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-6);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+
+  &__legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__legend-swatch {
+    display: inline-block;
+    width: var(--space-4);
+    height: var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    flex-shrink: 0;
+
+    &--available {
+      background: var(--color-calendar-available-bg);
+      border-color: var(--color-calendar-available-border);
+    }
+
+    &--unavailable {
+      background: var(--color-calendar-unavailable-bg);
+      border-color: var(--color-calendar-unavailable-border);
+    }
+
+    &--holiday {
+      background: var(--color-calendar-holiday-bg);
+      border-color: var(--color-calendar-holiday-border);
+    }
+  }
+
+  &__legend-label {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-preview__nav-btn,
+  .calendar-preview__day,
+  .calendar-preview__holiday-tooltip {
+    transition-duration: 0.01ms;
+  }
+}

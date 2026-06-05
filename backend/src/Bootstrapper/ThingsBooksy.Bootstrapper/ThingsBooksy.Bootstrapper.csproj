@@ -21,6 +21,12 @@
     <ProjectReference Include="..\..\Modules\Users\ThingsBooksy.Modules.Users.Api\ThingsBooksy.Modules.Users.Api.csproj" />
     <ProjectReference Include="..\..\Shared\ThingsBooksy.Shared.Infrastructure\ThingsBooksy.Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Users\ThingsBooksy.Modules.Users.Migrations\ThingsBooksy.Modules.Users.Migrations.csproj" />
+    <ProjectReference Include="..\..\Modules\Calendar\ThingsBooksy.Modules.Calendar.Api\ThingsBooksy.Modules.Calendar.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Calendar\ThingsBooksy.Modules.Calendar.Migrations\ThingsBooksy.Modules.Calendar.Migrations.csproj" />
+    <ProjectReference Include="..\..\Modules\Availability\ThingsBooksy.Modules.Availability.Api\ThingsBooksy.Modules.Availability.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Availability\ThingsBooksy.Modules.Availability.Migrations\ThingsBooksy.Modules.Availability.Migrations.csproj" />
   </ItemGroup>
 
 </Project>
+
+

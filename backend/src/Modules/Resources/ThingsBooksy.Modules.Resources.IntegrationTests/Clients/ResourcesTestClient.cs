@@ -53,12 +53,12 @@ public class ResourcesTestClient
     // ManagementGroups HTTP methods — trigger domain events consumed by Resources handlers
     // -----------------------------------------------------------------------------------------
 
-    public Task<HttpResponseMessage> CreateGroupAsync(string name, string? description = null)
-        => _client.PostAsJsonAsync("/management-groups", new { Name = name, Description = description });
+    public Task<HttpResponseMessage> CreateGroupAsync(string name, string? description = null, string timeZoneId = "Europe/Warsaw")
+        => _client.PostAsJsonAsync("/management-groups", new { Name = name, Description = description, TimeZoneId = timeZoneId });
 
-    public async Task<Guid> CreateGroupAndGetIdAsync(string name, string? description = null)
+    public async Task<Guid> CreateGroupAndGetIdAsync(string name, string? description = null, string timeZoneId = "Europe/Warsaw")
     {
-        var response = await CreateGroupAsync(name, description);
+        var response = await CreateGroupAsync(name, description, timeZoneId);
         response.EnsureSuccessStatusCode();
         // Use case-insensitive options because the API returns lowercase "id" while the record
         // has an uppercase "Id" property. System.Text.Json defaults are case-sensitive.
@@ -139,6 +139,21 @@ public class ResourcesTestClient
             Name = name,
             Description = description,
             PropertyDefinitions = (IEnumerable<PropertyDefinitionRequest>)(propertyDefinitions ?? Array.Empty<PropertyDefinitionRequest>())
+        });
+
+    public Task<HttpResponseMessage> CreateResourceTypeWithBufferAsync(
+        Guid groupId,
+        string name,
+        int bufferMinutes,
+        string? description = null,
+        IEnumerable<PropertyDefinitionRequest>? propertyDefinitions = null)
+        => _client.PostAsJsonAsync("/resources/types", new
+        {
+            GroupId = groupId,
+            Name = name,
+            Description = description,
+            PropertyDefinitions = (IEnumerable<PropertyDefinitionRequest>)(propertyDefinitions ?? Array.Empty<PropertyDefinitionRequest>()),
+            BufferMinutes = bufferMinutes
         });
 
     public async Task<Guid> CreateResourceTypeAndGetIdAsync(

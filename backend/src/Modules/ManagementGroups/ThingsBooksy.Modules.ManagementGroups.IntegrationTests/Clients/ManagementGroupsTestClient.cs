@@ -31,12 +31,12 @@ public class ManagementGroupsTestClient
 
     // --- HTTP methods (Arrange / Act) ---
 
-    public Task<HttpResponseMessage> CreateGroupAsync(string name, string? description = null)
-        => _client.PostAsJsonAsync("/management-groups", new { Name = name, Description = description });
+    public Task<HttpResponseMessage> CreateGroupAsync(string name, string? description = null, string timeZoneId = "Europe/Warsaw")
+        => _client.PostAsJsonAsync("/management-groups", new { Name = name, Description = description, TimeZoneId = timeZoneId });
 
-    public async Task<Guid> CreateGroupAndGetIdAsync(string name, string? description = null)
+    public async Task<Guid> CreateGroupAndGetIdAsync(string name, string? description = null, string timeZoneId = "Europe/Warsaw")
     {
-        var response = await CreateGroupAsync(name, description);
+        var response = await CreateGroupAsync(name, description, timeZoneId);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<CreateGroupResponse>();
         return result!.Id;

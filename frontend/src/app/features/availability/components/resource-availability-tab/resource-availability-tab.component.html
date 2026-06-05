@@ -1,0 +1,428 @@
+<section
+  class="resource-availability-tab"
+  aria-labelledby="resource-availability-heading"
+>
+  <header class="resource-availability-tab__header">
+    <h2
+      id="resource-availability-heading"
+      class="resource-availability-tab__title"
+    >
+      Resource Availability
+    </h2>
+    <span class="resource-availability-tab__timezone" aria-live="polite">
+      All times in {{ groupTimezone() }}
+    </span>
+  </header>
+
+  @if (isLoading()) {
+    <div class="resource-availability-tab__loading" role="status" aria-label="Loading availability rules">
+      <span class="resource-availability-tab__spinner" aria-hidden="true"></span>
+      <span class="resource-availability-tab__loading-text">Loading…</span>
+    </div>
+  } @else if (error() && !rulesViewModel()) {
+    <div class="resource-availability-tab__error" role="alert">
+      <p>{{ error() }}</p>
+    </div>
+  } @else {
+    <!-- Inherited schema rules (read-only) -->
+    <section
+      class="resource-availability-tab__inherited"
+      aria-labelledby="inherited-rules-heading"
+    >
+      <header class="resource-availability-tab__section-header">
+        <h3
+          id="inherited-rules-heading"
+          class="resource-availability-tab__section-title"
+        >
+          Schema rules
+        </h3>
+        <span
+          class="resource-availability-tab__badge resource-availability-tab__badge--inherited"
+          aria-label="These rules are copied from the schema and cannot be edited here"
+        >
+          Copied from schema
+        </span>
+      </header>
+
+      @if (!hasInheritedRules()) {
+        <p class="resource-availability-tab__empty-note">
+          No schema-level rules defined.
+        </p>
+      } @else {
+        <ul
+          class="resource-availability-tab__rule-list resource-availability-tab__rule-list--readonly"
+          role="list"
+        >
+          @for (rule of inheritedRules(); track rule.ruleId) {
+            <li class="resource-availability-tab__rule-item resource-availability-tab__rule-item--readonly">
+              <span
+                class="resource-availability-tab__rule-badge"
+                [class.resource-availability-tab__rule-badge--available]="rule.ruleMode === 'AVAILABLE'"
+                [class.resource-availability-tab__rule-badge--unavailable]="rule.ruleMode === 'UNAVAILABLE'"
+              >
+                {{ rule.ruleMode === 'AVAILABLE' ? 'Available' : 'Unavailable' }}
+              </span>
+              <span class="resource-availability-tab__rule-type">
+                {{ rule.ruleType === 'RECURRING' ? 'Recurring' : 'One-off' }}
+              </span>
+              @if (rule.ruleType === 'RECURRING') {
+                <span class="resource-availability-tab__rule-days">
+                  {{ formatDays(rule.daysOfWeek) }}
+                </span>
+              } @else {
+                <span class="resource-availability-tab__rule-dates">
+                  {{ rule.startDate }} – {{ rule.endDate }}
+                </span>
+              }
+              <span class="resource-availability-tab__rule-time">
+                {{ rule.startTime }} – {{ rule.endTime }}
+                @if (rule.endDayOffset === 1) {
+                  <span class="resource-availability-tab__nextday-badge" aria-label="Ends next day">+1 day</span>
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Effective buffer minutes (display-only) -->
+    <section
+      class="resource-availability-tab__buffer-info"
+      aria-labelledby="buffer-info-heading"
+    >
+      <h3
+        id="buffer-info-heading"
+        class="resource-availability-tab__section-title"
+      >
+        Buffer time
+      </h3>
+      <p class="resource-availability-tab__buffer-value">
+        Effective buffer: <strong>{{ effectiveBufferMinutes() }} min</strong>
+        <span class="resource-availability-tab__buffer-note">
+          (inherited from schema; override below)
+        </span>
+      </p>
+
+      <div class="resource-availability-tab__buffer-override" [formGroup]="bufferForm">
+        <label
+          for="buffer-override-input"
+          class="resource-availability-tab__label"
+        >
+          Override buffer (minutes)
+          <span class="resource-availability-tab__label-hint">Leave empty to inherit from schema</span>
+        </label>
+        <input
+          id="buffer-override-input"
+          type="number"
+          class="resource-availability-tab__input"
+          formControlName="bufferMinutes"
+          min="0"
+          max="1440"
+          placeholder="e.g. 15"
+          aria-describedby="buffer-override-hint"
+        />
+        <span id="buffer-override-hint" class="resource-availability-tab__field-hint">
+          0–1440 minutes (0 = no buffer)
+        </span>
+        @if (bufferForm.controls['bufferMinutes'].invalid && bufferForm.controls['bufferMinutes'].touched) {
+          <span class="resource-availability-tab__field-error" role="alert">
+            @if (bufferForm.controls['bufferMinutes'].errors?.['min']) {
+              Must be 0 or greater.
+            }
+            @if (bufferForm.controls['bufferMinutes'].errors?.['max']) {
+              Maximum is 1440 minutes (24 hours).
+            }
+          </span>
+        }
+      </div>
+    </section>
+
+    <!-- Resource override rules -->
+    <section
+      class="resource-availability-tab__overrides"
+      aria-labelledby="override-rules-heading"
+    >
+      <h3
+        id="override-rules-heading"
+        class="resource-availability-tab__section-title"
+      >
+        Resource-specific rules
+      </h3>
+
+      @if (!hasRules()) {
+        <p class="resource-availability-tab__empty-note">
+          No resource-specific rules. The resource inherits schema rules only.
+        </p>
+      } @else {
+        <ul class="resource-availability-tab__rule-list" role="list">
+          @for (rule of rules(); track rule.ruleId) {
+            <li class="resource-availability-tab__rule-item">
+              <span
+                class="resource-availability-tab__rule-badge"
+                [class.resource-availability-tab__rule-badge--available]="rule.ruleMode === 'AVAILABLE'"
+                [class.resource-availability-tab__rule-badge--unavailable]="rule.ruleMode === 'UNAVAILABLE'"
+              >
+                {{ rule.ruleMode === 'AVAILABLE' ? 'Available' : 'Unavailable' }}
+              </span>
+              <span class="resource-availability-tab__rule-type">
+                {{ rule.ruleType === 'RECURRING' ? 'Recurring' : 'One-off' }}
+              </span>
+              @if (rule.ruleType === 'RECURRING') {
+                <span class="resource-availability-tab__rule-days">
+                  {{ formatDays(rule.daysOfWeek) }}
+                </span>
+              } @else {
+                <span class="resource-availability-tab__rule-dates">
+                  {{ rule.startDate }} – {{ rule.endDate }}
+                </span>
+              }
+              <span class="resource-availability-tab__rule-time">
+                {{ rule.startTime }} – {{ rule.endTime }}
+                @if (rule.endDayOffset === 1) {
+                  <span class="resource-availability-tab__nextday-badge" aria-label="Ends next day">+1 day</span>
+                }
+              </span>
+              <button
+                type="button"
+                class="resource-availability-tab__remove-btn"
+                [attr.aria-label]="'Remove rule ' + rule.startTime + ' – ' + rule.endTime"
+                (click)="onRemoveRule(rule.ruleId)"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Add rule form -->
+    <section
+      class="resource-availability-tab__add-rule"
+      aria-labelledby="add-rule-heading"
+    >
+      <h3
+        id="add-rule-heading"
+        class="resource-availability-tab__section-title"
+      >
+        Add rule
+      </h3>
+
+      <div class="resource-availability-tab__type-switch">
+        <label for="rule-type-select" class="resource-availability-tab__label">
+          Rule type
+        </label>
+        <select
+          id="rule-type-select"
+          class="resource-availability-tab__select"
+          [value]="selectedRuleType()"
+          (change)="onRuleTypeChange($event)"
+          aria-label="Select rule type"
+        >
+          <option value="RECURRING">Recurring</option>
+          <option value="ONE_OFF">One-off</option>
+        </select>
+      </div>
+
+      <form
+        [formGroup]="addRuleForm"
+        (ngSubmit)="onAddRule()"
+        class="resource-availability-tab__form"
+        aria-label="Add availability rule form"
+      >
+        <div class="resource-availability-tab__field">
+          <label for="rule-mode-select" class="resource-availability-tab__label">
+            Mode
+          </label>
+          <select
+            id="rule-mode-select"
+            class="resource-availability-tab__select"
+            formControlName="ruleMode"
+          >
+            <option value="AVAILABLE">Available</option>
+            <option value="UNAVAILABLE">Unavailable</option>
+          </select>
+        </div>
+
+        @if (isRecurring()) {
+          <div class="resource-availability-tab__field">
+            <fieldset class="resource-availability-tab__days-fieldset">
+              <legend class="resource-availability-tab__label">
+                Days of week
+              </legend>
+              <div class="resource-availability-tab__days">
+                @for (day of dayLabels; track day.value) {
+                  <button
+                    type="button"
+                    class="resource-availability-tab__day-btn"
+                    [class.resource-availability-tab__day-btn--active]="isDaySelected(day.value)"
+                    [attr.aria-pressed]="isDaySelected(day.value)"
+                    [attr.aria-label]="day.label"
+                    (click)="onDayToggle(day.value)"
+                  >
+                    {{ day.label }}
+                  </button>
+                }
+              </div>
+              @if (addRuleForm.controls['daysOfWeek'].invalid && addRuleForm.controls['daysOfWeek'].touched) {
+                <span class="resource-availability-tab__field-error" role="alert">
+                  Select at least one day.
+                </span>
+              }
+            </fieldset>
+          </div>
+        } @else {
+          <div class="resource-availability-tab__field">
+            <label for="start-date-input" class="resource-availability-tab__label">
+              Start date
+            </label>
+            <input
+              id="start-date-input"
+              type="date"
+              class="resource-availability-tab__input"
+              formControlName="startDate"
+            />
+            @if (addRuleForm.controls['startDate']?.invalid && addRuleForm.controls['startDate']?.touched) {
+              <span class="resource-availability-tab__field-error" role="alert">
+                Start date is required.
+              </span>
+            }
+          </div>
+          <div class="resource-availability-tab__field">
+            <label for="end-date-input" class="resource-availability-tab__label">
+              End date
+            </label>
+            <input
+              id="end-date-input"
+              type="date"
+              class="resource-availability-tab__input"
+              formControlName="endDate"
+            />
+            @if (addRuleForm.controls['endDate']?.invalid && addRuleForm.controls['endDate']?.touched) {
+              <span class="resource-availability-tab__field-error" role="alert">
+                End date is required.
+              </span>
+            }
+          </div>
+        }
+
+        <div class="resource-availability-tab__time-row">
+          <div class="resource-availability-tab__field">
+            <label for="start-time-input" class="resource-availability-tab__label">
+              Start time
+            </label>
+            <input
+              id="start-time-input"
+              type="time"
+              class="resource-availability-tab__input"
+              formControlName="startTime"
+            />
+            @if (addRuleForm.controls['startTime'].invalid && addRuleForm.controls['startTime'].touched) {
+              <span class="resource-availability-tab__field-error" role="alert">
+                Valid start time is required (HH:mm).
+              </span>
+            }
+          </div>
+          <span class="resource-availability-tab__time-separator" aria-hidden="true">–</span>
+          <div class="resource-availability-tab__field">
+            <label for="end-time-input" class="resource-availability-tab__label">
+              End time
+            </label>
+            <input
+              id="end-time-input"
+              type="time"
+              class="resource-availability-tab__input"
+              formControlName="endTime"
+            />
+            @if (addRuleForm.controls['endTime'].invalid && addRuleForm.controls['endTime'].touched) {
+              <span class="resource-availability-tab__field-error" role="alert">
+                Valid end time is required (HH:mm).
+              </span>
+            }
+            @if (showNextDayBadge()) {
+              <span class="resource-availability-tab__nextday-badge resource-availability-tab__nextday-badge--preview">
+                +1 day
+              </span>
+            }
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="resource-availability-tab__btn resource-availability-tab__btn--secondary"
+          [disabled]="addRuleForm.invalid"
+        >
+          Add rule
+        </button>
+      </form>
+    </section>
+
+    <!-- Error banners -->
+    @if (error()) {
+      <div class="resource-availability-tab__error-banner" role="alert">
+        {{ error() }}
+      </div>
+    }
+
+    @if (conflictError()) {
+      <div class="resource-availability-tab__conflict-banner" role="alert">
+        <strong>Conflict:</strong> {{ conflictError() }}
+      </div>
+    }
+
+    @if (saveSuccess()) {
+      <div
+        class="resource-availability-tab__success-banner"
+        role="status"
+        aria-live="polite"
+      >
+        Availability rules saved successfully.
+      </div>
+    }
+
+    <!-- Action bar -->
+    <footer class="resource-availability-tab__actions">
+      <button
+        type="button"
+        class="resource-availability-tab__btn resource-availability-tab__btn--danger-outline"
+        [disabled]="isResetting() || isSaving()"
+        (click)="onResetToDefaults()"
+        aria-label="Reset this resource to schema defaults"
+      >
+        @if (isResetting()) {
+          Resetting…
+        } @else {
+          Reset to schema defaults
+        }
+      </button>
+
+      <button
+        type="button"
+        class="resource-availability-tab__btn resource-availability-tab__btn--primary"
+        [disabled]="bufferForm.invalid || isSaving() || isResetting()"
+        (click)="onSave()"
+        aria-label="Save resource availability rules"
+      >
+        @if (isSaving()) {
+          Saving…
+        } @else {
+          Save
+        }
+      </button>
+    </footer>
+  }
+</section>

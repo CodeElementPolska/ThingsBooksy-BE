@@ -12,4 +12,5 @@ internal class GroupReadModel
 
     internal static GroupReadModel Upsert(GroupCreated @event)
         => new() { Id = @event.GroupId, OwnerId = @event.OwnerId };
+    // TimeZoneId from the event is not projected into Resources' GroupReadModel
 }

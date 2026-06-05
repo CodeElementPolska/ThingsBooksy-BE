@@ -1,5 +1,33 @@
 {
   "env": {
     "PYTHONUTF8": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(dotnet test *)",
+      "Bash(dotnet format *)",
+      "Bash(dotnet ef *)",
+      "Bash(dotnet run *)",
+      "Bash(dotnet clean *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(npm start *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Read(backend/**)",
+      "Write(backend/**)",
+      "Edit(backend/**)",
+      "Read(frontend/**)",
+      "Write(frontend/**)",
+      "Edit(frontend/**)",
+      "Read(specs/**)",
+      "Write(specs/**)",
+      "Edit(specs/**)"
+    ]
   }
 }

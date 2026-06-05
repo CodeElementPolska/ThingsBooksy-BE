@@ -126,13 +126,39 @@
   --transition-pill:    320ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-expo:      cubic-bezier(0.22, 1, 0.36, 1);
 
+  // Colors — calendar day states
+  --color-calendar-available-bg:       oklch(72% 0.15 155 / 0.12);
+  --color-calendar-available-border:   oklch(72% 0.15 155 / 0.35);
+  --color-calendar-available-text:     oklch(78% 0.13 168);
+  --color-calendar-unavailable-bg:     oklch(65% 0.22 18 / 0.12);
+  --color-calendar-unavailable-border: oklch(65% 0.22 18 / 0.35);
+  --color-calendar-unavailable-text:   oklch(75% 0.18 18);
+  --color-calendar-holiday-bg:         oklch(78% 0.16 52 / 0.18);
+  --color-calendar-holiday-border:     oklch(78% 0.16 52 / 0.40);
+  --color-calendar-holiday-text:       oklch(84% 0.14 52);
+  --color-calendar-neutral-bg:         oklch(13% 0.025 265 / 0.40);
+  --color-calendar-neutral-border:     var(--color-border);
+  --color-calendar-outside-bg:         transparent;
+  --color-calendar-outside-text:       var(--color-text-muted);
+
   // Backdrop blur tiers
   --blur-nav:           24px;
   --blur-card:          44px;
   --blur-ticker:        16px;
 
   // Component-specific layout sizes
-  --max-width-toast:    23.75rem; // 380px — toast panel maximum width
+  --max-width-toast:         23.75rem; // 380px — toast panel maximum width
+  --max-width-input-narrow:  18rem;    // 288px — narrow input/select fields
+
+  // Animation durations
+  --transition-spin:    600ms linear;
+
+  // Focus / outline
+  --outline-width:        2px;
+  --outline-offset-focus: 2px;
+
+  // Border widths
+  --border-width-thick: 2px;
 }
 
 // Breakpoints (SCSS variables — cannot live in :root because browsers do not

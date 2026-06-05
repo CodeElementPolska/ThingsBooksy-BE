@@ -42,6 +42,15 @@
         [fields]="fields()"
       />
     </div>
+
+    @if (mode() === 'edit' && schemaId()) {
+      <div class="schema-designer-page__availability">
+        <tb-schema-availability-tab
+          [schemaId]="schemaId()!"
+          [groupTimezone]="groupTimezone()"
+        />
+      </div>
+    }
   }
 
   <footer class="schema-designer-page__footer">

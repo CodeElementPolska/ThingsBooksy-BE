@@ -1,0 +1,27 @@
+<div class="resource-detail-page">
+  <header class="resource-detail-page__header">
+    <nav class="resource-detail-page__crumbs">
+      <a class="resource-detail-page__crumb" [routerLink]="['/groups', groupId()]">Group</a>
+      <span aria-hidden="true">/</span>
+      <span class="resource-detail-page__crumb resource-detail-page__crumb--current">
+        {{ title() }}
+      </span>
+    </nav>
+    @if (schemaName()) {
+      <span class="resource-detail-page__schema-badge">{{ schemaName() }}</span>
+    }
+  </header>
+
+  @if (isLoading()) {
+    <div class="resource-detail-page__loading" role="status">
+      <p>Loading resource…</p>
+    </div>
+  } @else {
+    <section class="resource-detail-page__section" aria-label="Availability">
+      <tb-resource-availability-tab
+        [resourceId]="resourceId()"
+        [groupTimezone]="groupTimezone()"
+      />
+    </section>
+  }
+</div>

@@ -1,0 +1,293 @@
+<div class="sat">
+
+  <!-- Loading state -->
+  @if (isLoading()) {
+    <div class="sat__loading" role="status" aria-live="polite">
+      <span class="sat__spinner" aria-hidden="true"></span>
+      <span>Loading availability rules…</span>
+    </div>
+  }
+
+  <!-- Error state (load error) -->
+  @if (error() && !isLoading()) {
+    <div class="sat__alert sat__alert--danger" role="alert">
+      {{ error() }}
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <!-- Timezone context label -->
+    <p class="sat__tz-label">
+      All times in <strong>{{ groupTimezone() }}</strong>
+    </p>
+
+    <!-- Buffer minutes section -->
+    <section class="sat__section" aria-labelledby="sat-buffer-heading">
+      <h3 class="sat__section-title" id="sat-buffer-heading">Buffer minutes</h3>
+      <p class="sat__section-desc">
+        Minimum gap enforced before and after each booking.
+      </p>
+      <form
+        [formGroup]="bufferForm"
+        class="sat__buffer-form"
+        aria-label="Buffer minutes form"
+      >
+        <div class="sat__field">
+          <label class="sat__label" for="sat-buffer-input">Buffer (minutes)</label>
+          <input
+            id="sat-buffer-input"
+            type="number"
+            class="sat__input sat__input--narrow"
+            formControlName="bufferMinutes"
+            min="0"
+            max="1440"
+            aria-describedby="sat-buffer-hint"
+          />
+          <span class="sat__hint" id="sat-buffer-hint">0–1440 minutes (max 24 h)</span>
+          @if (bufferForm.controls['bufferMinutes'].invalid && bufferForm.controls['bufferMinutes'].touched) {
+            <span class="sat__field-error" role="alert">
+              @if (bufferForm.controls['bufferMinutes'].errors?.['min'] || bufferForm.controls['bufferMinutes'].errors?.['max']) {
+                Value must be between 0 and 1440.
+              }
+              @if (bufferForm.controls['bufferMinutes'].errors?.['required']) {
+                Buffer minutes is required.
+              }
+            </span>
+          }
+        </div>
+      </form>
+    </section>
+
+    <!-- Existing rules list -->
+    <section class="sat__section" aria-labelledby="sat-rules-heading">
+      <h3 class="sat__section-title" id="sat-rules-heading">
+        Availability rules
+        @if (hasRules()) {
+          <span class="sat__count-badge">{{ rules().length }}</span>
+        }
+      </h3>
+
+      @if (hasRules()) {
+        <ul class="sat__rules-list" aria-label="Availability rules list">
+          @for (rule of rules(); track rule.ruleId) {
+            <li class="sat__rule-item">
+              <div class="sat__rule-header">
+                <span
+                  class="sat__rule-type-badge"
+                  [class.sat__rule-type-badge--recurring]="rule.ruleType === 'RECURRING'"
+                  [class.sat__rule-type-badge--one-off]="rule.ruleType === 'ONE_OFF'"
+                >
+                  {{ rule.ruleType === 'RECURRING' ? 'Recurring' : 'One-off' }}
+                </span>
+                <span
+                  class="sat__rule-mode-badge"
+                  [class.sat__rule-mode-badge--available]="rule.ruleMode === 'AVAILABLE'"
+                  [class.sat__rule-mode-badge--unavailable]="rule.ruleMode === 'UNAVAILABLE'"
+                >
+                  {{ rule.ruleMode === 'AVAILABLE' ? 'Available' : 'Unavailable' }}
+                </span>
+              </div>
+
+              <div class="sat__rule-body">
+                @if (rule.ruleType === 'RECURRING') {
+                  <span class="sat__rule-detail">
+                    {{ formatDays(rule.daysOfWeek) }}
+                  </span>
+                } @else {
+                  <span class="sat__rule-detail">
+                    {{ rule.startDate }} → {{ rule.endDate }}
+                  </span>
+                }
+                <span class="sat__rule-time">
+                  {{ rule.startTime }} – {{ rule.endTime }}
+                  @if (rule.endDayOffset === 1) {
+                    <span class="sat__next-day-badge" aria-label="ends next day">+1 day</span>
+                  }
+                </span>
+              </div>
+
+              <button
+                type="button"
+                class="sat__rule-remove"
+                (click)="onRemoveRule(rule.ruleId)"
+                [attr.aria-label]="'Remove ' + (rule.ruleType === 'RECURRING' ? 'recurring' : 'one-off') + ' rule'"
+              >
+                &#x2715;
+              </button>
+            </li>
+          } @empty {
+            <!-- handled below -->
+          }
+        </ul>
+      } @else {
+        <p class="sat__empty">No rules defined. Add one below.</p>
+      }
+    </section>
+
+    <!-- Add rule form -->
+    <section class="sat__section" aria-labelledby="sat-add-heading">
+      <h3 class="sat__section-title" id="sat-add-heading">Add a rule</h3>
+
+      <!-- Rule type selector -->
+      <div class="sat__field">
+        <label class="sat__label" for="sat-rule-type-select">Rule type</label>
+        <select
+          id="sat-rule-type-select"
+          class="sat__select"
+          [value]="selectedRuleType()"
+          (change)="onRuleTypeChange($event)"
+          aria-label="Select rule type"
+        >
+          <option value="RECURRING">Recurring</option>
+          <option value="ONE_OFF">One-off</option>
+        </select>
+      </div>
+
+      <form
+        [formGroup]="addRuleForm"
+        class="sat__add-form"
+        aria-label="Add availability rule form"
+      >
+        <!-- Rule mode -->
+        <div class="sat__field">
+          <label class="sat__label" for="sat-rule-mode-select">Mode</label>
+          <select
+            id="sat-rule-mode-select"
+            class="sat__select"
+            formControlName="ruleMode"
+          >
+            <option value="AVAILABLE">Available</option>
+            <option value="UNAVAILABLE">Unavailable</option>
+          </select>
+        </div>
+
+        @if (isRecurring()) {
+          <!-- Days of week checkboxes -->
+          <div class="sat__field" role="group" aria-labelledby="sat-days-label">
+            <span class="sat__label" id="sat-days-label">Days of week</span>
+            <div class="sat__days-grid">
+              @for (day of dayLabels; track day.value) {
+                <label class="sat__day-label">
+                  <input
+                    type="checkbox"
+                    class="sat__day-checkbox"
+                    [checked]="isDaySelected(day.value)"
+                    (change)="onDayToggle(day.value)"
+                    [attr.aria-label]="day.label"
+                  />
+                  <span class="sat__day-text">{{ day.label }}</span>
+                </label>
+              }
+            </div>
+            @if (addRuleForm.controls['daysOfWeek']?.invalid && addRuleForm.controls['daysOfWeek']?.touched) {
+              <span class="sat__field-error" role="alert">
+                Select at least one day.
+              </span>
+            }
+          </div>
+        } @else {
+          <!-- One-off date pickers -->
+          <div class="sat__dates-row">
+            <div class="sat__field">
+              <label class="sat__label" for="sat-start-date">Start date</label>
+              <input
+                id="sat-start-date"
+                type="date"
+                class="sat__input"
+                formControlName="startDate"
+              />
+              @if (addRuleForm.controls['startDate']?.invalid && addRuleForm.controls['startDate']?.touched) {
+                <span class="sat__field-error" role="alert">Start date is required.</span>
+              }
+            </div>
+            <div class="sat__field">
+              <label class="sat__label" for="sat-end-date">End date</label>
+              <input
+                id="sat-end-date"
+                type="date"
+                class="sat__input"
+                formControlName="endDate"
+              />
+              @if (addRuleForm.controls['endDate']?.invalid && addRuleForm.controls['endDate']?.touched) {
+                <span class="sat__field-error" role="alert">End date is required.</span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Time range -->
+        <div class="sat__times-row">
+          <div class="sat__field">
+            <label class="sat__label" for="sat-start-time">Start time</label>
+            <input
+              id="sat-start-time"
+              type="time"
+              class="sat__input"
+              formControlName="startTime"
+              placeholder="HH:mm"
+            />
+            @if (addRuleForm.controls['startTime']?.invalid && addRuleForm.controls['startTime']?.touched) {
+              <span class="sat__field-error" role="alert">Valid start time (HH:mm) required.</span>
+            }
+          </div>
+          <div class="sat__field">
+            <label class="sat__label" for="sat-end-time">
+              End time
+              @if (showNextDayBadge()) {
+                <span class="sat__next-day-badge" aria-label="ends on next day">+1 day</span>
+              }
+            </label>
+            <input
+              id="sat-end-time"
+              type="time"
+              class="sat__input"
+              formControlName="endTime"
+              placeholder="HH:mm"
+            />
+            @if (addRuleForm.controls['endTime']?.invalid && addRuleForm.controls['endTime']?.touched) {
+              <span class="sat__field-error" role="alert">Valid end time (HH:mm) required.</span>
+            }
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="sat__btn sat__btn--secondary"
+          (click)="onAddRule()"
+          [disabled]="addRuleForm.invalid"
+        >
+          + Add rule
+        </button>
+      </form>
+    </section>
+
+    <!-- Save section -->
+    <div class="sat__save-row">
+      @if (conflictError()) {
+        <div class="sat__alert sat__alert--danger" role="alert">
+          <strong>Conflict:</strong> {{ conflictError() }}
+        </div>
+      }
+
+      @if (saveSuccess()) {
+        <div class="sat__alert sat__alert--success" role="status" aria-live="polite">
+          Availability rules saved successfully.
+        </div>
+      }
+
+      <button
+        type="button"
+        class="sat__btn sat__btn--primary"
+        (click)="onSave()"
+        [disabled]="bufferForm.invalid || isSaving()"
+        [attr.aria-busy]="isSaving()"
+      >
+        @if (isSaving()) {
+          Saving…
+        } @else {
+          Save rules
+        }
+      </button>
+    </div>
+  }
+</div>

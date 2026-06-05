@@ -11,6 +11,7 @@ internal class ManagementGroup
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
     public Guid OwnerId { get; private set; }
+    public string TimeZoneId { get; private set; } = null!;
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public DateTime? DeletedAt { get; private set; }
@@ -26,6 +27,7 @@ internal class ManagementGroup
             Name = command.Name,
             Description = command.Description,
             OwnerId = command.OwnerId,
+            TimeZoneId = command.TimeZoneId,
             CreatedAt = now,
             UpdatedAt = now
         };

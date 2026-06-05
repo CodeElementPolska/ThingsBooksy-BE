@@ -1,0 +1,84 @@
+<div class="calendar-preview">
+  <div class="calendar-preview__header">
+    <button
+      class="calendar-preview__nav-btn"
+      type="button"
+      (click)="goToPreviousMonth()"
+      aria-label="Previous month"
+    >
+      &#8249;
+    </button>
+
+    <h3 class="calendar-preview__month-label" aria-live="polite">
+      {{ displayMonthLabel() }}
+    </h3>
+
+    <button
+      class="calendar-preview__nav-btn"
+      type="button"
+      (click)="goToNextMonth()"
+      aria-label="Next month"
+    >
+      &#8250;
+    </button>
+  </div>
+
+  <div class="calendar-preview__grid" role="grid" [attr.aria-label]="displayMonthLabel() + ' calendar'">
+    <div class="calendar-preview__day-names" role="row">
+      @for (name of dayNames; track name) {
+        <div class="calendar-preview__day-name" role="columnheader" [attr.aria-label]="name">
+          {{ name }}
+        </div>
+      }
+    </div>
+
+    @for (week of calendarWeeks(); track $index) {
+      <div class="calendar-preview__week" role="row">
+        @for (day of week; track day.date.toISOString()) {
+          <div
+            class="calendar-preview__day"
+            [class.calendar-preview__day--outside]="!day.isCurrentMonth"
+            [class.calendar-preview__day--available]="day.isCurrentMonth && day.color === 'available' && !day.hasHoliday"
+            [class.calendar-preview__day--unavailable]="day.isCurrentMonth && day.color === 'unavailable' && !day.hasHoliday"
+            [class.calendar-preview__day--neutral]="day.isCurrentMonth && day.color === 'neutral' && !day.hasHoliday"
+            [class.calendar-preview__day--holiday]="day.isCurrentMonth && day.hasHoliday"
+            [class.calendar-preview__day--available-holiday]="day.isCurrentMonth && day.hasHoliday && day.color === 'available'"
+            [class.calendar-preview__day--unavailable-holiday]="day.isCurrentMonth && day.hasHoliday && day.color === 'unavailable'"
+            role="gridcell"
+            [attr.aria-label]="day.isCurrentMonth ? buildDayLabel(day) : null"
+            [attr.aria-disabled]="!day.isCurrentMonth ? 'true' : null"
+          >
+            <span class="calendar-preview__day-number">{{ day.date.getDate() }}</span>
+
+            @if (day.isCurrentMonth && day.isOvernightTarget) {
+              <span class="calendar-preview__overnight-badge" title="Overnight stay ends on this day">
+                +1d
+              </span>
+            }
+
+            @if (day.isCurrentMonth && day.hasHoliday && day.holidayName) {
+              <span class="calendar-preview__holiday-tooltip" role="tooltip">
+                {{ day.holidayName }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="calendar-preview__legend" aria-label="Calendar legend">
+    <div class="calendar-preview__legend-item">
+      <span class="calendar-preview__legend-swatch calendar-preview__legend-swatch--available" aria-hidden="true"></span>
+      <span class="calendar-preview__legend-label">Available</span>
+    </div>
+    <div class="calendar-preview__legend-item">
+      <span class="calendar-preview__legend-swatch calendar-preview__legend-swatch--unavailable" aria-hidden="true"></span>
+      <span class="calendar-preview__legend-label">Unavailable</span>
+    </div>
+    <div class="calendar-preview__legend-item">
+      <span class="calendar-preview__legend-swatch calendar-preview__legend-swatch--holiday" aria-hidden="true"></span>
+      <span class="calendar-preview__legend-label">Public holiday</span>
+    </div>
+  </div>
+</div>

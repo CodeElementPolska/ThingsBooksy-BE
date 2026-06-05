@@ -1,0 +1,8 @@
+{
+  "calendar": {
+    "module": {
+      "name": "Calendar",
+      "enabled": true
+    }
+  }
+}

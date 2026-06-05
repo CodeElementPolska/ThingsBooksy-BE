@@ -27,7 +27,7 @@ public sealed class ResourcesGroupReadModelFactory
     internal async Task<GroupReadModel> CreateGroupReadModelAsync(Guid ownerId)
     {
         var groupId = Guid.CreateVersion7();
-        var readModel = GroupReadModel.Upsert(new GroupCreated(groupId, ownerId));
+        var readModel = GroupReadModel.Upsert(new GroupCreated(groupId, ownerId, "UTC"));
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();

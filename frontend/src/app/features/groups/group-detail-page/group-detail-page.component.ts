@@ -156,6 +156,13 @@ export class GroupDetailPageComponent implements OnInit {
     this.resourceModalOpen.set(false);
   }
 
+  onResourceClick(resourceId: string): void {
+    const id = this.groupId();
+    if (id) {
+      void this.router.navigate(['/groups', id, 'resources', resourceId]);
+    }
+  }
+
   async onResourceCreated(payload: { id: string; resourceTypeId: string; name: string }): Promise<void> {
     this.resourceModalOpen.set(false);
     const id = this.groupId();

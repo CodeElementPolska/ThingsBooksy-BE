@@ -99,9 +99,9 @@ describe('DashboardPageComponent', () => {
     expect(panel.componentInstance.rows()).toBe(component.historyRows);
   });
 
-  it('should pass memberGroups and adminGroups to tb-dashboard-admin-panel', () => {
+  it('should pass ownedGroups and memberGroups to tb-dashboard-admin-panel', () => {
     const panel = fixture.debugElement.query(By.css('tb-dashboard-admin-panel'));
     expect(panel.componentInstance.memberGroups()).toBe(component.memberGroups);
-    expect(panel.componentInstance.adminGroups()).toBe(component.adminGroups);
+    expect(panel.componentInstance.ownedGroups()).toBe(component.ownedGroups);
   });
 });

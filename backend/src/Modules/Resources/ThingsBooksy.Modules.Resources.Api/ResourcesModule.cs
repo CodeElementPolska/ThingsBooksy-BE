@@ -44,7 +44,7 @@ internal sealed class ResourcesModule : IModule
             var definitions = (request.PropertyDefinitions ?? [])
                 .Select(d => new PropertyDefinitionInput(d.Name, d.DataType, d.IsRequired))
                 .ToList();
-            var command = new CreateResourceTypeCommand(request.GroupId, callerId, request.Name, request.Description, definitions);
+            var command = new CreateResourceTypeCommand(request.GroupId, callerId, request.Name, request.Description, definitions, request.BufferMinutes);
             var createdId = await dispatcher.SendAsync<CreateResourceTypeCommand, Guid>(command);
             return Results.Created($"/resources/types/{createdId}", new { id = createdId });
         }).RequireAuthorization().WithTags("Resources").WithName("Create resource type");

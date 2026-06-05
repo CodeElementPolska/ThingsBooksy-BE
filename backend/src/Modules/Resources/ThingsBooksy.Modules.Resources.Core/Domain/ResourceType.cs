@@ -14,6 +14,7 @@ internal class ResourceType
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public DateTime? DeletedAt { get; private set; }
+    public int BufferMinutes { get; private set; }
 
     public bool IsDeleted => DeletedAt.HasValue;
 
@@ -26,6 +27,7 @@ internal class ResourceType
             GroupId = command.GroupId,
             Name = command.Name,
             Description = command.Description,
+            BufferMinutes = command.BufferMinutes,
             CreatedAt = now,
             UpdatedAt = now
         };

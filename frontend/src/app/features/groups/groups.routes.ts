@@ -13,4 +13,11 @@ export const groupsRoutes: Routes = [
     loadChildren: () =>
       import('../schemas/schemas.routes').then(m => m.schemasRoutes),
   },
+  {
+    path: ':groupId/resources/:resourceId',
+    loadComponent: () =>
+      import('./resource-detail-page/resource-detail-page.component').then(
+        m => m.ResourceDetailPageComponent,
+      ),
+  },
 ];

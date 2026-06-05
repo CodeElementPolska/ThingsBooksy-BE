@@ -122,6 +122,12 @@
     &:last-child {
       border-bottom: none;
     }
+
+    &--clickable {
+      cursor: pointer;
+      &:hover { background: var(--color-surface-raised); }
+      &:focus-visible { outline: var(--outline-width) solid var(--color-accent-primary); outline-offset: -2px; }
+    }
   }
 
   &__td {

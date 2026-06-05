@@ -37,7 +37,12 @@
         </thead>
         <tbody>
           @for (resource of resources(); track resource.id) {
-            <tr class="resources-panel__row">
+            <tr class="resources-panel__row resources-panel__row--clickable"
+                role="button"
+                tabindex="0"
+                (click)="resourceClick.emit(resource.id!)"
+                (keydown.enter)="resourceClick.emit(resource.id!)"
+                (keydown.space)="resourceClick.emit(resource.id!)">
               <td class="resources-panel__td resources-panel__td--name">{{ resource.name ?? '—' }}</td>
               <td class="resources-panel__td resources-panel__td--type">
                 {{ getSchemaName(resource.resourceTypeId) }}

@@ -84,4 +84,8 @@ export class ResourcesApiService {
     };
     return this.http.post<{ id: string }>('/resources/instances', req);
   }
+
+  getResourceInstance(id: string): Observable<{ id: string; name: string; resourceTypeId: string; resourceTypeName?: string }> {
+    return this.http.get<{ id: string; name: string; resourceTypeId: string; resourceTypeName?: string }>(`/resources/instances/${id}`);
+  }
 }

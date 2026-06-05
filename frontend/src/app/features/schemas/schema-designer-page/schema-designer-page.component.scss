@@ -110,6 +110,14 @@
     }
   }
 
+  &__availability {
+    margin-top: var(--space-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+  }
+
   &__footer {
     position: sticky;
     bottom: var(--space-6);

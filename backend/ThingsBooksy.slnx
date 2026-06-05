@@ -27,4 +27,16 @@
     <Project Path="src/Shared/ThingsBooksy.Shared.Infrastructure/ThingsBooksy.Shared.Infrastructure.csproj" />
     <Project Path="src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksy.Shared.IntegrationTests.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Calendar/">
+    <Project Path="src/Modules/Calendar/ThingsBooksy.Modules.Calendar.Api/ThingsBooksy.Modules.Calendar.Api.csproj" />
+    <Project Path="src/Modules/Calendar/ThingsBooksy.Modules.Calendar.Core/ThingsBooksy.Modules.Calendar.Core.csproj" />
+    <Project Path="src/Modules/Calendar/ThingsBooksy.Modules.Calendar.Migrations/ThingsBooksy.Modules.Calendar.Migrations.csproj" />
+    <Project Path="src/Modules/Calendar/ThingsBooksy.Modules.Calendar.IntegrationTests/ThingsBooksy.Modules.Calendar.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Availability/">
+    <Project Path="src/Modules/Availability/ThingsBooksy.Modules.Availability.Api/ThingsBooksy.Modules.Availability.Api.csproj" />
+    <Project Path="src/Modules/Availability/ThingsBooksy.Modules.Availability.Core/ThingsBooksy.Modules.Availability.Core.csproj" />
+    <Project Path="src/Modules/Availability/ThingsBooksy.Modules.Availability.Migrations/ThingsBooksy.Modules.Availability.Migrations.csproj" />
+    <Project Path="src/Modules/Availability/ThingsBooksy.Modules.Availability.IntegrationTests/ThingsBooksy.Modules.Availability.IntegrationTests.csproj" />
+  </Folder>
 </Solution>

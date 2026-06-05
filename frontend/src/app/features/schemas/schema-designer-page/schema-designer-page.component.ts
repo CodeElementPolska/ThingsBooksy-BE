@@ -13,8 +13,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ResourcesApiService } from '../../groups/services/resources-api.service';
+import { GroupsApiService } from '../../groups/services/groups-api.service';
 import { SchemaFormPanelComponent } from '../schema-form-panel/schema-form-panel.component';
 import { SchemaPreviewPanelComponent } from '../schema-preview-panel/schema-preview-panel.component';
+import { SchemaAvailabilityTabComponent } from '../../availability/components/schema-availability-tab/schema-availability-tab.component';
 import {
   FieldDataType,
   FieldDraft,
@@ -48,7 +50,7 @@ function snapshotMatches(current: InitialSnapshot, initial: InitialSnapshot): bo
   selector: 'tb-schema-designer-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, SchemaFormPanelComponent, SchemaPreviewPanelComponent],
+  imports: [RouterLink, SchemaFormPanelComponent, SchemaPreviewPanelComponent, SchemaAvailabilityTabComponent],
   templateUrl: './schema-designer-page.component.html',
   styleUrl: './schema-designer-page.component.scss',
 })
@@ -56,11 +58,13 @@ export class SchemaDesignerPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(ResourcesApiService);
+  private readonly groupsApi = inject(GroupsApiService);
   private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly groupId = signal<string>('');
   readonly schemaId = signal<string | null>(null);
+  readonly groupTimezone = signal<string>('UTC');
   readonly name = signal<string>('');
   readonly description = signal<string | null>(null);
   readonly fields = signal<FieldDraft[]>([]);
@@ -126,6 +130,14 @@ export class SchemaDesignerPageComponent implements OnInit, OnDestroy {
       await this.loadSchema(schemaId);
     } else {
       this.initial = { name: '', description: null, fields: [] };
+    }
+
+    // Load group timezone for the availability section
+    if (groupId) {
+      firstValueFrom(this.groupsApi.getGroup(groupId)).then(g => {
+        const tz = (g as Record<string, unknown>)['timeZoneId'];
+        this.groupTimezone.set(typeof tz === 'string' ? tz : 'UTC');
+      }).catch(() => { /* fallback to UTC */ });
     }
   }
 

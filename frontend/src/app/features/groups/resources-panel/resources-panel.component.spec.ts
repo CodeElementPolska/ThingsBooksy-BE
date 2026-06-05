@@ -20,8 +20,8 @@ const mockResources: ResourceRowDto[] = [
 ];
 
 const mockSchemas: SchemaSummary[] = [
-  { id: 'schema-a', name: 'Laptops', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [] },
-  { id: 'schema-b', name: 'Rooms', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [] },
+  { id: 'schema-a', name: 'Laptops', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [], resourceCount: 0 },
+  { id: 'schema-b', name: 'Rooms', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [], resourceCount: 0 },
 ];
 
 describe('ResourcesPanelComponent', () => {
@@ -145,7 +145,7 @@ describe('ResourcesPanelComponent', () => {
 
   describe('infinite scroll', () => {
     it('emits loadMore when IntersectionObserver fires for the sentinel', () => {
-      let intersectCallback: IntersectionObserverCallback | null = null;
+      let intersectCallback: IntersectionObserverCallback | null = null as IntersectionObserverCallback | null;
 
       const mockObserver = vi.fn().mockImplementation((cb: IntersectionObserverCallback) => {
         intersectCallback = cb;

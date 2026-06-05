@@ -194,3 +194,72 @@ export interface ThingsBooksySharedInfrastructureModulesModuleInfo {
   name?: string | null;
   policies?: string[] | null;
 }
+
+export enum AvailabilityRuleType {
+  RECURRING = "RECURRING",
+  ONE_OFF = "ONE_OFF",
+}
+
+export enum AvailabilityRuleMode {
+  AVAILABLE = "AVAILABLE",
+  UNAVAILABLE = "UNAVAILABLE",
+}
+
+export interface AvailabilityRuleDto {
+  /** @format uuid */
+  ruleId: string;
+  ruleType: AvailabilityRuleType;
+  ruleMode: AvailabilityRuleMode;
+  /** DayOfWeek values (0=Sunday … 6=Saturday); populated for RECURRING, null for ONE_OFF */
+  daysOfWeek?: number[] | null;
+  /** Wall-clock time in HH:mm format */
+  startTime: string;
+  /** Wall-clock time in HH:mm format */
+  endTime: string;
+  /**
+   * 0 (same day) or 1 (next calendar day, auto-set when endTime < startTime)
+   * @format int32
+   */
+  endDayOffset: number;
+  /** ISO 8601 date (YYYY-MM-DD); populated for ONE_OFF, null for RECURRING */
+  startDate?: string | null;
+  /** ISO 8601 date (YYYY-MM-DD); populated for ONE_OFF, null for RECURRING */
+  endDate?: string | null;
+}
+
+export interface AvailabilityRulesResponse {
+  /**
+   * Effective buffer in minutes (schema default or resource override)
+   * @format int32
+   */
+  bufferMinutes: number;
+  /** Resource-specific rules (or schema rules for schema-level GET) */
+  rules: AvailabilityRuleDto[];
+  /** Schema rules when endpoint is resource-level; null for schema-level GET */
+  inheritedRules?: AvailabilityRuleDto[] | null;
+}
+
+export interface NewRuleRequest {
+  ruleType: AvailabilityRuleType;
+  ruleMode: AvailabilityRuleMode;
+  /** Required for RECURRING; must be omitted or null for ONE_OFF */
+  daysOfWeek?: number[] | null;
+  /** Required; HH:mm format */
+  startTime: string;
+  /** Required; HH:mm format */
+  endTime: string;
+  /** Required for ONE_OFF (YYYY-MM-DD); must be omitted or null for RECURRING */
+  startDate?: string | null;
+  /** Required for ONE_OFF (YYYY-MM-DD); must be omitted or null for RECURRING */
+  endDate?: string | null;
+}
+
+export interface RuleSetUpdateRequest {
+  /**
+   * Required; 0 = no buffer; maximum 1440 (24 hours)
+   * @format int32
+   */
+  bufferMinutes: number;
+  /** Full replacement set; empty array = clear all rules */
+  rules: NewRuleRequest[];
+}

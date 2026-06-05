@@ -69,7 +69,7 @@ internal sealed class ManagementGroupsModule : IModule
         endpoints.MapPost("/management-groups", async (CreateManagementGroupRequest request, IDispatcher dispatcher, HttpContext context) =>
         {
             var userId = GetUserId(context);
-            var command = new CreateManagementGroupCommand(request.Name, request.Description, userId);
+            var command = new CreateManagementGroupCommand(request.Name, request.Description, userId, request.TimeZoneId);
             await dispatcher.SendAsync(command);
             var groupId = (Guid)context.Items["created_group_id"]!;
             return Results.Created($"/management-groups/{groupId}", new { id = groupId });

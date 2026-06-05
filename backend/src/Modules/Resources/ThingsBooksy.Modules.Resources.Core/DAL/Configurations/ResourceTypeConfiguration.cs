@@ -12,6 +12,7 @@ internal class ResourceTypeConfiguration : IEntityTypeConfiguration<ResourceType
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Description).HasMaxLength(2000);
+        builder.Property(x => x.BufferMinutes).HasDefaultValue(0).IsRequired();
         builder.HasQueryFilter(x => x.DeletedAt == null);
 
         builder.HasIndex(t => new { t.GroupId, t.Name }).IsUnique();

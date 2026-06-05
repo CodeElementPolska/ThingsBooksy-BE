@@ -67,6 +67,7 @@
           [isOwner]="store.isOwner()"
           (loadMore)="store.loadMoreResources(groupId()!)"
           (addResource)="onAddResource()"
+          (resourceClick)="onResourceClick($event)"
         />
       </div>
 

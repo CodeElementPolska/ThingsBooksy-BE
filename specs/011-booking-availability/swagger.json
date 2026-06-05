@@ -1,0 +1,260 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ThingsBooksy — 011-booking-availability",
+    "version": "1.0.0",
+    "description": "Static FE↔BE contract derived from specs/011-booking-availability/api-contract.md (FINALIZED)."
+  },
+  "paths": {
+    "/availability/schemas/{schemaId}/rules": {
+      "get": {
+        "operationId": "availability_getSchemaRules",
+        "tags": ["Availability"],
+        "summary": "Get availability rules for a resource schema",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "schemaId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current rule set for the schema",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AvailabilityRulesResponse" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized — missing or expired JWT" },
+          "403": { "description": "Forbidden — caller is not the group owner" },
+          "404": { "description": "Not Found — schema not found in Availability read-models" }
+        }
+      },
+      "put": {
+        "operationId": "availability_upsertSchemaRules",
+        "tags": ["Availability"],
+        "summary": "Replace the full availability rule set for a resource schema",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "schemaId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RuleSetUpdateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Rule set replaced successfully — no content" },
+          "400": { "description": "Bad Request — AVAIL×AVAIL overlap, past date, invalid timezone, malformed time/date" },
+          "401": { "description": "Unauthorized — missing or expired JWT" },
+          "403": { "description": "Forbidden — caller is not the group owner" },
+          "404": { "description": "Not Found — schema not found in Availability read-models" }
+        }
+      }
+    },
+    "/availability/resources/{resourceId}/rules": {
+      "get": {
+        "operationId": "availability_getResourceRules",
+        "tags": ["Availability"],
+        "summary": "Get availability rules for a resource instance",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resourceId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current rule set for the resource (own rules + inherited schema rules)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AvailabilityRulesResponse" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized — missing or expired JWT" },
+          "403": { "description": "Forbidden — caller is not the group owner" },
+          "404": { "description": "Not Found — resource not found in Availability read-models" }
+        }
+      },
+      "put": {
+        "operationId": "availability_upsertResourceRules",
+        "tags": ["Availability"],
+        "summary": "Replace the full availability rule set for a resource instance",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resourceId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RuleSetUpdateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Rule set replaced successfully — no content" },
+          "400": { "description": "Bad Request — AVAIL×AVAIL overlap, past date, malformed time/date" },
+          "401": { "description": "Unauthorized — missing or expired JWT" },
+          "403": { "description": "Forbidden — caller is not the group owner" },
+          "404": { "description": "Not Found — resource not found in Availability read-models" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AvailabilityRulesResponse": {
+        "type": "object",
+        "required": ["bufferMinutes", "rules"],
+        "properties": {
+          "bufferMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Effective buffer in minutes (schema default or resource override)"
+          },
+          "rules": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AvailabilityRuleDto" },
+            "description": "Resource-specific rules (or schema rules for schema-level GET)"
+          },
+          "inheritedRules": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AvailabilityRuleDto" },
+            "nullable": true,
+            "description": "Schema rules when endpoint is resource-level; null for schema-level GET"
+          }
+        }
+      },
+      "AvailabilityRuleDto": {
+        "type": "object",
+        "required": ["ruleId", "ruleType", "ruleMode", "startTime", "endTime", "endDayOffset"],
+        "properties": {
+          "ruleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ruleType": {
+            "type": "string",
+            "enum": ["RECURRING", "ONE_OFF"]
+          },
+          "ruleMode": {
+            "type": "string",
+            "enum": ["AVAILABLE", "UNAVAILABLE"]
+          },
+          "daysOfWeek": {
+            "type": "array",
+            "items": { "type": "integer", "format": "int32" },
+            "nullable": true,
+            "description": "DayOfWeek values (0=Sunday … 6=Saturday); populated for RECURRING, null for ONE_OFF"
+          },
+          "startTime": {
+            "type": "string",
+            "description": "Wall-clock time in HH:mm format"
+          },
+          "endTime": {
+            "type": "string",
+            "description": "Wall-clock time in HH:mm format"
+          },
+          "endDayOffset": {
+            "type": "integer",
+            "format": "int32",
+            "description": "0 (same day) or 1 (next calendar day, auto-set when endTime < startTime)"
+          },
+          "startDate": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601 date (YYYY-MM-DD); populated for ONE_OFF, null for RECURRING"
+          },
+          "endDate": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601 date (YYYY-MM-DD); populated for ONE_OFF, null for RECURRING"
+          }
+        }
+      },
+      "RuleSetUpdateRequest": {
+        "type": "object",
+        "required": ["bufferMinutes", "rules"],
+        "properties": {
+          "bufferMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Required; 0 = no buffer; maximum 1440 (24 hours)"
+          },
+          "rules": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/NewRuleRequest" },
+            "description": "Full replacement set; empty array = clear all rules"
+          }
+        }
+      },
+      "NewRuleRequest": {
+        "type": "object",
+        "required": ["ruleType", "ruleMode", "startTime", "endTime"],
+        "properties": {
+          "ruleType": {
+            "type": "string",
+            "enum": ["RECURRING", "ONE_OFF"]
+          },
+          "ruleMode": {
+            "type": "string",
+            "enum": ["AVAILABLE", "UNAVAILABLE"]
+          },
+          "daysOfWeek": {
+            "type": "array",
+            "items": { "type": "integer", "format": "int32" },
+            "nullable": true,
+            "description": "Required for RECURRING; must be omitted or null for ONE_OFF"
+          },
+          "startTime": {
+            "type": "string",
+            "description": "Required; HH:mm format"
+          },
+          "endTime": {
+            "type": "string",
+            "description": "Required; HH:mm format"
+          },
+          "startDate": {
+            "type": "string",
+            "nullable": true,
+            "description": "Required for ONE_OFF (YYYY-MM-DD); must be omitted or null for RECURRING"
+          },
+          "endDate": {
+            "type": "string",
+            "nullable": true,
+            "description": "Required for ONE_OFF (YYYY-MM-DD); must be omitted or null for RECURRING"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

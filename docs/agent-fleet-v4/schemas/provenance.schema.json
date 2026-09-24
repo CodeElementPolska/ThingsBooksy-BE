@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/provenance",
+  "title": "Provenance header — common to every agent-produced artifact",
+  "type": "object",
+  "required": ["author_agent", "run_id", "story", "inputs"],
+  "properties": {
+    "author_agent": { "type": "string", "description": "agent_type that produced the artifact (as seen by hooks)" },
+    "agent_id": { "type": "string" },
+    "run_id": { "type": "string", "description": "workflow run id or session id" },
+    "story": { "type": "string", "pattern": "^[0-9]{3}-[a-z0-9-]+$", "description": "NNN-slug (SpecKit branch/dir name)" },
+    "phase": { "type": "string", "enum": ["A", "B", "C1", "C2", "C3a", "C3b", "C4", "C4b", "C5", "C6"] },
+    "inputs": {
+      "type": "array",
+      "description": "Every file the agent was given. A consumer script rejects the artifact if any input hash changed since.",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": { "path": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } }
+      }
+    },
+    "schema_version": { "type": "string", "default": "1" }
+  }
+}

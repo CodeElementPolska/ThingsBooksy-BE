@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/journal-event",
+  "title": "One line of runs/<story>/journal.jsonl — written by hooks (SubagentStart/Stop, PostToolUse) and phase scripts; the only source of truth for resume across sessions",
+  "type": "object",
+  "required": ["at", "event"],
+  "properties": {
+    "at": { "type": "string", "format": "date-time" },
+    "event": {
+      "type": "string",
+      "enum": ["PHASE_START", "PHASE_END", "AGENT_START", "AGENT_END", "GATE_OPEN", "GATE_ANSWER", "OWNER_ANSWER", "ARTIFACT_WRITTEN", "ARTIFACT_REJECTED", "REBASELINE", "ESCALATION", "BUDGET_STOP", "ERROR"]
+    },
+    "phase": { "type": "string" },
+    "agent_type": { "type": "string" },
+    "agent_id": { "type": "string" },
+    "run_id": { "type": "string" },
+    "status": { "type": "string" },
+    "artifact": { "type": "string", "description": "path" },
+    "sha256": { "type": "string" },
+    "reason": { "type": "string" },
+    "tokens": { "type": "integer" },
+    "duration_ms": { "type": "integer" },
+    "owner_answer": {
+      "type": "object", "description": "OWNER_ANSWER: copied verbatim from PostToolUse(AskUserQuestion).tool_response or UserPromptSubmit",
+      "properties": {
+        "source": { "type": "string", "enum": ["AskUserQuestion", "UserPromptSubmit"] },
+        "tool_use_id": { "type": "string" }, "prompt_id": { "type": "string" },
+        "answers": { "type": "object", "additionalProperties": { "type": "string" } },
+        "text": { "type": "string" }
+      }
+    }
+  }
+}

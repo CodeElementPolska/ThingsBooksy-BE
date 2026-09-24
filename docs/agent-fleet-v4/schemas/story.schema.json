@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/story",
+  "title": "story.md front matter — output of session A (/shape), input to session B and to backlog-writer",
+  "type": "object",
+  "required": ["title", "epic", "why", "acceptance_criteria", "out_of_scope", "rejected_alternatives", "blast_radius", "capability_map_version"],
+  "properties": {
+    "title": { "type": "string", "minLength": 5 },
+    "epic": { "type": "string", "description": "GitHub Epic issue number or title" },
+    "why": { "type": "string", "description": "Business reason in the owner's words; must survive the session boundary" },
+    "acceptance_criteria": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "required": ["id", "given", "when", "then"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^AC-[0-9]+$" },
+          "given": { "type": "string" }, "when": { "type": "string" }, "then": { "type": "string" },
+          "role": { "type": "string", "description": "acting role, if authz-relevant (user/admin/owner…)" },
+          "exact_message": { "type": "string", "description": "when a user-visible message is part of the requirement, spell it out — tests assert it verbatim" }
+        }
+      }
+    },
+    "out_of_scope": { "type": "array", "items": { "type": "string" } },
+    "rejected_alternatives": {
+      "type": "array",
+      "items": { "type": "object", "required": ["option", "reason"], "properties": { "option": { "type": "string" }, "reason": { "type": "string" } } }
+    },
+    "blast_radius": {
+      "type": "object", "required": ["modules"],
+      "properties": {
+        "modules": { "type": "array", "items": { "type": "string" } },
+        "touches_contract": { "type": "boolean" },
+        "touches_authz": { "type": "boolean" },
+        "touches_schema": { "type": "boolean" },
+        "touches_ui": { "type": "boolean" }
+      }
+    },
+    "depends_on": { "type": "array", "items": { "type": "string", "pattern": "^[0-9]{3}-[a-z0-9-]+$|^#[0-9]+$" } },
+    "capability_map_version": { "type": "string", "description": "sha256 of generated/capability-map.json the story was shaped against" },
+    "critique_refs": { "type": "array", "items": { "type": "string" }, "description": "paths to critique.json files shown to the owner unfiltered" },
+    "track": { "type": "string", "enum": ["hotfix", "medium", "full"], "description": "computed by script from blast_radius, not chosen by an agent" }
+  }
+}

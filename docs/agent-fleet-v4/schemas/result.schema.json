@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/result",
+  "title": "result.json — output of every writer (be-writer, fe-writer, test-designer). The conductor script branches on `status`.",
+  "type": "object",
+  "required": ["provenance", "status", "tasks_completed", "files_changed", "assumptions", "decisions_needed"],
+  "properties": {
+    "provenance": { "$ref": "fleet-v4/provenance" },
+    "status": {
+      "type": "string",
+      "enum": ["DONE", "BLOCKED_ON_DECISION", "DISPUTE", "DISPUTE_TEST", "FAILED"],
+      "description": "DONE = all assigned tasks done and local checks green. BLOCKED_ON_DECISION = cannot proceed without an owner decision (decisions_needed non-empty). DISPUTE = disagrees with a review finding (dispute filled). DISPUTE_TEST = an acceptance test contradicts the spec (dispute filled, test_id set). FAILED = could not complete (error)."
+    },
+    "tasks_completed": { "type": "array", "items": { "type": "string", "pattern": "^T[0-9]+$" }, "description": "script ticks these in tasks.md after the gate is green" },
+    "tasks_remaining": { "type": "array", "items": { "type": "string", "pattern": "^T[0-9]+$" } },
+    "files_changed": { "type": "array", "items": { "type": "string" }, "description": "must all be inside the agent's write-allow roots — verified by script against git diff" },
+    "assumptions": { "type": "array", "items": { "$ref": "fleet-v4/assumption" }, "description": "every default the writer chose; hard_list=true here fails DoD" },
+    "decisions_needed": { "type": "array", "items": { "$ref": "fleet-v4/decision" }, "description": "non-empty ⇒ status must be BLOCKED_ON_DECISION" },
+    "dispute": {
+      "type": "object",
+      "required": ["target_id", "argument", "rule_ref"],
+      "properties": {
+        "target_id": { "type": "string", "description": "finding id (DISPUTE) or test id (DISPUTE_TEST)" },
+        "argument": { "type": "string" },
+        "rule_ref": { "type": "string", "description": "AC-id / convention file#section / constitution article the writer relies on" },
+        "evidence": { "type": "string" }
+      }
+    },
+    "local_checks": {
+      "type": "object",
+      "properties": {
+        "build": { "type": "string", "enum": ["PASSED", "FAILED", "SKIPPED"] },
+        "unit_tests": { "type": "string", "enum": ["PASSED", "FAILED", "SKIPPED"] },
+        "format": { "type": "string", "enum": ["PASSED", "FAILED", "SKIPPED"] }
+      }
+    },
+    "schema_changes": { "type": "string", "enum": ["NONE", "ADDITIVE", "DESTRUCTIVE"], "description": "be-writer in C3a; DESTRUCTIVE ⇒ conductor opens G2b" },
+    "error": { "type": "string" }
+  },
+  "allOf": [
+    { "if": { "properties": { "status": { "const": "BLOCKED_ON_DECISION" } } }, "then": { "properties": { "decisions_needed": { "minItems": 1 } } } },
+    { "if": { "properties": { "status": { "enum": ["DISPUTE", "DISPUTE_TEST"] } } }, "then": { "required": ["dispute"] } },
+    { "if": { "properties": { "status": { "const": "FAILED" } } }, "then": { "required": ["error"] } }
+  ]
+}

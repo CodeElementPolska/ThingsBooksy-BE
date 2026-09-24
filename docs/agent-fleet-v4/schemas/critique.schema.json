@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/critique",
+  "title": "critique.json — output of scope-critic / premortem-critic (session A); goes to the owner unfiltered",
+  "type": "object",
+  "required": ["provenance", "critic", "verdict", "items"],
+  "properties": {
+    "provenance": { "$ref": "fleet-v4/provenance" },
+    "critic": { "type": "string", "enum": ["scope-critic", "premortem-critic"] },
+    "verdict": { "type": "string", "enum": ["NO_OBJECTIONS", "OBJECTIONS"] },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "rubric", "weight", "objection", "alternative"],
+        "properties": {
+          "id": { "type": "string" },
+          "rubric": {
+            "type": "string",
+            "description": "scope-critic: value | cheapest-version | scope-creep | dependency. premortem-critic: data-loss | migration | authz | ops | timing | concurrency",
+            "enum": ["value", "cheapest-version", "scope-creep", "dependency", "data-loss", "migration", "authz", "ops", "timing", "concurrency"]
+          },
+          "weight": { "type": "integer", "minimum": 1, "maximum": 5, "description": "5 = would make the story wrong or harmful; 1 = nice to know" },
+          "objection": { "type": "string" },
+          "evidence": { "type": "string", "description": "reference to capability-report / story text; opinions without evidence get weight ≤ 2" },
+          "alternative": { "type": "string", "description": "mandatory: what to do instead" },
+          "addresses_rejected_alternative": { "type": "string", "description": "if the objection repeats a rejected alternative, name it — the owner already decided" }
+        }
+      }
+    },
+    "reply_round": { "type": "integer", "minimum": 1, "maximum": 2, "description": "1 = initial critique, 2 = single reply after the owner's response; no further rounds" }
+  }
+}

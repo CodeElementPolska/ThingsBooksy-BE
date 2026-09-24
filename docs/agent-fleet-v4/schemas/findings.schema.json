@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/findings",
+  "title": "findings.json — output of every reviewer and guard (spec-conformance, security-authz, maintainability, plan-guard, architecture-guard, trace-auditor)",
+  "type": "object",
+  "required": ["provenance", "reviewer", "round", "scope", "findings"],
+  "properties": {
+    "provenance": { "$ref": "fleet-v4/provenance" },
+    "reviewer": { "type": "string" },
+    "round": { "type": "integer", "minimum": 1, "description": "round ≥ 2 ⇒ scope must be the fix diff + previous findings only" },
+    "scope": { "type": "object", "properties": { "diff_sha": { "type": "string" }, "files": { "type": "array", "items": { "type": "string" } } } },
+    "previous_findings_status": {
+      "type": "array", "description": "round ≥ 2: verdict on each finding from the previous round",
+      "items": { "type": "object", "required": ["id", "status"], "properties": { "id": { "type": "string" }, "status": { "type": "string", "enum": ["RESOLVED", "STILL_OPEN", "REGRESSED"] } } }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "file", "line", "severity", "type", "message", "evidence"],
+        "properties": {
+          "id": { "type": "string", "description": "<reviewer>-<round>-<n>" },
+          "file": { "type": "string" },
+          "line": { "type": "integer", "minimum": 1 },
+          "rule_ref": {
+            "type": "string",
+            "description": "AC-<n> | conventions/<file>#<section> | constitution#<article> | CWE-<n> | contract:<path> — REQUIRED for any severity above OPINION"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["BLOCKER", "MAJOR", "MINOR", "OPINION"],
+            "description": "BLOCKER: violates an AC, a constitution article, the contract, or a D-1 category (authz/data/UI) — blocks the gate. MAJOR: violates a convention with rule_ref, or UNSPECIFIED_BEHAVIOR — must be fixed or disputed before close. MINOR: rule_ref present, cosmetic/maintainability — fixed if cheap, else tech-debt issue. OPINION: no rule_ref — never blocks; shown to the owner in one batch."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["SPEC_VIOLATION", "UNSPECIFIED_BEHAVIOR", "CONVENTION", "SECURITY", "AUTHZ", "DATA_SAFETY", "ARCHITECTURE", "CONTRACT_DRIFT", "WEAK_ASSERTION", "MAINTAINABILITY", "PERFORMANCE"],
+            "description": "UNSPECIFIED_BEHAVIOR = behaviour in code with no AC (mandatory type for spec-conformance reviewer); WEAK_ASSERTION = trace-auditor"
+          },
+          "message": { "type": "string" },
+          "evidence": { "type": "string", "description": "quoted code / observed behaviour; opinions are not evidence" },
+          "suggested_fix": { "type": "string" },
+          "rule_candidate": {
+            "type": "object", "description": "if this finding can be generalised into a deterministic check",
+            "required": ["kind", "description"],
+            "properties": { "kind": { "type": "string", "enum": ["roslyn-analyzer", "arch-test", "eslint", "script"] }, "description": { "type": "string" } }
+          },
+          "out_of_diff": { "type": "boolean", "description": "round ≥ 2: finding outside the fix diff — allowed only as BLOCKER (constitution/security), otherwise goes to tech-debt" }
+        },
+        "allOf": [
+          { "if": { "properties": { "severity": { "enum": ["BLOCKER", "MAJOR", "MINOR"] } } }, "then": { "required": ["rule_ref"] } }
+        ]
+      }
+    },
+    "summary": {
+      "type": "object",
+      "properties": { "blockers": { "type": "integer" }, "majors": { "type": "integer" }, "minors": { "type": "integer" }, "opinions": { "type": "integer" } }
+    }
+  }
+}

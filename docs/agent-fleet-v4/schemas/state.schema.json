@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/state",
+  "title": "runs/<story>/state.json — COMPUTED by the `status` script from artifacts and journal; never written by an agent",
+  "type": "object",
+  "required": ["story", "branch", "computed_at", "phase", "gates", "artifacts", "open_items"],
+  "properties": {
+    "story": { "type": "string", "pattern": "^[0-9]{3}-[a-z0-9-]+$" },
+    "branch": { "type": "string" },
+    "computed_at": { "type": "string", "format": "date-time" },
+    "track": { "type": "string", "enum": ["hotfix", "medium", "full"] },
+    "phase": { "type": "string", "enum": ["A", "B", "C1", "C2", "C3a", "C3b", "C4", "C4b", "C5", "C6", "CLOSED", "RETURNED", "ABANDONED"] },
+    "phase_status": { "type": "string", "enum": ["NOT_STARTED", "RUNNING", "WAITING_OWNER", "FAILED", "PASSED"] },
+    "gates": {
+      "type": "object",
+      "properties": {
+        "G1": { "$ref": "#/$defs/gate" }, "G2": { "$ref": "#/$defs/gate" }, "G2b": { "$ref": "#/$defs/gate" }, "G3": { "$ref": "#/$defs/gate" }
+      }
+    },
+    "artifacts": {
+      "type": "object", "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+      "description": "path → sha256 of every artifact present; consumers compare against provenance.inputs"
+    },
+    "acceptance_tests_hash": { "type": "string", "description": "hash of tests/acceptance after C2 (post-format); re-baselines are journaled" },
+    "rounds": { "type": "object", "properties": { "C4": { "type": "integer" }, "C5": { "type": "integer" } } },
+    "open_items": {
+      "type": "object",
+      "properties": {
+        "decisions_open": { "type": "array", "items": { "type": "string" } },
+        "hard_list_assumptions_without_decision": { "type": "array", "items": { "type": "string" }, "description": "non-empty ⇒ DoD fails" },
+        "blockers": { "type": "array", "items": { "type": "string" } },
+        "disputes": { "type": "array", "items": { "type": "string" } },
+        "unspecified_behaviour": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "last_run_id": { "type": "string" },
+    "tokens_spent": { "type": "integer" },
+    "budget_tokens": { "type": "integer", "description": "hard stop for the story; conductor refuses to start a phase beyond it" }
+  },
+  "$defs": {
+    "gate": {
+      "type": "object", "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["PENDING", "WAITING_OWNER", "PASSED", "REJECTED"] },
+        "answer_ref": { "type": "string" },
+        "at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

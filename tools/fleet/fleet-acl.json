@@ -17,6 +17,10 @@
       "read_allow": ["backend", "frontend/src", "specs", "generated", "runs/*/discovery/questions", ".specify/memory", ".claude/conventions"],
       "write_allow": []
     },
+    "impact-analyst": {
+      "read_allow": ["backend", "frontend/src", "specs", "generated", "runs/*/story.md", "runs/*/discovery", ".specify/memory", ".claude/conventions"],
+      "write_allow": []
+    },
     "scope-critic": { "read_allow": ["runs"], "write_allow": [] },
     "premortem-critic": { "read_allow": ["runs"], "write_allow": [] },
     "review-arbiter": { "read_allow": ["runs", "specs", ".specify/memory", ".claude/conventions"], "write_allow": [] }

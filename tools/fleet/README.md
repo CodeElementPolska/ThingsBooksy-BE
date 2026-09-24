@@ -20,7 +20,18 @@ Deterministyczne skrypty (bez LLM), na których stoją bramki z `docs/agent-flee
 | S7b | `dod.js` | ✅ (syntetyczna story: 6/10 → NOT_DONE) | Definition of Done jako skrypt: gate GREEN, AC 100%, brak otwartych decyzji, brak założeń z listy D-1 bez decyzji, 0 BLOCKER, brak sporów, UNSPECIFIED z decyzją, contract CLEAR, tasks.md odhaczone, hash testów | → `runs/<story>/dod.json` | 0 DONE · 3 NOT_DONE |
 | S7c | `closer.js` | 📝 napisany, nieprzetestowany (wymaga story z DoD=DONE) | `metrics.json` (§6 workflow) + `close-report.md` z checklistą na issue (wkleja dyrygent przez MCP — `gh` nie jest zainstalowane) + `PHASE_END C6` w journal | → `runs/<story>/{metrics.json,close-report.md}` | 0 · 3 |
 | S8 | `prompt-builder.js` + `templates/<agent>.md` | ✅ (szablon `code-researcher`; wyłapał brak `runs` w ACL) | prompt = szablon (front matter: `inputs`, `output_schema`, `conventions`, `max_turns`) + lista plików wejściowych z hashami + schemat wyjścia + blok provenance; odmawia, gdy wejście jest poza `read_allow` agenta lub brakuje wymaganego pliku. Żadnych streszczeń w prompcie. | → `runs/<story>/prompts/<agent>[.<instance>].{md,json}` | 0 · 3 |
+| — | `owner-answer-hook.js` | ✅ (symulacja stdin + `decide`) | hook `PostToolUse(AskUserQuestion)` z frontmatteru person (dev-analyst, scrum): zapisuje odpowiedź właściciela do `runs/<story>/journal.jsonl` jako `OWNER_ANSWER` (jedyne źródło `decided_by: owner`) | stdin hooka → journal | 0 |
+| — | `decide.js` | ✅ | jedyny zapis `decided_by: owner`: bierze wybraną opcję z `OWNER_ANSWER` w journalu (`--answer-ref latest` lub `tool_use_id`), odrzuca opcję spoza listy; `--veto ASM-n --replacement DEC-m` | decisions/assumptions.jsonl | 0 · 3 |
+| — | `validate.js` | ✅ | walidacja JSON/JSONL względem `docs/agent-fleet-v4/schemas/*.schema.json` (ajv 2020-12) | plik lub stdin | 0 · 3 |
 | S10 | `fleet-smoke` | częściowo (agent `fleet-smoke-blind`) | zabawkowa story przez cały substrat | | |
+
+## Agenci sesji B (iteracja promptów, 2026-09-24)
+
+| Agent | Tryb | Plik | Stan |
+|---|---|---|---|
+| `dev-analyst` | persona `claude --agent dev-analyst` na gałęzi `NNN-slug` | `.claude/agents/dev-analyst.md` | ✅ headless: ładuje się, egzekwuje regułę gałęzi, mówi po polsku |
+| `code-researcher` | subagent (sonnet, RO, `omitClaudeMd`) | `.claude/agents/code-researcher.md` + `templates/code-researcher.md` | ✅ headless na prawdziwym pytaniu: `fact` poprawny wg schematu, provenance skopiowane |
+| `impact-analyst` | subagent (sonnet, RO, `omitClaudeMd`) | `.claude/agents/impact-analyst.md` + `templates/impact-analyst.md` | 📝 napisany, nieprzetestowany |
 
 ## Konwencje
 

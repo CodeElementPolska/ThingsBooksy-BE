@@ -60,6 +60,8 @@ po KAŻDEJ rundzie: zrzut do runs/<story>/discovery/round-N.md
 **G2 (jedna paczka):** spec.md + plan + tasks + ui-sketch + contract-delta + lista założeń (koszyk ZAŁÓŻ, milczenie = default) + decyzje z koszyka ZAPYTAJ (wymagają odpowiedzi). Skrypt zapisuje odpowiedzi właściciela do `owner-answers.jsonl`; wpis `decided_by: owner` w `decisions.md` musi wskazywać id odpowiedzi.
 **Lint:** jeśli `/speckit-clarify` ma pytania, discovery nie było skończone — wracamy do pętli, nie do właściciela.
 
+**Implementacja sesji B (2026-09-24):** persona `.claude/agents/dev-analyst.md` (uruchamiana `claude --agent dev-analyst` na gałęzi `NNN-slug`; hook `PostToolUse(AskUserQuestion)` → `tools/fleet/owner-answer-hook.js` → `journal.jsonl`), workerzy `.claude/agents/code-researcher.md` i `impact-analyst.md` z szablonami w `tools/fleet/templates/`, prompty składane przez `prompt-builder.js`, decyzje zamykane wyłącznie przez `tools/fleet/decide.js`. Status: `tools/fleet/README.md`.
+
 ### 1.3 Sesja C — `/deliver` (dostawa, jedna story)
 
 Dyrygent = skill w sesji głównej, który: wylicza stan skryptem `status`, uruchamia kolejną fazę jako skrypt workflow, obsługuje skrzynkę decyzji na granicach faz. **Nie pisze promptów agentów** — robi to skrypt z szablonów i listy dozwolonych ścieżek.

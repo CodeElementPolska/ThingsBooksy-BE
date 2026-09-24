@@ -1,0 +1,916 @@
+{
+  "generated_from": "CoreSurfaceExportTests",
+  "modules": [
+    {
+      "module": "ManagementGroups",
+      "assembly": "ThingsBooksy.Modules.ManagementGroups.Core",
+      "types": [
+        {
+          "name": "GroupMemberConfiguration",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CGroupMember\u003E)"
+          ]
+        },
+        {
+          "name": "ManagementGroupConfiguration",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CManagementGroup\u003E)"
+          ]
+        },
+        {
+          "name": "UserReadModelConfiguration",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CUserReadModel\u003E)"
+          ]
+        },
+        {
+          "name": "ManagementGroupsDbContext",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.DAL",
+          "kind": "dbcontext",
+          "baseType": "DbContext",
+          "ctor": [
+            "public"
+          ],
+          "properties": [
+            {
+              "name": "ManagementGroups",
+              "type": "DbSet\u003CManagementGroup\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "GroupMembers",
+              "type": "DbSet\u003CGroupMember\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "UserReadModels",
+              "type": "DbSet\u003CUserReadModel\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "Inbox",
+              "type": "DbSet\u003CInboxMessage\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "Outbox",
+              "type": "DbSet\u003COutboxMessage\u003E",
+              "setter": "public"
+            }
+          ],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "ManagementGroupsUnitOfWork",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.DAL",
+          "kind": "class",
+          "baseType": "PostgresUnitOfWork\u003CManagementGroupsDbContext\u003E",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "GroupMember",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.Domain",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "GroupId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "UserId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "JoinedAt",
+              "type": "DateTime",
+              "setter": "private"
+            },
+            {
+              "name": "Group",
+              "type": "ManagementGroup",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Create(AddGroupMemberCommand command, Guid userId, DateTime now)"
+          ],
+          "methods": []
+        },
+        {
+          "name": "ManagementGroup",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.Domain",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "Id",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "Name",
+              "type": "String",
+              "setter": "private"
+            },
+            {
+              "name": "Description",
+              "type": "String",
+              "setter": "private"
+            },
+            {
+              "name": "OwnerId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "CreatedAt",
+              "type": "DateTime",
+              "setter": "private"
+            },
+            {
+              "name": "UpdatedAt",
+              "type": "DateTime",
+              "setter": "private"
+            },
+            {
+              "name": "DeletedAt",
+              "type": "Nullable\u003CDateTime\u003E",
+              "setter": "private"
+            },
+            {
+              "name": "IsDeleted",
+              "type": "Boolean",
+              "setter": "none"
+            },
+            {
+              "name": "Members",
+              "type": "ICollection\u003CGroupMember\u003E",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Create(CreateManagementGroupCommand command, DateTime now)"
+          ],
+          "methods": [
+            "Void Update(UpdateManagementGroupCommand, DateTime)",
+            "Void Delete(DateTime)",
+            "Void Restore(DateTime)"
+          ]
+        },
+        {
+          "name": "GroupNameAlreadyTakenException",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.Exceptions",
+          "kind": "class",
+          "baseType": "CustomException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "ManagementGroupNotFoundException",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.Exceptions",
+          "kind": "class",
+          "baseType": "NotFoundException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "ManagementGroupsDomainException",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.Exceptions",
+          "kind": "class",
+          "baseType": "CustomException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "ManagementGroupsExceptionToResponseMapper",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.Exceptions",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "ExceptionResponse Map(Exception)"
+          ]
+        },
+        {
+          "name": "ManagementGroupsForbiddenException",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.Exceptions",
+          "kind": "class",
+          "baseType": "ForbiddenException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "UserNotFoundException",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.Exceptions",
+          "kind": "class",
+          "baseType": "NotFoundException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "UserReadModel",
+          "ns": "ThingsBooksy.Modules.ManagementGroups.Core.ReadModels",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "Id",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "Email",
+              "type": "String",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Upsert(UserSignedUp event)"
+          ],
+          "methods": []
+        }
+      ]
+    },
+    {
+      "module": "Resources",
+      "assembly": "ThingsBooksy.Modules.Resources.Core",
+      "types": [
+        {
+          "name": "GroupMemberReadModelConfiguration",
+          "ns": "ThingsBooksy.Modules.Resources.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CGroupMemberReadModel\u003E)"
+          ]
+        },
+        {
+          "name": "GroupReadModelConfiguration",
+          "ns": "ThingsBooksy.Modules.Resources.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CGroupReadModel\u003E)"
+          ]
+        },
+        {
+          "name": "ResourceInstanceConfiguration",
+          "ns": "ThingsBooksy.Modules.Resources.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CResourceInstance\u003E)"
+          ]
+        },
+        {
+          "name": "ResourcePropertyDefinitionConfiguration",
+          "ns": "ThingsBooksy.Modules.Resources.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CResourcePropertyDefinition\u003E)"
+          ]
+        },
+        {
+          "name": "ResourcePropertyValueConfiguration",
+          "ns": "ThingsBooksy.Modules.Resources.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CResourcePropertyValue\u003E)"
+          ]
+        },
+        {
+          "name": "ResourceTypeConfiguration",
+          "ns": "ThingsBooksy.Modules.Resources.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CResourceType\u003E)"
+          ]
+        },
+        {
+          "name": "ResourcesDbContext",
+          "ns": "ThingsBooksy.Modules.Resources.Core.DAL",
+          "kind": "dbcontext",
+          "baseType": "DbContext",
+          "ctor": [
+            "public"
+          ],
+          "properties": [
+            {
+              "name": "ResourceTypes",
+              "type": "DbSet\u003CResourceType\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "ResourcePropertyDefinitions",
+              "type": "DbSet\u003CResourcePropertyDefinition\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "ResourceInstances",
+              "type": "DbSet\u003CResourceInstance\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "ResourcePropertyValues",
+              "type": "DbSet\u003CResourcePropertyValue\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "GroupReadModels",
+              "type": "DbSet\u003CGroupReadModel\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "GroupMemberReadModels",
+              "type": "DbSet\u003CGroupMemberReadModel\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "Inbox",
+              "type": "DbSet\u003CInboxMessage\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "Outbox",
+              "type": "DbSet\u003COutboxMessage\u003E",
+              "setter": "public"
+            }
+          ],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "ResourcesUnitOfWork",
+          "ns": "ThingsBooksy.Modules.Resources.Core.DAL",
+          "kind": "class",
+          "baseType": "PostgresUnitOfWork\u003CResourcesDbContext\u003E",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "PropertyDataType",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Domain",
+          "kind": "enum",
+          "values": [
+            "Text",
+            "Number",
+            "Boolean"
+          ]
+        },
+        {
+          "name": "ResourceInstance",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Domain",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "Id",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "ResourceTypeId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "GroupId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "Name",
+              "type": "String",
+              "setter": "private"
+            },
+            {
+              "name": "Description",
+              "type": "String",
+              "setter": "private"
+            },
+            {
+              "name": "OwnerId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "CreatedAt",
+              "type": "DateTime",
+              "setter": "private"
+            },
+            {
+              "name": "UpdatedAt",
+              "type": "DateTime",
+              "setter": "private"
+            },
+            {
+              "name": "DeletedAt",
+              "type": "Nullable\u003CDateTime\u003E",
+              "setter": "private"
+            },
+            {
+              "name": "IsDeleted",
+              "type": "Boolean",
+              "setter": "none"
+            },
+            {
+              "name": "PropertyValues",
+              "type": "ICollection\u003CResourcePropertyValue\u003E",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Create(CreateResourceInstanceCommand command, Guid groupId, DateTime now)"
+          ],
+          "methods": [
+            "Void Update(UpdateResourceInstanceCommand, DateTime)",
+            "Void Delete(DateTime)"
+          ]
+        },
+        {
+          "name": "ResourcePropertyDefinition",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Domain",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "Id",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "ResourceTypeId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "Name",
+              "type": "String",
+              "setter": "private"
+            },
+            {
+              "name": "DataType",
+              "type": "PropertyDataType",
+              "setter": "private"
+            },
+            {
+              "name": "IsRequired",
+              "type": "Boolean",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Create(PropertyDefinitionInput input, Guid resourceTypeId)"
+          ],
+          "methods": [
+            "Void Update(PropertyDefinitionUpdateInput)"
+          ]
+        },
+        {
+          "name": "ResourcePropertyValue",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Domain",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "Id",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "ResourceInstanceId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "PropertyDefinitionId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "Value",
+              "type": "String",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Create(PropertyValueInput input, Guid resourceInstanceId)"
+          ],
+          "methods": [
+            "Void Update(String)"
+          ]
+        },
+        {
+          "name": "ResourceType",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Domain",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "Id",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "GroupId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "Name",
+              "type": "String",
+              "setter": "private"
+            },
+            {
+              "name": "Description",
+              "type": "String",
+              "setter": "private"
+            },
+            {
+              "name": "CreatedAt",
+              "type": "DateTime",
+              "setter": "private"
+            },
+            {
+              "name": "UpdatedAt",
+              "type": "DateTime",
+              "setter": "private"
+            },
+            {
+              "name": "DeletedAt",
+              "type": "Nullable\u003CDateTime\u003E",
+              "setter": "private"
+            },
+            {
+              "name": "IsDeleted",
+              "type": "Boolean",
+              "setter": "none"
+            },
+            {
+              "name": "PropertyDefinitions",
+              "type": "ICollection\u003CResourcePropertyDefinition\u003E",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Create(CreateResourceTypeCommand command, DateTime now)"
+          ],
+          "methods": [
+            "Void Update(UpdateResourceTypeCommand, DateTime)",
+            "Void Delete(DateTime)"
+          ]
+        },
+        {
+          "name": "ResourcesDomainException",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Exceptions",
+          "kind": "class",
+          "baseType": "CustomException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "ResourcesExceptionToResponseMapper",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Exceptions",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "ExceptionResponse Map(Exception)"
+          ]
+        },
+        {
+          "name": "ResourcesForbiddenException",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Exceptions",
+          "kind": "class",
+          "baseType": "ForbiddenException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "ResourceTypeNameAlreadyExistsException",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Exceptions",
+          "kind": "class",
+          "baseType": "CustomException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [
+            {
+              "name": "GroupId",
+              "type": "Guid",
+              "setter": "none"
+            },
+            {
+              "name": "Name",
+              "type": "String",
+              "setter": "none"
+            }
+          ],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "GroupMemberReadModel",
+          "ns": "ThingsBooksy.Modules.Resources.Core.ReadModels",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "GroupId",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "UserId",
+              "type": "Guid",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Upsert(GroupMemberAdded event)"
+          ],
+          "methods": []
+        },
+        {
+          "name": "GroupReadModel",
+          "ns": "ThingsBooksy.Modules.Resources.Core.ReadModels",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "private"
+          ],
+          "properties": [
+            {
+              "name": "Id",
+              "type": "Guid",
+              "setter": "private"
+            },
+            {
+              "name": "OwnerId",
+              "type": "Guid",
+              "setter": "private"
+            }
+          ],
+          "factories": [
+            "Upsert(GroupCreated event)"
+          ],
+          "methods": []
+        }
+      ]
+    },
+    {
+      "module": "Users",
+      "assembly": "ThingsBooksy.Modules.Users.Core",
+      "types": [
+        {
+          "name": "RoleConfiguration",
+          "ns": "ThingsBooksy.Modules.Users.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CRole\u003E)"
+          ]
+        },
+        {
+          "name": "TokenRevocationConfiguration",
+          "ns": "ThingsBooksy.Modules.Users.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CTokenRevocation\u003E)"
+          ]
+        },
+        {
+          "name": "UserConfiguration",
+          "ns": "ThingsBooksy.Modules.Users.Core.DAL.Configurations",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Void Configure(EntityTypeBuilder\u003CUser\u003E)"
+          ]
+        },
+        {
+          "name": "UsersDbContext",
+          "ns": "ThingsBooksy.Modules.Users.Core.DAL",
+          "kind": "dbcontext",
+          "baseType": "DbContext",
+          "ctor": [
+            "public"
+          ],
+          "properties": [
+            {
+              "name": "Inbox",
+              "type": "DbSet\u003CInboxMessage\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "Outbox",
+              "type": "DbSet\u003COutboxMessage\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "Roles",
+              "type": "DbSet\u003CRole\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "TokenRevocations",
+              "type": "DbSet\u003CTokenRevocation\u003E",
+              "setter": "public"
+            },
+            {
+              "name": "Users",
+              "type": "DbSet\u003CUser\u003E",
+              "setter": "public"
+            }
+          ],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "UsersInitializer",
+          "ns": "ThingsBooksy.Modules.Users.Core.DAL",
+          "kind": "class",
+          "baseType": null,
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": [
+            "Task InitAsync()"
+          ]
+        },
+        {
+          "name": "UsersUnitOfWork",
+          "ns": "ThingsBooksy.Modules.Users.Core.DAL",
+          "kind": "class",
+          "baseType": "PostgresUnitOfWork\u003CUsersDbContext\u003E",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        },
+        {
+          "name": "UsersDomainException",
+          "ns": "ThingsBooksy.Modules.Users.Core.Exceptions",
+          "kind": "class",
+          "baseType": "CustomException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [],
+          "factories": [],
+          "methods": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,19 @@
 {
   "env": {
     "PYTHONUTF8": "1"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Glob|Edit|Write|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/fleet/acl-hook.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "thingsbooksy-fleet-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic substrate for the ThingsBooksy agent fleet v4 (docs/agent-fleet-v4/workflow.md §5). No LLM inside.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "acl:test": "node acl-hook.test.js",
+    "capability-map": "node capability-map.js",
+    "contract:compose": "node contract-compose.js",
+    "contract:diff": "node contract-diff.js",
+    "ac-matrix": "node ac-matrix.js"
+  },
+  "dependencies": {
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.1",
+    "openapi-diff": "^0.24.1"
+  }
+}

@@ -1,0 +1,88 @@
+#!/usr/bin/env node
+// S6 — gate (phase C4): the deterministic bar every implementation must clear before any LLM review.
+// Steps (each recorded, first hard failure stops unless --all):
+//   build        dotnet build backend/ThingsBooksy.slnx (analyzers run here)
+//   format       dotnet format --verify-no-changes
+//   arch-tests   dotnet test --filter Category=Architecture   (SKIPPED until the deferred analyzers epic lands)
+//   tests        dotnet test (story tests by AC filter, or everything with --full)
+//   swagger      re-export generated/swagger.base.json (Tooling test)   [--no-swagger to skip]
+//   contract     contract-diff (contract-next vs re-exported swagger)   [needs runs/<story>/contract-next.json]
+//   ac-matrix    every AC has ≥1 test
+//   test-hash    acceptance-test sources unchanged since red-first proof (post-format)
+// Usage: node tools/fleet/gate.js --story NNN-slug [--full] [--all] [--no-swagger] [--out runs/NNN-slug/gate.json]
+// Exit 0 GREEN · 3 RED · 1 error
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO = path.resolve(HERE, '..', '..');
+const args = Object.fromEntries(process.argv.slice(2).map((a, i, arr) => a.startsWith('--') ? [a.slice(2), arr[i + 1] && !arr[i + 1].startsWith('--') ? arr[i + 1] : true] : []).filter(Boolean));
+const story = args.story; if (!story) { console.error('usage: gate --story NNN-slug [--full] [--all] [--no-swagger] [--out …]'); process.exit(1); }
+const runDir = path.join(REPO, 'runs', story);
+const run = (cmd, a, extra = {}) => spawnSync(cmd, a, { cwd: REPO, encoding: 'utf8', shell: true, ...extra });
+const node = (script, a) => run(process.execPath, [`"${path.join(HERE, script)}"`, ...a]);
+
+let acIds = [];
+{ const src = [path.join(runDir, 'story.md'), path.join(REPO, 'specs', story, 'spec.md')].find(f => fs.existsSync(f)); if (src) acIds = [...new Set([...fs.readFileSync(src, 'utf8').matchAll(/\bAC-\d+\b/g)].map(m => m[0]))]; }
+
+const steps = [];
+const t0 = Date.now();
+function step(name, fn) {
+  const start = Date.now();
+  let res;
+  try { res = fn(); } catch (e) { res = { status: 'FAILED', detail: String(e.message || e) }; }
+  steps.push({ name, ...res, ms: Date.now() - start });
+  console.log(`${res.status === 'PASSED' ? '✓' : res.status === 'SKIPPED' ? '–' : '✗'} ${name.padEnd(11)} ${res.status}${res.detail ? ' — ' + String(res.detail).split('\n')[0].slice(0, 120) : ''}`);
+  return res.status !== 'FAILED' || args.all;
+}
+const tail = (r, n = 15) => (r.stdout + '\n' + r.stderr).split('\n').filter(l => /error|fail|warn/i.test(l)).slice(0, n).join('\n');
+
+let go = true;
+go = go && step('build', () => { const r = run('dotnet', ['build', 'backend/ThingsBooksy.slnx', '--nologo', '-v', 'q']); return r.status === 0 ? { status: 'PASSED' } : { status: 'FAILED', detail: tail(r) }; });
+go = go && step('format', () => { const r = run('dotnet', ['format', 'backend/ThingsBooksy.slnx', '--verify-no-changes', '--no-restore']); return r.status === 0 ? { status: 'PASSED' } : { status: 'FAILED', detail: tail(r) || 'formatting differences' }; });
+go = go && step('arch-tests', () => ({ status: 'SKIPPED', detail: 'deferred epic: docs/backlog/deferred-static-analysis-sonarqube.md' }));
+go = go && step('tests', () => {
+  const a = ['test', 'backend/ThingsBooksy.slnx', '--no-build', '--nologo', '-v', 'q', '--logger', 'trx', '--results-directory', `"${path.join(runDir, 'tests', 'trx-gate')}"`];
+  if (!args.full && acIds.length) a.push('--filter', `"${acIds.map(id => `AC=${id}`).join('|')}|Category!=Tooling"`);
+  else a.push('--filter', '"Category!=Tooling"');
+  const r = run('dotnet', a);
+  const m = (r.stdout.match(/Passed!\s+-\s+Failed:\s+(\d+),\s+Passed:\s+(\d+)/g) || []).map(s => s.match(/Failed:\s+(\d+),\s+Passed:\s+(\d+)/)).reduce((acc, x) => ({ failed: acc.failed + +x[1], passed: acc.passed + +x[2] }), { failed: 0, passed: 0 });
+  const failedAny = r.status !== 0 || /Failed!/.test(r.stdout);
+  return failedAny ? { status: 'FAILED', detail: tail(r, 25) || `exit ${r.status}` } : { status: 'PASSED', detail: `${m.passed} passed` };
+});
+go = go && step('swagger', () => {
+  if (args['no-swagger']) return { status: 'SKIPPED' };
+  const r = run('dotnet', ['test', 'backend/src/Shared/ThingsBooksy.Shared.IntegrationTests', '--no-build', '--filter', 'Category=Tooling', '--nologo', '-v', 'q']);
+  return r.status === 0 ? { status: 'PASSED', detail: 'generated/ refreshed' } : { status: 'FAILED', detail: tail(r) };
+});
+go = go && step('contract', () => {
+  if (!fs.existsSync(path.join(runDir, 'contract-next.json'))) return { status: 'SKIPPED', detail: 'no contract-next.json (story without API change)' };
+  const r = node('contract-diff.js', ['--story', story]);
+  return r.status === 0 ? { status: 'PASSED' } : { status: 'FAILED', detail: r.stdout.trim() };
+});
+go = go && step('ac-matrix', () => {
+  if (!acIds.length) return { status: 'SKIPPED', detail: 'no AC ids found' };
+  const r = node('ac-matrix.js', ['--story', story]);
+  return r.status === 0 ? { status: 'PASSED', detail: r.stdout.trim() } : { status: 'FAILED', detail: r.stdout.trim() };
+});
+go = go && step('test-hash', () => {
+  const rf = path.join(runDir, 'tests', 'red-first.json');
+  if (!fs.existsSync(rf)) return { status: 'SKIPPED', detail: 'no red-first.json' };
+  const expected = JSON.parse(fs.readFileSync(rf, 'utf8')).acceptance_tests_hash;
+  function walk(dir, pred, acc = []) { if (!fs.existsSync(dir)) return acc; for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const p = path.join(dir, e.name); if (e.isDirectory()) { if (!['bin', 'obj', 'node_modules'].includes(e.name)) walk(p, pred, acc); } else if (pred(p)) acc.push(p); } return acc; }
+  const files = [...walk(path.join(REPO, 'backend', 'src', 'Modules'), p => /\.IntegrationTests[\\/].*\.cs$/.test(p)), ...walk(path.join(REPO, 'frontend', 'src'), p => p.endsWith('.spec.ts'))].sort();
+  const h = crypto.createHash('sha256'); for (const f of files) { h.update(path.relative(REPO, f)); h.update(fs.readFileSync(f)); }
+  const actual = h.digest('hex');
+  const rebaselined = fs.existsSync(path.join(runDir, 'journal.jsonl')) && fs.readFileSync(path.join(runDir, 'journal.jsonl'), 'utf8').includes(`"REBASELINE"`) && fs.readFileSync(path.join(runDir, 'journal.jsonl'), 'utf8').includes(actual);
+  return actual === expected || rebaselined ? { status: 'PASSED' } : { status: 'FAILED', detail: 'acceptance tests changed since red-first proof (no REBASELINE in journal)' };
+});
+
+const report = { story, status: steps.some(s => s.status === 'FAILED') ? 'RED' : 'GREEN', steps, ms: Date.now() - t0 };
+const out = path.resolve(REPO, args.out || path.join(runDir, 'gate.json'));
+fs.mkdirSync(path.dirname(out), { recursive: true });
+fs.writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
+console.log(`gate: ${report.status} in ${Math.round(report.ms / 1000)}s → ${path.relative(REPO, out)}`);
+process.exit(report.status === 'GREEN' ? 0 : 3);

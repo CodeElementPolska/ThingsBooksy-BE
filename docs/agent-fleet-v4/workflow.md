@@ -197,6 +197,8 @@ Każdy artefakt agenta ma nagłówek provenance: `{author_agent, run_id, story, 
 
 ## 5. Substrat — lista skryptów (kolejność budowy, D-3)
 
+**Implementacja i status:** `tools/fleet/README.md` (D-12). Stan 2026-09-24: S1 (hook ACL, zarejestrowany w `.claude/settings.json` projektu, D-13), S2 (`capability-map` + test `SwaggerExport`, D-15), S3 (`contract-compose` na OpenAPI Overlay + `contract-diff`), S5 (`ac-matrix` z `[Trait("AC")]`, D-14) — zweryfikowane. Pozostałe ⏳.
+
 | # | Skrypt | Co robi | Zamyka wadę audytu |
 |---|---|---|---|
 | S1 | `fleet-acl` (hook) | egzekwuje `fleet-acl.json` per agent | 1 |

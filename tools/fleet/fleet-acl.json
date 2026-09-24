@@ -14,7 +14,7 @@
       "shell": ["dotnet build backend/src/Modules/", "dotnet build backend/src/Shared/ThingsBooksy.Shared.IntegrationTests"]
     },
     "code-researcher": {
-      "read_allow": ["backend", "frontend/src", "specs", "generated", ".specify/memory", ".claude/conventions"],
+      "read_allow": ["backend", "frontend/src", "specs", "generated", "runs/*/discovery/questions", ".specify/memory", ".claude/conventions"],
       "write_allow": []
     },
     "scope-critic": { "read_allow": ["runs"], "write_allow": [] },

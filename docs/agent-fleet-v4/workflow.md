@@ -43,6 +43,8 @@ raporty krytyków → właściciel NIEFILTROWANE (scrum nie streszcza)
 **G1:** właściciel akceptuje story. Skrypt `backlog-writer` waliduje wymagane sekcje przed zapisem do GitHuba (dry-run pokazany właścicielowi).
 **Stop krytyków:** jedna runda + jedna replika; `NO_OBJECTIONS` dozwolone; każdy zarzut ma wagę z rubryki i alternatywę.
 
+**Implementacja sesji A (2026-09-28):** persona `.claude/agents/scrum.md` (`claude --agent scrum` z katalogu repo, na gałęzi, z której ma wyrosnąć story; hook odpowiedzi właściciela jest projektowy w `.claude/settings.json`). Persona po ustaleniu tytułu przydziela `NNN-slug` i od razu tworzy gałąź (`git checkout -b`), żeby hook zapisywał odpowiedzi do `runs/NNN-slug/journal.jsonl`; porzucenie = usunięcie gałęzi i katalogu. Workerzy: `capability-analyst` (sonnet, RO na `generated/`, jedno pytanie → `fact`), `scope-critic` (sonnet) i `premortem-critic` (opus) — ślepi, tylko `Read`, `maxTurns: 6`, wynik `critique`; szablony w `tools/fleet/templates/`. `backlog-writer.js` waliduje front matter `story.md` i renderuje `issue-body.md` (dry-run); issue tworzy persona przez MCP GitHub po G1 (`decide.js --gate G1`). Artefakty sesji A: `runs/<story>/{story.md,proposal.md,questions/,capability-report.jsonl,critique/,issue-body.md}`.
+
 ### 1.2 Sesja B — `/discover` (discovery techniczne)
 
 ```

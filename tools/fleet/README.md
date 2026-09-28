@@ -40,6 +40,16 @@ Deterministyczne skrypty (bez LLM), na których stoją bramki z `docs/agent-flee
 | `code-researcher` | subagent (sonnet, RO, `omitClaudeMd`) | `.claude/agents/code-researcher.md` + `templates/code-researcher.md` | ✅ headless na prawdziwym pytaniu: `fact` poprawny wg schematu, provenance skopiowane |
 | `impact-analyst` | subagent (sonnet, RO, `omitClaudeMd`) | `.claude/agents/impact-analyst.md` + `templates/impact-analyst.md` | 📝 napisany, nieprzetestowany |
 
+## Agenci sesji A — biznes (2026-09-28, wieczór; nieprzetestowane na prawdziwej story)
+
+| Agent | Tryb | Plik | Szablon | Stan |
+|---|---|---|---|---|
+| `scrum` | persona `claude --agent scrum` (z repo, na gałęzi bazowej) | `.claude/agents/scrum.md` | — | 📝 napisany; MCP GitHub tylko `issue_write/read/search/list`; tworzy gałąź `NNN-slug` po ustaleniu tytułu |
+| `capability-analyst` | subagent (sonnet, RO na `generated/`) | `.claude/agents/capability-analyst.md` | `templates/capability-analyst.md` | 📝 napisany; `fact` z dowodem z mapy możliwości/swaggera |
+| `scope-critic` | subagent ślepy (sonnet, tylko Read, `maxTurns: 6`) | `.claude/agents/scope-critic.md` | `templates/scope-critic.md` | 📝 napisany; rubryki value / cheapest-version / scope-creep / dependency |
+| `premortem-critic` | subagent ślepy (opus, tylko Read, `maxTurns: 6`) | `.claude/agents/premortem-critic.md` | `templates/premortem-critic.md` | 📝 napisany; rubryki data-loss / migration / authz / ops / timing / concurrency; lista D-1 ⇒ waga ≥ 4 |
+| `backlog-writer.js` | skrypt | `tools/fleet/backlog-writer.js` | — | 📝 napisany; walidacja `story` + `issue-body.md`; `--issue n` po utworzeniu issue przez MCP |
+
 ## Agenci sesji C — dostawa (2026-09-28)
 
 | Agent | Faza | Plik agenta | Szablon(y) | Stan |

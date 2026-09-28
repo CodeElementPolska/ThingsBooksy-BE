@@ -79,13 +79,20 @@
     },
     "scope-critic": {
       "read_allow": [
-        "runs"
+        "runs/*/prompts",
+        "runs/*/proposal.md",
+        "runs/*/capability-report.jsonl",
+        "generated/capability-map.json"
       ],
       "write_allow": []
     },
     "premortem-critic": {
       "read_allow": [
-        "runs"
+        "runs/*/prompts",
+        "runs/*/proposal.md",
+        "runs/*/capability-report.jsonl",
+        "generated/capability-map.json",
+        "docs/agent-fleet-v4/decisions.md"
       ],
       "write_allow": []
     },
@@ -234,6 +241,15 @@
         "runs/*/story.md",
         "runs/*/ac-matrix.json",
         "runs/*/review/round-*/review-spec-conformance.findings.json"
+      ],
+      "write_allow": []
+    },
+    "capability-analyst": {
+      "read_allow": [
+        "generated",
+        "runs/*/prompts",
+        "runs/*/questions",
+        "docs/agent-fleet-v4/decisions.md"
       ],
       "write_allow": []
     }

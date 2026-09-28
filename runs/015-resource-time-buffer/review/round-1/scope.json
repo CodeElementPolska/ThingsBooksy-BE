@@ -1,0 +1,41 @@
+{
+  "story": "015-resource-time-buffer",
+  "round": 1,
+  "base": "bcde2fc54911923b736db1e650e81569ec6e37cd",
+  "tree": "6cab1a3c121e0acf6ade50a097e25c59411301ae",
+  "head": "545348043941a2e1d3c5806b5874bb086c8a9885",
+  "diff_sha256": "b5797dd6a0dc0bce31201c5634cfe5db534e69ff60d827f924c219af396eea95",
+  "files": [
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs",
+    "backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/ThingsBooksy.Modules.Users.IntegrationTests.csproj",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs"
+  ],
+  "stats": {
+    "files": 25,
+    "insertions": 997,
+    "deletions": 34
+  },
+  "created_at": "2026-09-28T15:47:55.773Z"
+}

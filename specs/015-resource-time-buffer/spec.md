@@ -37,6 +37,7 @@ As a group owner I want a deleted schema to be hidden rather than physically rem
 
 1. **AC-8** Given a resource schema with instances exists, When the group owner deletes it through `DELETE /resources/types/{id}`, Then the response is 204, the schema row remains in `resources.resource_types` with `DeletedAt` set (visible only with `IgnoreQueryFilters`), `GET /resources/types/{id}` returns 404, `GET /resources/types?groupId=` no longer lists it, and its instances are soft-deleted exactly as today.
 2. **AC-9** Given a resource schema named X was soft-deleted in group G, When the group owner creates a new schema named X in group G, Then the response is 201 Created — the unique name constraint applies only to non-deleted schemas.
+3. **AC-10** *(added after G2 by owner decision DEC-6, C5 round 1 finding review-spec-conformance-1-1)* Given a resource schema with property definitions was soft-deleted and had instances with property values, When the group owner calls `GET /resources/instances?groupId={G}&includeDeleted=true`, Then the soft-deleted instances of that schema are listed with their property values carrying the definition's real `Name` and `DataType` (not empty strings) — the schema's property definitions are kept on soft delete (ASM-15) and this read path is the one place where that is user-visible. FR-009 ("read paths MUST NOT change") is narrowed accordingly: no route, request or response *shape* changes; this value change is accepted.
 
 ---
 

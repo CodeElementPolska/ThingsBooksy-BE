@@ -1,0 +1,67 @@
+{
+  "provenance": {
+    "author_agent": "review-maintainability",
+    "run_id": "015-resource-time-buffer-review-maintainability-mulfeday",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      { "path": "runs/015-resource-time-buffer/review/round-1/diff.patch", "sha256": "b5797dd6a0dc0bce31201c5634cfe5db534e69ff60d827f924c219af396eea95" },
+      { "path": "runs/015-resource-time-buffer/review/round-1/scope.json", "sha256": "490c202fbfbe50612052cdb3cf83b854aa0f172646c901423fbc553cd492f069" }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "review-maintainability",
+  "round": 1,
+  "scope": {
+    "diff_sha": "6cab1a3c121e0acf6ade50a097e25c59411301ae",
+    "files": [
+      "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs",
+      "backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/ThingsBooksy.Modules.Users.IntegrationTests.csproj",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs"
+    ]
+  },
+  "findings": [
+    {
+      "id": "review-maintainability-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      "line": 175,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "Two new DB helper methods are pure aliases of pre-existing methods with identical bodies: `GetResourceTypeFromDbIgnoringFiltersAsync` just calls `GetResourceTypeFromDbAsync` (which already applies `IgnoreQueryFilters()`), and `GetInstancesFromDbIgnoringFiltersAsync` (line 336-337) just calls `GetResourceInstancesByTypeFromDbAsync` (same behaviour). This gives the reader two names for the same query and invites drift if one is changed without the other. No written convention forbids this specific pattern, so it cannot be raised above OPINION, but it is duplication introduced by this diff.",
+      "evidence": "ResourcesTestClient.cs:175-176: `internal Task<ResourceType?> GetResourceTypeFromDbIgnoringFiltersAsync(Guid id) => GetResourceTypeFromDbAsync(id);` — and the pre-existing GetResourceTypeFromDbAsync (line 161-168) already does `.IgnoreQueryFilters().FirstOrDefaultAsync(...)`. Same pattern at line 336-337 for GetInstancesFromDbIgnoringFiltersAsync / GetResourceInstancesByTypeFromDbAsync.",
+      "suggested_fix": "Either rename the original methods to the `...IgnoringFiltersAsync` name (updating call sites) or delete the new aliases and call the original names directly from the new tests.",
+      "rule_candidate": {
+        "kind": "script",
+        "description": "Flag newly added methods in a diff whose body is a single-expression delegate to a sibling method already defined in the same file/class (near-duplicate detector for test-client helper methods)."
+      }
+    }
+  ],
+  "summary": {
+    "blockers": 0,
+    "majors": 0,
+    "minors": 0,
+    "opinions": 1
+  }
+}

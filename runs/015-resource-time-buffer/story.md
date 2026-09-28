@@ -34,6 +34,11 @@ acceptance_criteria:
     when: "the group owner creates a new schema named X in group G"
     then: "the response is 201 Created (the unique name constraint applies only to non-deleted schemas)"
     role: owner
+  - id: AC-10
+    given: "a resource schema with property definitions was soft-deleted and had instances with property values (added after G2 by owner decision DEC-6, C5 round 1)"
+    when: "the group owner lists instances with GET /resources/instances?groupId={G}&includeDeleted=true"
+    then: "the soft-deleted instances of that schema are listed with their property values carrying the real definition Name and DataType (not empty strings), because the schema's definitions are kept on soft delete"
+    role: owner
 out_of_scope:
   - "BufferMinutes on ResourceType - owned by Availability as a per-schema rule (DEC-3, discovery round 1); removed AC-1 and AC-2"
   - "Per-schema events when a whole group is deleted (GroupDeletedHandler bulk-deletes types via ExecuteDeleteAsync); Availability cleans up on GroupDeleted instead"

@@ -1,0 +1,143 @@
+{
+  "story": "015-resource-time-buffer",
+  "round": 1,
+  "reviewers": [
+    "review-maintainability",
+    "review-security-authz",
+    "review-spec-conformance"
+  ],
+  "verdict": "DECISIONS_REQUIRED",
+  "escalation_reason": null,
+  "summary": {
+    "blockers": 0,
+    "majors": 2,
+    "minors": 0,
+    "opinions": 5,
+    "merged_duplicates": 0,
+    "routes": {
+      "writer": 0,
+      "tester": 1,
+      "owner": 1
+    }
+  },
+  "previous_summary": null,
+  "findings": [
+    {
+      "id": "review-spec-conformance-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+      "line": 47,
+      "rule_ref": "AC-8",
+      "severity": "MAJOR",
+      "type": "UNSPECIFIED_BEHAVIOR",
+      "message": "Switching from hard delete (EF cascade removed ResourcePropertyDefinitions) to soft delete (definitions kept, ASM-15) changes what an existing read endpoint returns, and no AC or decision covers that change. ResourcePropertyDefinition has no query filter, and GET /resources/instances with groupId + includeDeleted=true reads soft-deleted instances with IgnoreQueryFilters. Before this diff, the property values of instances whose schema was deleted came back with Name = \"\" and DataType = \"\" because the definitions were gone. Now they come back with the definition's real Name and DataType. FR-009 says read paths MUST NOT change. AC-8 only fixes GET /resources/types/{id} (404) and the type list. ASM-15 only says definitions are kept; it does not say this visible effect is accepted. No test in the diff covers this path. The diff removes the old assertion that definitions are gone (UpdateDeleteResourceTypeTests: 'Assert.Empty(definitions)') and adds no replacement for the instances-list read. The owner needs to decide whether this new read-path output is accepted.",
+      "evidence": "DeleteResourceTypeCommandHandler.cs:47 `resourceType.Delete(now);` (replaces `_dataProvider.RemoveResourceType(resourceType);`). GetResourceInstancesQueryDataProvider.cs:31 `? _dbContext.ResourceInstances.IgnoreQueryFilters().Include(x => x.PropertyValues)`; :47-49 `_dbContext.ResourcePropertyDefinitions.Where(d => resourceTypeIds.Contains(d.ResourceTypeId)).ToListAsync(ct);` (no filter on definitions). GetResourceInstancesQueryHandler.cs:69-73 `defMap.TryGetValue(pv.PropertyDefinitionId, out var def); return new PropertyValueResult(pv.PropertyDefinitionId, def?.Name ?? string.Empty, def?.DataType.ToString() ?? string.Empty, pv.Value);`. ResourceTypeConfiguration.cs:19-22 `HasMany(x => x.PropertyDefinitions)...OnDelete(DeleteBehavior.Cascade)` (cascade no longer runs).",
+      "reporters": [
+        "review-spec-conformance-1-1"
+      ],
+      "route": "owner",
+      "decision_id": "DEC-6",
+      "closed_by": "owner",
+      "chosen": "Accept and add AC-10 with a test",
+      "answer_ref": "toolu_013MskC6K77m6eE7CRqrEg2w",
+      "closed_at": "2026-09-28T16:36:16.441Z"
+    },
+    {
+      "id": "review-spec-conformance-1-2",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+      "line": 71,
+      "rule_ref": "AC-3",
+      "severity": "MAJOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-3 says the event is published 'When SaveChangesAsync has completed'. The test does not check that order. RecordingMessageBroker.PublishAsync only appends the message to a list, and the test reads both the list and the DB after the whole HTTP request has finished. If CreateResourceTypeCommandHandler called `_messageBroker.PublishAsync(...)` before `_dataProvider.SaveChangesAsync(...)`, AC-3 would be violated but this test would still pass: the row exists at assert time and exactly one event is in the log. AC-4 (line 108), AC-5 (line 144) and AC-6 (line 208) have the same gap, since their ACs also require publish after SaveChangesAsync. The production handlers are correct today (publish is on the line after SaveChangesAsync in all four), so this only affects how much the tests guard. No test checks at record time that the row already exists, and no test checks that a failed persist publishes nothing.",
+      "evidence": "ResourceLifecycleEventTests.cs:65 `var resourceType = await client.GetResourceTypeFromDbIgnoringFiltersAsync(body.Id);` then :71-72 `var created = Factory.PublishedMessages.OfType<ResourceSchemaCreatedEvent>(); var evt = Assert.Single(created);`. RecordingMessageBroker.cs:24-27 `_log.Record(message); return _inner.PublishAsync(message, cancellationToken);` (no persistence check at record time).",
+      "reporters": [
+        "review-spec-conformance-1-2"
+      ],
+      "route": "tester",
+      "decision_id": "DEC-7",
+      "closed_by": "owner",
+      "chosen": "Accept for this story; make the order a deterministic check later",
+      "answer_ref": "toolu_013MskC6K77m6eE7CRqrEg2w",
+      "closed_at": "2026-09-28T16:36:16.509Z"
+    },
+    {
+      "id": "review-spec-conformance-1-3",
+      "file": "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj",
+      "line": 18,
+      "severity": "OPINION",
+      "type": "UNSPECIFIED_BEHAVIOR",
+      "message": "The diff adds the coverlet.collector package to the ManagementGroups and Users integration test projects. These modules are outside the story's blast_radius (Resources, Shared.Abstractions), and no AC asks for this. It is tooling, not runtime behaviour, so it is listed for visibility only.",
+      "evidence": "ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj:18 `<PackageReference Include=\"coverlet.collector\" Version=\"6.0.4\">`; same addition in ThingsBooksy.Modules.Users.IntegrationTests.csproj:18.",
+      "reporters": [
+        "review-spec-conformance-1-3"
+      ],
+      "route": "owner"
+    },
+    {
+      "id": "review-security-authz-1-1",
+      "reviewer": "review-security-authz",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Events/Handlers/GroupDeletedHandler.cs",
+      "line": 34,
+      "severity": "OPINION",
+      "type": "DATA_SAFETY",
+      "message": "Out of diff, and FR-011/DEC-5 deliberately leave it unchanged. After this story, schemas deleted through DELETE /resources/types/{id} are kept as rows 'for history and for a future restore feature' (spec edge cases). The unchanged GroupDeleted path still hard-deletes every resource_types row of the group, including those soft-deleted rows, because it uses IgnoreQueryFilters. The DB cascade also removes their property definitions. ManagementGroups has a RestoreManagementGroup feature, so after a group delete and restore the schema history in Resources is gone for good. Compared with the base branch nothing gets worse, since the schema was hard-deleted before. It does conflict with the owner rule 'everything deleted is a soft delete' (DEC-5), so it belongs on the owner's D-1 list as a follow-up.",
+      "evidence": "GroupDeletedHandler.cs:33-37: \"// Hard-delete all resource types for the group — DB cascade removes ResourcePropertyDefinitions\\n await _dbContext.ResourceTypes\\n .IgnoreQueryFilters()\\n .Where(x => x.GroupId == @event.GroupId)\\n .ExecuteDeleteAsync(cancellationToken);\"; ResourceTypeConfiguration.cs:19-22 \".HasMany(x => x.PropertyDefinitions)...OnDelete(DeleteBehavior.Cascade)\"",
+      "suggested_fix": "Open a follow-up story: make the GroupDeleted path soft-delete resource_types (ExecuteUpdateAsync setting DeletedAt/UpdatedAt with 'DeletedAt == null'), in the same way instances are handled at lines 25-31.",
+      "reporters": [
+        "review-security-authz-1-1"
+      ],
+      "route": "writer"
+    },
+    {
+      "id": "review-security-authz-1-2",
+      "reviewer": "review-security-authz",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+      "line": 44,
+      "severity": "OPINION",
+      "type": "DATA_SAFETY",
+      "message": "The schema delete is written in two separate commits. SoftDeleteInstancesAsync uses ExecuteUpdateAsync, which commits at once when no transaction is open. resourceType.Delete(now) is persisted later by SaveChangesAsync. TransactionalCommandHandlerDecorator is not in effect for this handler: AddTransactionalDecorators() runs inside AddModularInfrastructure (Shared Infrastructure Extensions.cs:122) before module.Register (Program.cs:17-20). The explicit AddScoped registration in AddResourcesCore (Resources Core Extensions.cs:46) is therefore the last descriptor, and CommandDispatcher resolves that one with GetRequiredService. If SaveChangesAsync fails, the instances stay soft-deleted while the schema stays active and no event is published. No row is lost (it is recoverable through DeletedAt), and the ordering existed before this diff. Publication after commit is correct (FR-005). Side note: if the decorator is ever wired in, PublishAsync at line 51 would run inside the open transaction before PostgresUnitOfWork commits.",
+      "evidence": "DeleteResourceTypeCommandHandler.cs:44 \"await _dataProvider.SoftDeleteInstancesAsync(command.TypeId, now, cancellationToken);\" then :47-48 \"resourceType.Delete(now);\\n await _dataProvider.SaveChangesAsync(cancellationToken);\"; DeleteResourceTypeCommandDataProvider.cs:25-31 \".ExecuteUpdateAsync(...)\"; Shared Infrastructure Extensions.cs:122 \"services.AddTransactionalDecorators();\"; Program.cs:15-19 AddModularInfrastructure before module.Register; CommandDispatcher.cs:24 \"GetRequiredService<ICommandHandler<TCommand>>()\"",
+      "suggested_fix": "If atomicity is wanted, wrap both writes in one explicit transaction in the data provider (or fix the decorator registration order). Keep PublishAsync after the commit.",
+      "reporters": [
+        "review-security-authz-1-2"
+      ],
+      "route": "writer"
+    },
+    {
+      "id": "review-maintainability-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      "line": 175,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "Two new DB helper methods are pure aliases of pre-existing methods with identical bodies: `GetResourceTypeFromDbIgnoringFiltersAsync` just calls `GetResourceTypeFromDbAsync` (which already applies `IgnoreQueryFilters()`), and `GetInstancesFromDbIgnoringFiltersAsync` (line 336-337) just calls `GetResourceInstancesByTypeFromDbAsync` (same behaviour). This gives the reader two names for the same query and invites drift if one is changed without the other. No written convention forbids this specific pattern, so it cannot be raised above OPINION, but it is duplication introduced by this diff.",
+      "evidence": "ResourcesTestClient.cs:175-176: `internal Task<ResourceType?> GetResourceTypeFromDbIgnoringFiltersAsync(Guid id) => GetResourceTypeFromDbAsync(id);` — and the pre-existing GetResourceTypeFromDbAsync (line 161-168) already does `.IgnoreQueryFilters().FirstOrDefaultAsync(...)`. Same pattern at line 336-337 for GetInstancesFromDbIgnoringFiltersAsync / GetResourceInstancesByTypeFromDbAsync.",
+      "suggested_fix": "Either rename the original methods to the `...IgnoringFiltersAsync` name (updating call sites) or delete the new aliases and call the original names directly from the new tests.",
+      "rule_candidate": {
+        "kind": "script",
+        "description": "Flag newly added methods in a diff whose body is a single-expression delegate to a sibling method already defined in the same file/class (near-duplicate detector for test-client helper methods)."
+      },
+      "reporters": [
+        "review-maintainability-1-1"
+      ],
+      "route": "tester"
+    },
+    {
+      "id": "review-security-authz-1-3",
+      "reviewer": "review-security-authz",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs",
+      "line": 35,
+      "severity": "OPINION",
+      "type": "DATA_SAFETY",
+      "message": "The Up migration only swaps the unique index for a partial one and drops no data. Down recreates a non-partial unique index on (GroupId, Name). Once AC-9 has been used, a soft-deleted row and an active row share the same name, and the rollback fails. The only way to make it pass would be to delete historical rows. This is a rollback hazard, not a data-loss path in normal operation.",
+      "evidence": "Down(): \"migrationBuilder.CreateIndex(name: \\\"IX_resource_types_GroupId_Name\\\", schema: \\\"resources\\\", table: \\\"resource_types\\\", columns: new[] { \\\"GroupId\\\", \\\"Name\\\" }, unique: true);\"",
+      "suggested_fix": "Document in the migration or runbook that Down needs duplicate names among soft-deleted schemas to be resolved by hand first (for example by renaming them). Do not delete them.",
+      "reporters": [
+        "review-security-authz-1-3"
+      ],
+      "route": "writer"
+    }
+  ],
+  "demoted": [],
+  "rejected": [],
+  "computed_at": "2026-09-28T15:59:31.961Z"
+}

@@ -1,0 +1,28 @@
+{
+  "provenance": {
+    "author_agent": "test-designer-sighted",
+    "run_id": "015-resource-time-buffer-test-designer-sighted-ac10-mulgz0ed",
+    "story": "015-resource-time-buffer",
+    "phase": "C4b",
+    "inputs": [
+      { "path": "runs/015-resource-time-buffer/story.md", "sha256": "9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490" },
+      { "path": "specs/015-resource-time-buffer/spec.md", "sha256": "dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66" },
+      { "path": "specs/015-resource-time-buffer/tasks.md", "sha256": "f4a78f080e58cf28737cfffac980b3ef32d5bbe30813f0163efe5f0e716fa251" },
+      { "path": "runs/015-resource-time-buffer/coverage-gaps.json", "sha256": "bf66c6e2b15e8012b3e3662e56f859b85b371939d800aab4f6fbf4a5af5e3ceb" },
+      { "path": "runs/015-resource-time-buffer/ac-matrix.json", "sha256": "3d76f7d1225fa4660ebc6f4b8e49ccfd4a4a573ecbca285222f624f5d3ac8155" },
+      { "path": "runs/015-resource-time-buffer/tests/red-first.json", "sha256": "e84a95c389f692497cff32b98f474d5ac67d4bb1e0a8b9cfb11a7b0e49ca0222" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T031"],
+  "tasks_remaining": [],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs"
+  ],
+  "assumptions": [],
+  "decisions_needed": [],
+  "local_checks": { "build": "PASSED", "unit_tests": "PASSED", "format": "SKIPPED" },
+  "schema_changes": "NONE",
+  "notes": "coverage-gaps.json has no gaps (0 uncovered lines, 0 partial branches), so the whole scope was tasks.md T031 (AC-10, DEC-6). T026's ASM-19 UNSPECIFIED tests were already added in commit 5453480 (Events/ResourceLifecycleEventNoPublishTests.cs) and were not touched. I added one test, [Trait(\"AC\",\"AC-10\")] GetResourceInstances_IncludeDeletedForSoftDeletedType_ReturnsPropertyValuesWithDefinitionNames, in a NEW file, backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs. T031 allows a new file, and SoftDeleteResourceTypeTests.cs is covered by the red-first acceptance hash. Arrange: the owner, group, type and instance come from the existing factories, and two ResourcePropertyDefinitions (Seats/Number, Colour/Text) plus their ResourcePropertyValues are seeded through EF using the domain Create methods, never through POST. Act: HTTP DELETE /resources/types/{id} returns 204, then HTTP GET /resources/instances?groupId=G&includeDeleted=true. Assert: 200. The soft-deleted instance is listed with DeletedAt set. Each property value has the definition's real PropertyName and DataType ('Seats'/'Number', 'Colour'/'Text'), and none is an empty string. A DB re-read with IgnoreQueryFilters shows the type has DeletedAt set and both definition rows still exist (ASM-15). This is the path named in finding review-spec-conformance-1-1 (GetResourceInstancesQueryDataProvider.cs:46-49 reads definitions without a filter; GetResourceInstancesQueryHandler.cs:69-73 falls back to string.Empty). Local run: 'dotnet test backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests' passed 86/86, and '--filter AC=AC-10' passed 1/1. Format was not checked: the ACL hook denies 'dotnet format', so the gate's format step (T028) must cover the new file. I did not change any production code, blind-pass test, factory or test client."
+}

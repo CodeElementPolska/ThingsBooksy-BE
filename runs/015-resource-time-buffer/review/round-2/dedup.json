@@ -1,0 +1,78 @@
+{
+  "story": "015-resource-time-buffer",
+  "round": 2,
+  "reviewers": [
+    "review-maintainability",
+    "review-security-authz",
+    "review-spec-conformance"
+  ],
+  "verdict": "DECISIONS_REQUIRED",
+  "escalation_reason": null,
+  "summary": {
+    "blockers": 0,
+    "majors": 1,
+    "minors": 1,
+    "opinions": 0,
+    "merged_duplicates": 0,
+    "routes": {
+      "writer": 0,
+      "tester": 1,
+      "owner": 0
+    }
+  },
+  "previous_summary": {
+    "blockers": 0,
+    "majors": 2,
+    "minors": 0,
+    "opinions": 5,
+    "merged_duplicates": 0,
+    "routes": {
+      "writer": 0,
+      "tester": 1,
+      "owner": 1
+    }
+  },
+  "findings": [
+    {
+      "id": "review-maintainability-2-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs",
+      "line": 144,
+      "severity": "MAJOR",
+      "type": "CONVENTION",
+      "message": "New private DB helper `GetPropertyDefinitionIdsFromDbAsync` re-implements a query that already exists, word-for-word, on `ResourcesTestClient`. `ResourcesTestClient.GetResourcePropertyDefinitionsFromDbAsync(Guid resourceTypeId)` (ResourcesTestClient.cs:203-211) already does `db.ResourcePropertyDefinitions.IgnoreQueryFilters().Where(x => x.ResourceTypeId == resourceTypeId).ToListAsync()` — the new method is the same DbSet, same filter, same predicate, only projecting `.Select(d => d.Id)` afterward. integration-test-infrastructure.md establishes TestClient as the single place for DB methods precisely so a query only exists once (\"TestClient centralises route strings and request shapes in one place... a route change requires updating only the TestClient, not every test method that calls it\"; \"IgnoreQueryFilters() is mandatory on all DB methods in TestClient\"). This diff instead puts a second, private copy of the same query in the test class.",
+      "evidence": "SoftDeleteResourceTypeReadPathTests.cs:144-153: `private async Task<List<Guid>> GetPropertyDefinitionIdsFromDbAsync(Guid resourceTypeId) { ... return await db.ResourcePropertyDefinitions.IgnoreQueryFilters().Where(d => d.ResourceTypeId == resourceTypeId).Select(d => d.Id).ToListAsync(); }` vs. the pre-existing ResourcesTestClient.cs:203-211 `internal async Task<List<ResourcePropertyDefinition>> GetResourcePropertyDefinitionsFromDbAsync(Guid resourceTypeId) => db.ResourcePropertyDefinitions.IgnoreQueryFilters().Where(x => x.ResourceTypeId == resourceTypeId).ToListAsync();`",
+      "suggested_fix": "Delete the private helper; call `client.GetResourcePropertyDefinitionsFromDbAsync(resourceType.Id)` and project `.Select(d => d.Id)` at the two call sites (line 116-117).",
+      "rule_ref": "conventions/integration-test-infrastructure.md#1-testclient--clientsmodulenametestclientcs",
+      "rule_candidate": {
+        "kind": "script",
+        "description": "Detect near-duplicate DB query methods (same DbSet + same Where predicate shape) added by a diff across a TestClient file and any other file in the same IntegrationTests project — near-duplicate detector for EF LINQ query bodies."
+      },
+      "reporters": [
+        "review-maintainability-2-1"
+      ],
+      "route": "tester"
+    },
+    {
+      "id": "review-maintainability-2-2",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs",
+      "line": 120,
+      "severity": "MINOR",
+      "type": "CONVENTION",
+      "message": "`CreatePropertyDefinitionInDbAsync` and `CreatePropertyValueInDbAsync` are full entity-factory methods (call `{Entity}.Create(...)`, open a DI scope, `Add` + `SaveChangesAsync`) — exactly the \"Standard entity factory\" shape the convention defines — but they are private methods on the test class instead of living in a dedicated `Clients/{Entity}Factory.cs`. The convention states infrastructure is split into three components created \"once per module and extended as the module grows\", with factories explicitly filed at `Clients/{Entity}Factory.cs`, so other tests needing a property definition/value precondition cannot reuse this logic and a second ad-hoc copy is likely next time.",
+      "evidence": "SoftDeleteResourceTypeReadPathTests.cs:120-142: `private async Task<ResourcePropertyDefinition> CreatePropertyDefinitionInDbAsync(...) { var definition = ResourcePropertyDefinition.Create(...); ... db.ResourcePropertyDefinitions.Add(definition); await db.SaveChangesAsync(); return definition; }` and the sibling `CreatePropertyValueInDbAsync` — compare to the file-path rule at integration-test-infrastructure.md \"2. Factories — Clients/{Entity}Factory.cs\".",
+      "suggested_fix": "Extract both methods into `Clients/ResourcesPropertyDefinitionFactory.cs` and `Clients/ResourcesPropertyValueFactory.cs` (or one combined factory), following the existing `ResourcesResourceTypeFactory` / `ResourcesResourceInstanceFactory` pattern, and inject them via the test constructor like the other factories in this file.",
+      "rule_ref": "conventions/integration-test-infrastructure.md#2-factories--clientsentityfactorycs",
+      "rule_candidate": {
+        "kind": "arch-test",
+        "description": "Flag any class under an IntegrationTests project, outside `Clients/`, that calls `GetRequiredService<{Module}DbContext>()` to `Add(...)` an entity — Arrange-phase entity creation must go through a `Clients/{Entity}Factory` class."
+      },
+      "reporters": [
+        "review-maintainability-2-2"
+      ],
+      "route": "tester"
+    }
+  ],
+  "demoted": [],
+  "rejected": [],
+  "computed_at": "2026-09-28T16:45:00.807Z"
+}

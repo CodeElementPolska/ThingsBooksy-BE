@@ -7,7 +7,8 @@
     "AC-6",
     "AC-7",
     "AC-8",
-    "AC-9"
+    "AC-9",
+    "AC-10"
   ],
   "uncovered_ac": [],
   "tests_without_known_ac": [],
@@ -95,6 +96,15 @@
         "kind": "be",
         "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
         "line": 106
+      }
+    ],
+    "AC-10": [
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeReadPathTests.GetResourceInstances_IncludeDeletedForSoftDeletedType_ReturnsPropertyValuesWithDefinitionNames",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs",
+        "line": 58
       }
     ]
   }

@@ -28,7 +28,8 @@ vars.story = story; vars.instance = args.instance || '';
 // default artifact id for single-fact workers: F-<instance> when the instance is numeric (F-3b is not a valid id → F-3)
 if (!vars.fact_id && vars.instance) { const n = String(vars.instance).match(/^\d+/); if (n) vars.fact_id = `F-${n[0]}`; }
 
-const tplPath = path.join(HERE, 'templates', `${agent}.md`);
+// --template lets one agent type run different phases (be-writer-skeleton vs be-writer-behaviour)
+const tplPath = path.join(HERE, 'templates', `${args.template || agent}.md`);
 if (!fs.existsSync(tplPath)) { console.error(`prompt-builder: no template ${path.relative(REPO, tplPath)}`); process.exit(1); }
 const raw = fs.readFileSync(tplPath, 'utf8');
 const fm = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
@@ -91,7 +92,7 @@ const prompt = [
 
 const outDir = path.join(REPO, 'runs', story, 'prompts');
 fs.mkdirSync(outDir, { recursive: true });
-const base = path.join(outDir, `${agent}${vars.instance ? '.' + vars.instance : ''}`);
+const base = path.join(outDir, `${args.template || agent}${vars.instance ? '.' + vars.instance : ''}`);
 fs.writeFileSync(base + '.md', prompt);
 fs.writeFileSync(base + '.json', JSON.stringify({ agent_type: agent, run_id: runId, prompt, schema, provenance, tools_hint: meta.tools || null, max_turns: meta.max_turns ? +meta.max_turns : null }, null, 2) + '\n');
 console.log(`prompt-builder: ${agent}${vars.instance ? '/' + vars.instance : ''} — ${inputs.length} inputs, schema ${schemaName || 'none'} → ${path.relative(REPO, base)}.{md,json}`);

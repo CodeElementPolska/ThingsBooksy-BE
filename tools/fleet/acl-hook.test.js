@@ -49,6 +49,21 @@ const cases = [
   ['tester reads Core via * root (deny)', ev('test-designer', 'Read', { file_path: CORE }), 2],
   ['tester writes spec.ts via ** root', ev('test-designer', 'Write', { file_path: path.join(REPO, 'frontend', 'src', 'app', 'features', 'x', 'x.component.spec.ts') }), 0],
   ['tester writes component.ts via ** root (deny)', ev('test-designer', 'Write', { file_path: path.join(REPO, 'frontend', 'src', 'app', 'features', 'x', 'x.component.ts') }), 2],
+  // delivery agents
+  ["be-writer writes Core", ev("be-writer", "Write", { file_path: CORE }), 0],
+  ["be-writer writes Migrations (deny)", ev("be-writer", "Write", { file_path: path.join(REPO, "backend", "src", "Modules", "Resources", "ThingsBooksy.Modules.Resources.Migrations", "Migrations", "x.cs") }), 2],
+  ["be-writer edits IntegrationTests (deny)", ev("be-writer", "Edit", { file_path: path.join(T, "X.cs") }), 2],
+  ["be-writer reads IntegrationTests (allowed)", ev("be-writer", "Read", { file_path: path.join(T, "IntegrationTestCollection.cs") }), 0],
+  ["be-writer writes Shared.Abstractions", ev("be-writer", "Write", { file_path: path.join(REPO, "backend", "src", "Shared", "ThingsBooksy.Shared.Abstractions", "Events", "Resources", "E.cs") }), 0],
+  ["be-writer dotnet test allowed", ev("be-writer", "Bash", { command: "dotnet test backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests" }), 0],
+  ["be-writer git commit (deny)", ev("be-writer", "Bash", { command: "git commit -m x" }), 2],
+  ["be-writer ef migrations add (deny: not in allowlist)", ev("be-writer", "Bash", { command: "dotnet ef migrations add X --project y" }), 2],
+  ["test-designer reads Core (deny)", ev("test-designer", "Read", { file_path: CORE }), 2],
+  ["test-designer reads Shared.Abstractions", ev("test-designer", "Read", { file_path: path.join(REPO, "backend", "src", "Shared", "ThingsBooksy.Shared.Abstractions", "Events", "IEvent.cs") }), 0],
+  ["test-designer writes Shared.IntegrationTests", ev("test-designer", "Write", { file_path: path.join(REPO, "backend", "src", "Shared", "ThingsBooksy.Shared.IntegrationTests", "Messaging", "R.cs") }), 0],
+  ["test-designer writes Core (deny)", ev("test-designer", "Write", { file_path: CORE }), 2],
+  ["sighted reads Core", ev("test-designer-sighted", "Read", { file_path: CORE }), 0],
+  ["sighted writes Core (deny)", ev("test-designer-sighted", "Write", { file_path: CORE }), 2],
   // garbage
   ['garbage input (deny)', 'not json', 2],
 ];

@@ -109,6 +109,8 @@ G3                  eskalacje + raport + zgoda na commit (właściciel)
 
 **G2b:** gdy `migration-reviewer` oznaczy migrację jako destrukcyjną — faza C3 kończy się, dyrygent pyta właściciela.
 
+**Implementacja sesji C (2026-09-28, w toku):** `.claude/agents/be-writer.md` (C3a/C3b przez `--template be-writer-skeleton|be-writer-behaviour`), `test-designer.md` (C2, ślepy — osobny `agent_type`, bo ACL jest per typ) i `test-designer-sighted.md` (C4b). Migrację generuje deweloper między C3a a C2 (konstytucja VI). Dyrygentem jest na razie sesja główna; pierwszy przebieg: story 015.
+
 ---
 
 ## 2. Tabela agentów

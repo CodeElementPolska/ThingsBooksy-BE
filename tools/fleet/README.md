@@ -33,6 +33,16 @@ Deterministyczne skrypty (bez LLM), na których stoją bramki z `docs/agent-flee
 | `code-researcher` | subagent (sonnet, RO, `omitClaudeMd`) | `.claude/agents/code-researcher.md` + `templates/code-researcher.md` | ✅ headless na prawdziwym pytaniu: `fact` poprawny wg schematu, provenance skopiowane |
 | `impact-analyst` | subagent (sonnet, RO, `omitClaudeMd`) | `.claude/agents/impact-analyst.md` + `templates/impact-analyst.md` | 📝 napisany, nieprzetestowany |
 
+## Agenci sesji C — dostawa (2026-09-28)
+
+| Agent | Faza | Plik agenta | Szablon(y) | Stan |
+|---|---|---|---|---|
+| `be-writer` | C3a szkielet, C3b zachowanie | `.claude/agents/be-writer.md` | `templates/be-writer-skeleton.md`, `templates/be-writer-behaviour.md` (`--template`) | 📝 napisany; ACL: pisze Core/Api/Shared.Abstractions, czyta testy, bez Migrations, bez `ef migrations` |
+| `test-designer` | C2 przebieg ślepy | `.claude/agents/test-designer.md` | `templates/test-designer.md` | 📝 napisany; ACL: bez `src` Core/Api; pisze projekty testów + Shared.IntegrationTests; `dotnet build/test` projektów testowych |
+| `test-designer-sighted` | C4b przebieg 2 | `.claude/agents/test-designer-sighted.md` | `templates/test-designer-sighted.md` | 📝 napisany; czyta wszystko, pisze tylko testy |
+
+Dyrygent C1–C6: na razie sesja główna (prompt-builder → Agent → skrypty między fazami); skill `/deliver` po pierwszym pełnym przebiegu.
+
 ## Dziennik defektów floty (z prawdziwych przebiegów)
 
 | Data | Story | Defekt | Naprawa |
@@ -43,6 +53,7 @@ Deterministyczne skrypty (bez LLM), na których stoją bramki z `docs/agent-flee
 | 2026-09-24 | 015 | `.specify/feature.json` wskazywał 010 → `/speckit-plan` nadpisał `specs/010/plan.md` | `status.js` odmawia przy niezgodności; checklista startu `dev-analyst` |
 | 2026-09-24 | 015 | persona uruchomiła `gate.js` w discovery | zakaz w prompcie persony |
 | 2026-09-24 | 015 | pliki `.trx` w `runs/` | `.gitignore: runs/**/tests/` |
+| 2026-09-28 | 015 | `tasks.md`: infrastruktura testowa (recording broker, TestClient) w fazie szkieletu; taski zawierają gotowy kod | reguła w prompcie `dev-analyst`; szablony writer/tester filtrują zadania po zakresie, nie po nagłówku fazy |
 | 2026-09-24 | 015 | założenia o `BufferMinutes` zostały ACTIVE po rescopingu | pole `status: WITHDRAWN` w schemacie `assumption`; `status`/`dod` je pomijają |
 
 ## Konwencje

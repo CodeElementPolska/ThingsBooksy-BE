@@ -2,27 +2,151 @@
   "$schema": "../../docs/agent-fleet-v4/schemas/fleet-acl.schema.json",
   "version": 1,
   "_comment": "Keys of `agents` are agent_type values as delivered in hook stdin. Paths are repo-relative directory roots; any Read/Grep/Glob scope or Edit/Write target must canonicalize inside one of them. An agent_type not listed here is NOT constrained (main session, general-purpose helpers). `shell` absent = Bash/PowerShell denied entirely; present = only commands starting with one of the prefixes are allowed. `deny_always` applies to every listed agent.",
-  "deny_always": ["git push", "git commit", "git reset", "git checkout --", "dotnet ef database update", "rm -rf", "Remove-Item -Recurse"],
+  "deny_always": [
+    "git push",
+    "git commit",
+    "git reset",
+    "git checkout --",
+    "dotnet ef database update",
+    "rm -rf",
+    "Remove-Item -Recurse"
+  ],
   "agents": {
     "fleet-smoke-blind": {
-      "read_allow": ["docs", "specs", "runs", "generated", "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests"],
-      "write_allow": ["runs"]
+      "read_allow": [
+        "docs",
+        "specs",
+        "runs",
+        "generated",
+        "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests"
+      ],
+      "write_allow": [
+        "runs"
+      ]
     },
     "test-designer": {
-      "read_allow": ["specs", "runs", "generated", "docs/agent-fleet-v4/schemas", ".claude/conventions", "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests", "backend/src/Modules/*/ThingsBooksy.Modules.*.IntegrationTests", "frontend/src/app/api", "frontend/src/app/**/*.spec.ts"],
-      "write_allow": ["backend/src/Modules/*/ThingsBooksy.Modules.*.IntegrationTests", "frontend/src/app/**/*.spec.ts", "runs"],
-      "shell": ["dotnet build backend/src/Modules/", "dotnet build backend/src/Shared/ThingsBooksy.Shared.IntegrationTests"]
+      "read_allow": [
+        "specs",
+        "runs",
+        "generated",
+        ".specify/memory",
+        ".claude/conventions",
+        "backend/src/Shared/ThingsBooksy.Shared.Abstractions",
+        "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests",
+        "backend/src/Modules/*/ThingsBooksy.Modules.*.IntegrationTests",
+        "backend/src/Modules/*/ThingsBooksy.Modules.*.Tests.Unit",
+        "frontend/src/app/api",
+        "frontend/src/app/**/*.spec.ts"
+      ],
+      "write_allow": [
+        "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests",
+        "backend/src/Modules/*/ThingsBooksy.Modules.*.IntegrationTests",
+        "frontend/src/app/**/*.spec.ts",
+        "runs/*/impl"
+      ],
+      "shell": [
+        "dotnet build backend/src/Modules/",
+        "dotnet build backend/src/Shared/ThingsBooksy.Shared.IntegrationTests",
+        "dotnet test backend/src/Modules/",
+        "node tools/fleet/validate.js",
+        "node tools/fleet/ac-matrix.js"
+      ]
     },
     "code-researcher": {
-      "read_allow": ["backend", "frontend/src", "specs", "generated", "runs/*/discovery/questions", ".specify/memory", ".claude/conventions"],
+      "read_allow": [
+        "backend",
+        "frontend/src",
+        "specs",
+        "generated",
+        "runs/*/discovery/questions",
+        ".specify/memory",
+        ".claude/conventions"
+      ],
       "write_allow": []
     },
     "impact-analyst": {
-      "read_allow": ["backend", "frontend/src", "specs", "generated", "runs/*/story.md", "runs/*/discovery", ".specify/memory", ".claude/conventions"],
+      "read_allow": [
+        "backend",
+        "frontend/src",
+        "specs",
+        "generated",
+        "runs/*/story.md",
+        "runs/*/discovery",
+        ".specify/memory",
+        ".claude/conventions"
+      ],
       "write_allow": []
     },
-    "scope-critic": { "read_allow": ["runs"], "write_allow": [] },
-    "premortem-critic": { "read_allow": ["runs"], "write_allow": [] },
-    "review-arbiter": { "read_allow": ["runs", "specs", ".specify/memory", ".claude/conventions"], "write_allow": [] }
+    "scope-critic": {
+      "read_allow": [
+        "runs"
+      ],
+      "write_allow": []
+    },
+    "premortem-critic": {
+      "read_allow": [
+        "runs"
+      ],
+      "write_allow": []
+    },
+    "review-arbiter": {
+      "read_allow": [
+        "runs",
+        "specs",
+        ".specify/memory",
+        ".claude/conventions"
+      ],
+      "write_allow": []
+    },
+    "be-writer": {
+      "read_allow": [
+        "backend",
+        "specs",
+        "runs",
+        "generated",
+        ".specify/memory",
+        ".claude/conventions",
+        "tools/fleet/README.md"
+      ],
+      "write_allow": [
+        "backend/src/Modules/*/ThingsBooksy.Modules.*.Core",
+        "backend/src/Modules/*/ThingsBooksy.Modules.*.Api",
+        "backend/src/Shared/ThingsBooksy.Shared.Abstractions",
+        "backend/src/Bootstrapper",
+        "backend/ThingsBooksy.slnx",
+        "runs/*/impl"
+      ],
+      "shell": [
+        "dotnet build",
+        "dotnet test backend/src/Modules/",
+        "dotnet format backend/ThingsBooksy.slnx",
+        "node tools/fleet/skeleton-check.js",
+        "node tools/fleet/validate.js",
+        "git diff",
+        "git status"
+      ]
+    },
+    "test-designer-sighted": {
+      "read_allow": [
+        "backend",
+        "specs",
+        "runs",
+        "generated",
+        ".specify/memory",
+        ".claude/conventions",
+        "frontend/src"
+      ],
+      "write_allow": [
+        "backend/src/Modules/*/ThingsBooksy.Modules.*.IntegrationTests",
+        "frontend/src/app/**/*.spec.ts",
+        "runs/*/impl"
+      ],
+      "shell": [
+        "dotnet build backend/src/Modules/",
+        "dotnet test backend/src/Modules/",
+        "node tools/fleet/validate.js",
+        "node tools/fleet/ac-matrix.js"
+      ]
+    }
   }
 }

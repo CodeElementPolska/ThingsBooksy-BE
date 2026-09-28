@@ -1,0 +1,30 @@
+{
+  "story": "015-resource-time-buffer",
+  "owner_interruptions": 0,
+  "owner_answers": 6,
+  "decisions": {
+    "total": 9,
+    "by_owner": 7,
+    "escalated_from_impl": 0
+  },
+  "assumptions": {
+    "total": 18,
+    "vetoed": 0,
+    "hard_list": 0
+  },
+  "repair_rounds": {
+    "C4": 0,
+    "C5": 3
+  },
+  "review": {
+    "findings_last_round": 0,
+    "rule_candidates": 0,
+    "unspecified_behaviour": 0
+  },
+  "ac_coverage_percent": 100,
+  "gate_seconds": 48,
+  "tokens_spent": 0,
+  "wall_clock_hours": 100.06,
+  "rebaselines": 0,
+  "escalations": 0
+}

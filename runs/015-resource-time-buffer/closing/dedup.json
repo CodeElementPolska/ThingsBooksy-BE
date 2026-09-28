@@ -1,0 +1,27 @@
+{
+  "story": "015-resource-time-buffer",
+  "round": 1,
+  "reviewers": [
+    "architecture-guard",
+    "trace-auditor"
+  ],
+  "verdict": "CLEAN",
+  "escalation_reason": null,
+  "summary": {
+    "blockers": 0,
+    "majors": 0,
+    "minors": 0,
+    "opinions": 0,
+    "merged_duplicates": 0,
+    "routes": {
+      "writer": 0,
+      "tester": 0,
+      "owner": 0
+    }
+  },
+  "previous_summary": null,
+  "findings": [],
+  "demoted": [],
+  "rejected": [],
+  "computed_at": "2026-09-28T17:32:52.920Z"
+}

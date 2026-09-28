@@ -5,48 +5,48 @@
     {
       "name": "build",
       "status": "PASSED",
-      "ms": 3363
+      "ms": 4713
     },
     {
       "name": "format",
       "status": "PASSED",
-      "ms": 15645
+      "ms": 17062
     },
     {
       "name": "arch-tests",
       "status": "SKIPPED",
       "detail": "deferred epic: docs/backlog/deferred-static-analysis-sonarqube.md",
-      "ms": 0
+      "ms": 1
     },
     {
       "name": "tests",
       "status": "PASSED",
-      "detail": "139 passed",
-      "ms": 14713
+      "detail": "142 passed",
+      "ms": 16457
     },
     {
       "name": "swagger",
       "status": "PASSED",
       "detail": "generated/ refreshed",
-      "ms": 6409
+      "ms": 8384
     },
     {
       "name": "contract",
       "status": "PASSED",
       "detail": "contract-diff: CLEAR — missing 0, unspecified 0, response drift 0, breaking 0 → runs\\015-resource-time-buffer\\contract-diff.json",
-      "ms": 804
+      "ms": 788
     },
     {
       "name": "ac-matrix",
       "status": "PASSED",
-      "detail": "ac-matrix: 8 AC expected, 11 tagged tests, uncovered: none → runs\\015-resource-time-buffer\\ac-matrix.json",
-      "ms": 89
+      "detail": "ac-matrix: 8 AC expected, 14 tagged tests, uncovered: none → runs\\015-resource-time-buffer\\ac-matrix.json",
+      "ms": 103
     },
     {
       "name": "test-hash",
       "status": "PASSED",
-      "ms": 25
+      "ms": 21
     }
   ],
-  "ms": 41050
+  "ms": 47532
 }

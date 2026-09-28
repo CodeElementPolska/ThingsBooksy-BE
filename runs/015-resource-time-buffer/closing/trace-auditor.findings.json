@@ -1,0 +1,222 @@
+{
+  "provenance": {
+    "author_agent": "trace-auditor",
+    "run_id": "015-resource-time-buffer-trace-auditor-mulhqbob",
+    "story": "015-resource-time-buffer",
+    "phase": "C6",
+    "inputs": [
+      {
+        "path": "runs/015-resource-time-buffer/story.md",
+        "sha256": "9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/spec.md",
+        "sha256": "dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/ac-matrix.json",
+        "sha256": "f048c9fe2958727d2163c8a16b591e5a92f269c83c73680eb87b52c9fa3971ab"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/review/round-1/review-spec-conformance.findings.json",
+        "sha256": "b9dbba7f5cb181ed048a6163105f9c1ac2d3fd924042fa2b986c76ebfb50f99a"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "trace-auditor",
+  "round": 1,
+  "scope": {
+    "files": [
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/CreateResourceTypeTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/GetResourceInstanceTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesGroupReadModelFactory.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs"
+    ]
+  },
+  "ac_assessment": [
+    {
+      "ac": "AC-3",
+      "tests": [
+        "CreateResourceType_WithValidData_PublishesResourceSchemaCreatedEvent"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "published only after SaveChangesAsync has completed (ordering) - accepted unproven by owner decision DEC-7 (review-spec-conformance-1-2); no new finding raised"
+      ],
+      "note": "The test asserts 201, re-reads the persisted row (GroupId, DeletedAt null), and checks for exactly one ResourceSchemaCreatedEvent with SchemaId == row.Id and GroupId == row.GroupId, recorded through the IMessageBroker decorator (ResourceLifecycleEventTests.cs:59-74). The only unproven clause is the publish-after-SaveChangesAsync order, which DEC-7 closed."
+    },
+    {
+      "ac": "AC-4",
+      "tests": [
+        "CreateResourceInstance_WithValidData_PublishesResourceInstanceCreatedEvent"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "published only after SaveChangesAsync has completed (ordering) - covered by DEC-7 (review-spec-conformance-1-2 names AC-4 explicitly); no new finding raised"
+      ],
+      "note": "The test asserts 201, re-reads the row (ResourceTypeId, DeletedAt null), and checks for exactly one ResourceInstanceCreatedEvent with ResourceId and SchemaId matching the persisted row (ResourceLifecycleEventTests.cs:96-111). Only the ordering clause is unproven, and DEC-7 closed it."
+    },
+    {
+      "ac": "AC-5",
+      "tests": [
+        "DeleteResourceType_WithInstances_PublishesExactlyOneResourceSchemaDeletedEvent",
+        "DeleteResourceType_WithoutInstances_PublishesOneResourceSchemaDeletedEvent"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "published only after SaveChangesAsync has completed (ordering) - covered by DEC-7 (review-spec-conformance-1-2 names AC-5 explicitly); no new finding raised"
+      ],
+      "note": "'Exactly one' is asserted with Assert.Single, together with the payload (SchemaId, GroupId). 'No per-instance events' is asserted with Assert.Empty on ResourceInstanceDeletedEvent, both for N=2 with the side effect confirmed in the DB (ResourceLifecycleEventTests.cs:139-153) and for N=0 (:174-177). The with-instances test does not assert the total published count. That does not matter for the AC as worded, because ResourceInstanceDeletedEvent is the only per-instance deletion contract."
+    },
+    {
+      "ac": "AC-6",
+      "tests": [
+        "DeleteResourceInstance_Existing_PublishesResourceInstanceDeletedEvent"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "published only after SaveChangesAsync has completed (ordering) - covered by DEC-7 (review-spec-conformance-1-2 names AC-6 explicitly); no new finding raised"
+      ],
+      "note": "The test asserts 204, re-reads the instance with DeletedAt set, and checks for exactly one ResourceInstanceDeletedEvent with ResourceId and SchemaId, where SchemaId is checked against both the seed and the re-read row (ResourceLifecycleEventTests.cs:200-211). Only the ordering clause is unproven, and DEC-7 closed it."
+    },
+    {
+      "ac": "AC-7",
+      "tests": [
+        "PublishResourceEvents_ThroughLifecycleCommands_UseOnlySharedAbstractionsContracts"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "'under Events/Resources/' is asserted only through the CLR namespace, not the source folder",
+        "'are the only coupling between Resources and Availability' has no structural assertion (no check on assembly or project references, and no check on other shared types)"
+      ],
+      "note": "The test proves the assembly is ThingsBooksy.Shared.Abstractions, the namespace is ...Events.Resources, and each type is public, implements IEvent, is a record, and has a 2-Guid positional constructor. It also proves exactly these four types, one of each, were published during a create/create/delete/delete run. I could not search for an architecture test outside the Resources test project because read ACL denied Glob/Grep on backend/ and backend/src/Modules/Availability."
+    },
+    {
+      "ac": "AC-8",
+      "tests": [
+        "DeleteResourceType_AsOwnerWithInstances_SoftDeletesTypeAndHidesIt",
+        "DeleteResourceType_AsOwner_Returns204AndSoftDeletesInDb",
+        "DeleteResourceType_WithInstances_SoftDeletesTypeAndCascadesToInstances"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "role: owner - that a non-owner is rejected and the schema stays not deleted is not asserted by any mapped test"
+      ],
+      "note": "The positive path is fully asserted: 204, the row is kept with DeletedAt set, it is visible with IgnoreQueryFilters and null with filters, GET by id returns 404, the list excludes it while a sibling is still listed, and both instances are soft-deleted (SoftDeleteResourceTypeTests.cs:62-97). The negative role path exists only in the unmapped DeleteResourceType_AsNonOwner_Returns403. Its DB check reads through IgnoreQueryFilters and asserts only NotNull, so it can no longer detect a soft delete."
+    },
+    {
+      "ac": "AC-9",
+      "tests": [
+        "CreateResourceType_WithNameOfSoftDeletedType_Returns201AndKeepsDeletedRow"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "'the unique name constraint applies only to non-deleted schemas' - that a duplicate of an active name is still rejected is asserted only by an unmapped pre-existing test",
+        "role: owner - non-owner rejection is asserted only by an unmapped pre-existing test whose DB check is vacuous"
+      ],
+      "note": "The main clause is strong. The test asserts 201 with a new id, then re-reads the DB and finds exactly two rows named 'Sauna' in G: the original with DeletedAt set and the new one active, with exactly one active row (SoftDeleteResourceTypeTests.cs:122-137)."
+    },
+    {
+      "ac": "AC-10",
+      "tests": [
+        "GetResourceInstances_IncludeDeletedForSoftDeletedType_ReturnsPropertyValuesWithDefinitionNames"
+      ],
+      "verdict": "STRONG",
+      "clauses_unproven": [],
+      "note": "This AC was added by owner decision DEC-6 (review-spec-conformance-1-1). The test asserts 200 and that the soft-deleted instance is listed with DeletedAt set. It checks both property values by definition id: exact PropertyName and DataType ('Seats'/Number, 'Colour'/Text) and the values, plus non-empty for all values. It then re-reads the DB: the schema has DeletedAt set and both definitions are kept (SoftDeleteResourceTypeReadPathTests.cs:78-114). No negative role finding: existing tests show group members get 200 on this list (GetResourceInstanceTests.cs:309-331), so 'role: owner' names the actor here rather than implying members are rejected."
+    }
+  ],
+  "findings": [
+    {
+      "id": "trace-auditor-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+      "line": 264,
+      "rule_ref": "AC-7",
+      "severity": "MAJOR",
+      "type": "WEAK_ASSERTION",
+      "message": "The AC-7 clause 'they ... are the only coupling between Resources and Availability' (spec: 'no other type crosses the Resources module boundary') has no assertion. The test only proves which messages were published during one create/create/delete/delete run. It would still pass if the Resources assemblies referenced Availability (or the other way round), if they shared another type, or if they called each other through IModuleClient.",
+      "evidence": "ResourceLifecycleEventTests.cs:253-256 `Assert.Equal(expectedTypes.Length, published.Count); Assert.Equal(expectedTypes.Select(t => t.FullName).OrderBy(n => n), published.Select(m => m.GetType().FullName).OrderBy(n => n));` and :264-273 (assembly/namespace/public/IEvent/record/2-Guid ctor per published type). Grep for 'Availability|GetReferencedAssemblies|NetArchTest' in the Resources IntegrationTests project finds no match. Other test projects could not be searched because of the read ACL.",
+      "suggested_fix": "Add an assertion that the Resources assemblies (Api/Core) do not reference any Availability assembly and that Availability does not reference Resources. The only shared types should be from ThingsBooksy.Shared.Abstractions (Events.Resources). Alternatively, map an existing architecture test that asserts this to AC-7 in the matrix.",
+      "decision_id": "DEC-9",
+      "closed_by": "owner",
+      "chosen": "Accept for this story; module-boundary clauses become architecture tests in the deferred epic",
+      "answer_ref": "toolu_01B5ogAmrwdpBB6Lxru6N1Ms",
+      "closed_at": "2026-09-28T17:26:25.145Z"
+    },
+    {
+      "id": "trace-auditor-1-2",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+      "line": 265,
+      "rule_ref": "AC-7",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "The AC says the contracts 'live in Shared.Abstractions under Events/Resources/', which is a source location. The test checks this only indirectly, through the assembly name and the CLR namespace. A record declared with namespace ThingsBooksy.Shared.Abstractions.Events.Resources but placed in another folder would still pass.",
+      "evidence": "ResourceLifecycleEventTests.cs:264-265 `Assert.Equal(\"ThingsBooksy.Shared.Abstractions\", type.Assembly.GetName().Name); Assert.Equal(\"ThingsBooksy.Shared.Abstractions.Events.Resources\", type.Namespace);`",
+      "suggested_fix": "Assert that the source file for each of the four records exists under ThingsBooksy.Shared.Abstractions/Events/Resources/, for example with a file-system check in the test or a folder/namespace consistency rule, so the folder clause is checked directly.",
+      "decision_id": "DEC-9",
+      "closed_by": "owner",
+      "chosen": "Accept for this story; module-boundary clauses become architecture tests in the deferred epic",
+      "answer_ref": "toolu_01B5ogAmrwdpBB6Lxru6N1Ms",
+      "closed_at": "2026-09-28T17:26:25.205Z"
+    },
+    {
+      "id": "trace-auditor-1-3",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+      "line": 241,
+      "rule_ref": "AC-8",
+      "severity": "MAJOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-8 has role: owner, so a non-owner's DELETE /resources/types/{id} must be rejected and the schema must stay not deleted. None of the three tests mapped to AC-8 covers the non-owner path. The only test that does (DeleteResourceType_AsNonOwner_Returns403) is not mapped to AC-8. Its DB check reads through IgnoreQueryFilters and asserts only NotNull. Now that delete is a soft delete, the row exists either way, so a non-owner delete that returned 403 but still set DeletedAt (or published ResourceSchemaDeletedEvent) would pass.",
+      "evidence": "UpdateDeleteResourceTypeTests.cs:238 `Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);` :241-242 `var resourceType = await ownerClient.GetResourceTypeFromDbAsync(typeId); Assert.NotNull(resourceType);`. ResourcesTestClient.cs:165-167 GetResourceTypeFromDbAsync uses `.IgnoreQueryFilters()`. The test has no [Trait(\"AC\", \"AC-8\")] and is absent from ac-matrix.json AC-8.",
+      "suggested_fix": "In a test mapped to AC-8, have a group member who is not the owner call DELETE /resources/types/{id}. Assert 403, re-read the row with IgnoreQueryFilters and assert DeletedAt is null, assert its instances still have DeletedAt null, and assert no ResourceSchemaDeletedEvent was published.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "015-resource-time-buffer-test-designer-sighted-closing-mulirhor",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-09-28T17:31:51.280Z"
+    },
+    {
+      "id": "trace-auditor-1-4",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+      "line": 122,
+      "rule_ref": "AC-9",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-9 says 'the unique name constraint applies only to non-deleted schemas', which means a duplicate of an active name must still be rejected. The AC-9 test only proves the soft-deleted case succeeds. It would still pass if uniqueness were dropped entirely. The active-duplicate rejection is asserted only by an unmapped pre-existing test.",
+      "evidence": "SoftDeleteResourceTypeTests.cs:122-123 `Assert.True(response.StatusCode == HttpStatusCode.Created, ...)`; :130-137 row checks on the soft-deleted and the new row only. The only active-duplicate check is unmapped: CreateResourceTypeTests.cs:196-199 `var secondResponse = await client.CreateResourceTypeAsync(groupReadModel.Id, \"Car\"); Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);`",
+      "suggested_fix": "Extend the AC-9 test so that, after creating the new active 'Sauna', a third create of 'Sauna' in G returns 409 and the DB still holds exactly one active row. Alternatively, map CreateResourceType_WithDuplicateName_Returns409 to AC-9.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "015-resource-time-buffer-test-designer-sighted-closing-mulirhor",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-09-28T17:31:51.334Z"
+    },
+    {
+      "id": "trace-auditor-1-5",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/CreateResourceTypeTests.cs",
+      "line": 155,
+      "rule_ref": "AC-9",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-9 has role: owner. Non-owner rejection on POST /resources/types is asserted only by an unmapped pre-existing test. That test's 'no row persisted' check queries property definitions for Guid.Empty, so it would pass whether or not a ResourceType row was created. The rejection is therefore proven only by the status code, outside the AC-9 matrix.",
+      "evidence": "CreateResourceTypeTests.cs:152 `Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);` :155-156 `var defs = await nonOwnerClient.GetResourcePropertyDefinitionsFromDbAsync(Guid.Empty); Assert.Empty(defs);`. This test is not in ac-matrix.json AC-9.",
+      "suggested_fix": "In an AC-9-mapped test, have a non-owner member try to create the name of the soft-deleted schema in G. Assert 403, re-read with IgnoreQueryFilters and assert only the original soft-deleted row exists for that name, and assert no ResourceSchemaCreatedEvent was published.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "015-resource-time-buffer-test-designer-sighted-closing-mulirhor",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-09-28T17:31:51.396Z"
+    }
+  ],
+  "summary": {
+    "blockers": 0,
+    "majors": 2,
+    "minors": 3,
+    "opinions": 0
+  }
+}

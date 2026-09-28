@@ -69,6 +69,13 @@
     "AC-8": [
       {
         "ac": "AC-8",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeOwnerRuleTests.DeleteResourceType_AsNonOwnerMemberWithInstances_Returns403AndKeepsTypeAndInstancesActive",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeOwnerRuleTests.cs",
+        "line": 44
+      },
+      {
+        "ac": "AC-8",
         "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeTests.DeleteResourceType_AsOwnerWithInstances_SoftDeletesTypeAndHidesIt",
         "kind": "be",
         "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
@@ -90,6 +97,20 @@
       }
     ],
     "AC-9": [
+      {
+        "ac": "AC-9",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeOwnerRuleTests.CreateResourceType_AsNonOwnerMemberWithNameOfSoftDeletedType_Returns403AndPersistsNothing",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeOwnerRuleTests.cs",
+        "line": 95
+      },
+      {
+        "ac": "AC-9",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeOwnerRuleTests.CreateResourceType_WithNameOfActiveTypeAfterSoftDeletedPredecessor_Returns409AndKeepsOneActiveRow",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeOwnerRuleTests.cs",
+        "line": 130
+      },
       {
         "ac": "AC-9",
         "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeTests.CreateResourceType_WithNameOfSoftDeletedType_Returns201AndKeepsDeletedRow",

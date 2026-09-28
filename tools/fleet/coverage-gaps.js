@@ -51,24 +51,43 @@ for (const proj of projects) {
 }
 
 // --- 3. intersect with Cobertura ---------------------------------------------------------------
-const gaps = []; const seen = new Set();
-for (const xmlFile of walk(covDir, p => p.endsWith('coverage.cobertura.xml'))) {
+const gaps = [];
+const coberturaFiles = walk(covDir, p => p.endsWith('coverage.cobertura.xml'));
+// An empty GUID directory means the collector did not run (coverlet.collector missing in the test project):
+// "0 gaps" on no data would silently skip the sighted pass — refuse instead.
+if (!coberturaFiles.length) { console.error(`coverage-gaps: no coverage.cobertura.xml under ${path.relative(REPO, covDir)} — is coverlet.collector referenced by every *.IntegrationTests project?`); process.exit(1); }
+// Coverlet writes one Cobertura file per test project; `filename` is relative to one of the <sources>
+// roots (e.g. backend\src\), not to the repo. Every project's run instruments ALL loaded assemblies, so
+// a Resources handler shows hits=0 in the Users/ManagementGroups runs — merge across files (max hits,
+// max covered branches per line) before deciding what is uncovered.
+const merged = new Map(); // "rel:line" → { file, line, hits, branch, covered, total }
+for (const xmlFile of coberturaFiles) {
   const xml = fs.readFileSync(xmlFile, 'utf8');
+  const sources = [...xml.matchAll(/<source>([^<]*)<\/source>/g)].map(m => m[1].trim()).filter(Boolean);
+  const toRel = file => {
+    for (const root of [...sources, REPO]) { const abs = path.resolve(root, file); if (fs.existsSync(abs)) return path.relative(REPO, abs).replace(/\\/g, '/'); }
+    return null;
+  };
   for (const cls of xml.matchAll(/<class [^>]*filename="([^"]+)"[^>]*>([\s\S]*?)<\/class>/g)) {
-    const rel = path.relative(REPO, path.resolve(REPO, cls[1])).replace(/\\/g, '/');
+    const rel = toRel(cls[1]); if (!rel) continue;
     const lines = changed[rel]; if (!lines) continue;
     for (const ln of cls[2].matchAll(/<line number="(\d+)" hits="(\d+)"(?: branch="(true|True)"[^>]*condition-coverage="(\d+)% \((\d+)\/(\d+)\)")?/g)) {
       const n = +ln[1]; if (!lines.has(n)) continue;
-      const key = rel + ':' + n; if (seen.has(key)) continue;
       const hits = +ln[2], branch = ln[3] !== undefined, covered = ln[5] !== undefined ? +ln[5] : null, total = ln[6] !== undefined ? +ln[6] : null;
-      if (hits === 0) { gaps.push({ file: rel, line: n, kind: 'uncovered-line' }); seen.add(key); }
-      else if (branch && covered !== null && covered < total) { gaps.push({ file: rel, line: n, kind: 'partial-branch', branches: `${covered}/${total}` }); seen.add(key); }
+      const key = rel + ':' + n; const cur = merged.get(key);
+      if (!cur) merged.set(key, { file: rel, line: n, hits, branch, covered, total });
+      else { cur.hits = Math.max(cur.hits, hits); if (branch) { cur.branch = true; cur.covered = Math.max(cur.covered ?? 0, covered); cur.total = Math.max(cur.total ?? 0, total); } }
     }
   }
 }
-const report = { story, base: mergeBase, changed_files: Object.keys(changed), gaps, summary: { uncovered_lines: gaps.filter(g => g.kind === 'uncovered-line').length, partial_branches: gaps.filter(g => g.kind === 'partial-branch').length } };
+const matchedLines = merged.size;
+for (const e of [...merged.values()].sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)) {
+  if (e.hits === 0) gaps.push({ file: e.file, line: e.line, kind: 'uncovered-line' });
+  else if (e.branch && e.covered !== null && e.covered < e.total) gaps.push({ file: e.file, line: e.line, kind: 'partial-branch', branches: `${e.covered}/${e.total}` });
+}
+const report = { story, base: mergeBase, changed_files: Object.keys(changed), gaps, summary: { cobertura_files: coberturaFiles.length, changed_lines_seen_in_coverage: matchedLines, uncovered_lines: gaps.filter(g => g.kind === 'uncovered-line').length, partial_branches: gaps.filter(g => g.kind === 'partial-branch').length } };
 const out = path.resolve(REPO, args.out || `runs/${story}/coverage-gaps.json`);
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
-console.log(`coverage-gaps: ${report.summary.uncovered_lines} uncovered lines, ${report.summary.partial_branches} partial branches in ${Object.keys(changed).length} changed files → ${path.relative(REPO, out)}`);
+console.log(`coverage-gaps: ${report.summary.uncovered_lines} uncovered lines, ${report.summary.partial_branches} partial branches in ${Object.keys(changed).length} changed files (${matchedLines} changed lines seen in ${coberturaFiles.length} Cobertura files) → ${path.relative(REPO, out)}`);
 process.exit(gaps.length ? 3 : 0);

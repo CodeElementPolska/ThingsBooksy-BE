@@ -77,6 +77,8 @@ if (args.fe) {
 const testFiles = [...walk(path.join(REPO, 'backend', 'src', 'Modules'), p => /\.IntegrationTests[\\/].*\.cs$/.test(p)), ...walk(path.join(REPO, 'frontend', 'src'), p => p.endsWith('.spec.ts'))].sort();
 const h = crypto.createHash('sha256'); for (const f of testFiles) { h.update(path.relative(REPO, f)); h.update(fs.readFileSync(f)); }
 report.acceptance_tests_hash = h.digest('hex');
+// The gate re-hashes exactly THIS file set (D-4b: pass 2 may add files, never change the blind pass's)
+report.acceptance_test_files = testFiles.map(f => path.relative(REPO, f).replace(/\\/g, '/'));
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, JSON.stringify(report, null, 2) + '\n');

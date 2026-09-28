@@ -72,9 +72,19 @@ go = go && step('ac-matrix', () => {
 go = go && step('test-hash', () => {
   const rf = path.join(runDir, 'tests', 'red-first.json');
   if (!fs.existsSync(rf)) return { status: 'SKIPPED', detail: 'no red-first.json' };
-  const expected = JSON.parse(fs.readFileSync(rf, 'utf8')).acceptance_tests_hash;
+  const redFirst = JSON.parse(fs.readFileSync(rf, 'utf8'));
+  const expected = redFirst.acceptance_tests_hash;
   function walk(dir, pred, acc = []) { if (!fs.existsSync(dir)) return acc; for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const p = path.join(dir, e.name); if (e.isDirectory()) { if (!['bin', 'obj', 'node_modules'].includes(e.name)) walk(p, pred, acc); } else if (pred(p)) acc.push(p); } return acc; }
-  const files = [...walk(path.join(REPO, 'backend', 'src', 'Modules'), p => /\.IntegrationTests[\\/].*\.cs$/.test(p)), ...walk(path.join(REPO, 'frontend', 'src'), p => p.endsWith('.spec.ts'))].sort();
+  // D-4b: the hash protects the blind pass's files — pass 2 may ADD test files, so re-hash exactly the set recorded
+  // by red-first-prover (a removed file fails); fall back to "all test files" for reports without the list.
+  let files;
+  if (Array.isArray(redFirst.acceptance_test_files)) {
+    files = redFirst.acceptance_test_files.map(rel => path.join(REPO, rel));
+    const missing = files.filter(f => !fs.existsSync(f));
+    if (missing.length) return { status: 'FAILED', detail: `blind-pass test file(s) removed: ${missing.map(f => path.relative(REPO, f)).join(', ')}` };
+  } else {
+    files = [...walk(path.join(REPO, 'backend', 'src', 'Modules'), p => /\.IntegrationTests[\\/].*\.cs$/.test(p)), ...walk(path.join(REPO, 'frontend', 'src'), p => p.endsWith('.spec.ts'))].sort();
+  }
   const h = crypto.createHash('sha256'); for (const f of files) { h.update(path.relative(REPO, f)); h.update(fs.readFileSync(f)); }
   const actual = h.digest('hex');
   const rebaselined = fs.existsSync(path.join(runDir, 'journal.jsonl')) && fs.readFileSync(path.join(runDir, 'journal.jsonl'), 'utf8').includes(`"REBASELINE"`) && fs.readFileSync(path.join(runDir, 'journal.jsonl'), 'utf8').includes(actual);

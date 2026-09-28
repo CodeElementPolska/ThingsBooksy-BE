@@ -67,11 +67,20 @@ for (const spec of meta.inputs || []) {
   for (const f of files) { if (!insideAcl(f)) denied.push(f); else inputs.push({ path: f, sha256: sha(f) }); }
 }
 if (missing.length) { console.error(`prompt-builder: missing required inputs:\n - ${missing.join('\n - ')}`); process.exit(3); }
+// the agent is handed a PATH to its prompt — an ACL that cannot read runs/<story>/prompts/ blocks it on turn 1
+const promptRel = `runs/${story}/prompts/${args.template || agent}${vars.instance ? '.' + vars.instance : ''}.md`;
+if (!insideAcl(promptRel)) { console.error(`prompt-builder: ${agent}'s read_allow does not cover its own prompt ${promptRel} — add "runs/*/prompts" to fleet-acl.json`); process.exit(3); }
 if (denied.length) { console.error(`prompt-builder: inputs outside ${agent}'s read_allow (fix fleet-acl.json or the template):\n - ${denied.join('\n - ')}`); process.exit(3); }
 
 // --- schema & conventions -------------------------------------------------------------------------------
 const schemaName = meta.output_schema;
-const schema = schemaName ? JSON.parse(fs.readFileSync(path.join(REPO, 'docs', 'agent-fleet-v4', 'schemas', `${schemaName}.schema.json`), 'utf8')) : null;
+const SCHEMAS = path.join(REPO, 'docs', 'agent-fleet-v4', 'schemas');
+const loadSchema = name => JSON.parse(fs.readFileSync(path.join(SCHEMAS, `${name}.schema.json`), 'utf8'));
+const schema = schemaName ? loadSchema(schemaName) : null;
+// `$ref: "fleet-v4/<name>"` inside the output schema (assumption, decision, provenance…) — the agent must see
+// those shapes too, or it invents its own (015: an `assumptions[]` entry without id/bucket/score failed validation)
+const referenced = {}; const collectRefs = node => { if (!node || typeof node !== 'object') return; for (const [k, v] of Object.entries(node)) { if (k === '$ref' && typeof v === 'string' && v.startsWith('fleet-v4/')) { const n = v.slice(9); if (!referenced[n] && n !== schemaName && fs.existsSync(path.join(SCHEMAS, `${n}.schema.json`))) { referenced[n] = loadSchema(n); collectRefs(referenced[n]); } } else collectRefs(v); } };
+collectRefs(schema);
 const conventions = (meta.conventions || []).map(c => subst(c)).filter(c => fs.existsSync(path.join(REPO, c)));
 
 // --- assemble --------------------------------------------------------------------------------------------
@@ -85,6 +94,7 @@ const prompt = [
   ...inputs.map(i => `- \`${i.path}\`  (sha256 ${i.sha256.slice(0, 12)}…)`),
   ...(conventions.length ? ['', '## Conventions that apply to your output', ...conventions.map(c => `- \`${c}\``)] : []),
   ...(schema ? ['', '## Your output MUST validate against this JSON Schema', '```json', JSON.stringify(schema, null, 2), '```'] : []),
+  ...Object.entries(referenced).flatMap(([n, s]) => ['', `### Referenced schema \`fleet-v4/${n}\` (items of the fields that \`$ref\` it must have this shape)`, '```json', JSON.stringify(s, null, 2), '```']),
   '',
   '## Provenance block — copy VERBATIM into the `provenance` field of your output',
   '```json', JSON.stringify(provenance, null, 2), '```',

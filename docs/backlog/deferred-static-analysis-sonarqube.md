@@ -30,6 +30,8 @@ macierzy kryterium→test, bramki Definition of Done, ACL ścieżek dla agentów
 | Reguły stylu jako błędy builda | `.editorconfig` + `dotnet format --verify-no-changes`, ESLint w CI | ~2 h | wymiar „styl" w code review |
 | SonarQube Community w Docker Compose + Quality Gate na `main` | SonarQube + sonar-scanner dla .NET i JS | ~1 dzień | wymiar „utrzymanie / security hotspots" w code review (po merge) |
 | Tagowanie konwencji `enforced-by: analyzer | archtest | lint | llm-review` | edycja `.claude/conventions/*.md` | ~2 h | reviewer LLM dostaje tylko reguły `llm-review` |
+| Kolejność „`SaveChangesAsync` przed `PublishAsync`" w handlerach komend (konstytucja IV) — kandydat z C5 story 015 (finding `review-spec-conformance-1-2`, decyzja DEC-7: właściciel świadomie nie chce testów kolejności; po wdrożeniu Inbox/Outbox reguła może stać się zbędna) | analizator Roslyn (przepływ w metodzie) albo test architektury na podstawie kolejności wywołań w `HandleAsync` | ~0.5 dnia | słaba asercja w testach akceptacyjnych AC-3…AC-6 |
+| Wykrywanie metod-aliasów dodanych w diffie (ciało = jedno wywołanie metody-rodzeństwa w tej samej klasie) — `rule_candidate` z `review-maintainability-1-1` (015) | skrypt w `tools/fleet` po diffie albo analizator | ~2 h | uwaga OPINION reviewera konwencji |
 
 ## Decyzje do podjęcia przy realizacji
 

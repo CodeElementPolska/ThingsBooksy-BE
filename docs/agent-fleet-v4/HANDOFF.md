@@ -3,9 +3,9 @@
 Dla nowej sesji przejmującej pracę. Czytać razem z `workflow.md`, `decisions.md`, `runbook-delivery.md`, `tools/fleet/README.md`.
 
 ## Gdzie jesteśmy
-- Gałęzie: `ai/014-agents-redesign` = flota (head `d722f4d`); `015-resource-time-buffer` = `ai/014` + discovery (`629c869`) + szkielet C3a (`7673254`). Zmiany floty robione na gałęzi story przenosi się cherry-pickiem na `ai/014`, potem `git rebase ai/014-agents-redesign` na 015 (duplikaty odpadają same).
-- Story 015: G2 PASSED, C3a DONE, migracja `SoftDeleteResourceTypeUniqueIndex` wygenerowana. **Następny krok: C2** (`test-designer`) wg runbooka.
-- Zbudowane i sprawdzone: substrat (`tools/fleet/*`), sesja B (`dev-analyst`, `code-researcher`, `impact-analyst`), agenci dostawy (`be-writer`, `test-designer`, `test-designer-sighted`).
+- Gałęzie: `ai/014-agents-redesign` = flota (head `c71782a`); `015-resource-time-buffer` = `ai/014` + discovery + C3a + **C2/C3b/C4b (sesja C, 2026-09-28)** przeplatane commitami floty `fix(fleet)` (`7c395ab`, `c59d049`, `a1f13cf`). Decyzja właściciela: cherry-pick commitów floty na `ai/014` i rebase 015 **dopiero po zaprojektowaniu C5/C6** — wszystko przenosimy na koniec.
+- Story 015: G2 PASSED, C3a/C2/C3b/C4b DONE, gate GREEN (138 testów), `status.js` = C4 PASSED. Otwarte na G3: `UNSPECIFIED` ASM-S1/S2 (kasowanie już skasowanego → 400, brak zdarzenia — dodać AC czy zostawić), ASM-S5 (brak projektu `Resources.Tests.Unit`, T027 niewykonany). **Następny krok: zaprojektować C5 (reviewerzy ×3, `dedup-findings`, `review-arbiter`) na materiale 015 i uruchomić; potem C6 (`architecture-guard`, `trace-auditor`, `dod.js`, `closer.js`, G3).**
+- Zbudowane i sprawdzone na prawdziwej story: substrat (`tools/fleet/*`), sesja B (`dev-analyst`, `code-researcher`, `impact-analyst`), agenci dostawy (`be-writer` C3a+C3b, `test-designer` C2, `test-designer-sighted` C4b). Dziennik defektów z sesji C w `tools/fleet/README.md` (11 wpisów z 2026-09-28: CRLF, AC z front matter, cytowanie `node`, kolektor coverlet, ścieżki Cobertura, zakres hasha red-first i inne).
 - **Nie istnieje jeszcze:** sesja A (`scrum`, `capability-analyst`, `scope-critic`, `premortem-critic`, `backlog-writer`), C5 (reviewerzy ×3, `review-arbiter`, `dedup-findings`), C6 (`architecture-guard`, `trace-auditor`, `docs-delta`, `rule-harvester`), `plan-guard`, `migration-reviewer`, `fe-writer`, skill `/deliver` (dyrygent = sesja główna ręcznie), skrypt workflow, projekty `*.Tests.Unit`, odłożony epik analizatorów (`docs/backlog/`).
 
 ## Nawyki operacyjne (nauczone kosztem czasu)

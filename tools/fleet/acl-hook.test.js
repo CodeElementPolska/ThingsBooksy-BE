@@ -64,6 +64,18 @@ const cases = [
   ["test-designer writes Core (deny)", ev("test-designer", "Write", { file_path: CORE }), 2],
   ["sighted reads Core", ev("test-designer-sighted", "Read", { file_path: CORE }), 0],
   ["sighted writes Core (deny)", ev("test-designer-sighted", "Write", { file_path: CORE }), 2],
+  // C5 reviewers: code + own previous findings only; never the writer's notes, never another reviewer's findings
+  ["reviewer reads Core", ev("review-spec-conformance", "Read", { file_path: CORE }), 0],
+  ["reviewer reads its prompt", ev("review-security-authz", "Read", { file_path: path.join(REPO, "runs", "015-x", "prompts", "review-security-authz.md") }), 0],
+  ["reviewer reads round diff", ev("review-spec-conformance", "Read", { file_path: path.join(REPO, "runs", "015-x", "review", "round-1", "diff.patch") }), 0],
+  ["reviewer reads own previous findings", ev("review-spec-conformance", "Read", { file_path: path.join(REPO, "runs", "015-x", "review", "round-1", "review-spec-conformance.findings.json") }), 0],
+  ["reviewer reads other reviewer's findings (deny)", ev("review-spec-conformance", "Read", { file_path: path.join(REPO, "runs", "015-x", "review", "round-1", "review-security-authz.findings.json") }), 2],
+  ["reviewer reads writer result (deny)", ev("review-spec-conformance", "Read", { file_path: path.join(REPO, "runs", "015-x", "impl", "be-writer.C3b", "result.json") }), 2],
+  ["reviewer reads dedup (deny)", ev("review-maintainability", "Read", { file_path: path.join(REPO, "runs", "015-x", "review", "round-1", "dedup.json") }), 2],
+  ["reviewer writes findings (deny — conductor saves)", ev("review-security-authz", "Write", { file_path: path.join(REPO, "runs", "015-x", "review", "round-1", "review-security-authz.findings.json") }), 2],
+  ["reviewer shell (deny)", ev("review-security-authz", "Bash", { command: "dotnet build" }), 2],
+  ["arbiter reads dispute", ev("review-arbiter", "Read", { file_path: path.join(REPO, "runs", "015-x", "review", "round-1", "disputes", "review-spec-conformance-1-2.json") }), 0],
+  ["arbiter reads other findings (deny)", ev("review-arbiter", "Read", { file_path: path.join(REPO, "runs", "015-x", "review", "round-1", "review-spec-conformance.findings.json") }), 2],
   // garbage
   ['garbage input (deny)', 'not json', 2],
 ];

@@ -72,7 +72,7 @@ let phase, phaseStatus = 'NOT_STARTED';
 if (returned) phase = returned.status;
 else if (closed) phase = 'CLOSED';
 else if (gates.G3.status !== 'PENDING') phase = 'C6';
-else if (reviewRounds) phase = 'C5';
+else if (reviewRounds) { phase = 'C5'; const dedup = readJson(`review/round-${reviewRounds}/dedup.json`); phaseStatus = !dedup ? 'RUNNING' : dedup.verdict === 'CLEAN' ? 'PASSED' : dedup.verdict === 'ESCALATE' ? 'FAILED' : 'RUNNING'; }
 else if (gate) { phase = 'C4'; phaseStatus = gate.status === 'GREEN' ? 'PASSED' : 'FAILED'; }
 else if (redFirst) { phase = redFirst.verdict === 'RED' ? 'C3b' : 'C2'; phaseStatus = redFirst.verdict === 'RED' ? 'NOT_STARTED' : 'FAILED'; }
 else if (skeleton) { phase = 'C3a'; phaseStatus = skeleton.status === 'OK' ? 'PASSED' : 'FAILED'; }

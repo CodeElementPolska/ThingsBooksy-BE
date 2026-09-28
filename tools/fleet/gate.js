@@ -24,7 +24,8 @@ const args = Object.fromEntries(process.argv.slice(2).map((a, i, arr) => a.start
 const story = args.story; if (!story) { console.error('usage: gate --story NNN-slug [--full] [--all] [--no-swagger] [--out …]'); process.exit(1); }
 const runDir = path.join(REPO, 'runs', story);
 const run = (cmd, a, extra = {}) => spawnSync(cmd, a, { cwd: REPO, encoding: 'utf8', shell: true, ...extra });
-const node = (script, a) => run(process.execPath, [`"${path.join(HERE, script)}"`, ...a]);
+// shell:true → quote the node binary too: "C:\Program Files\nodejs\node.exe" has a space
+const node = (script, a) => run(`"${process.execPath}"`, [`"${path.join(HERE, script)}"`, ...a]);
 
 const acIds = readAcIds(REPO, story);
 
@@ -61,12 +62,12 @@ go = go && step('swagger', () => {
 go = go && step('contract', () => {
   if (!fs.existsSync(path.join(runDir, 'contract-next.json'))) return { status: 'SKIPPED', detail: 'no contract-next.json (story without API change)' };
   const r = node('contract-diff.js', ['--story', story]);
-  return r.status === 0 ? { status: 'PASSED' } : { status: 'FAILED', detail: r.stdout.trim() };
+  return r.status === 0 ? { status: 'PASSED', detail: r.stdout.trim() } : { status: 'FAILED', detail: `${r.stdout}\n${r.stderr}`.trim() };
 });
 go = go && step('ac-matrix', () => {
   if (!acIds.length) return { status: 'SKIPPED', detail: 'no AC ids found' };
   const r = node('ac-matrix.js', ['--story', story]);
-  return r.status === 0 ? { status: 'PASSED', detail: r.stdout.trim() } : { status: 'FAILED', detail: r.stdout.trim() };
+  return r.status === 0 ? { status: 'PASSED', detail: r.stdout.trim() } : { status: 'FAILED', detail: `${r.stdout}\n${r.stderr}`.trim() };
 });
 go = go && step('test-hash', () => {
   const rf = path.join(runDir, 'tests', 'red-first.json');

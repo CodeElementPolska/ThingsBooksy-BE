@@ -1,0 +1,109 @@
+{
+  "provenance": {
+    "author_agent": "test-designer",
+    "run_id": "015-resource-time-buffer-test-designer-mul7hfat",
+    "story": "015-resource-time-buffer",
+    "phase": "C2",
+    "inputs": [
+      { "path": "runs/015-resource-time-buffer/story.md", "sha256": "c9591ad203cf439589ed0abf7a2578d5cc3336eb89a91a38e8a67f82a2970d19" },
+      { "path": "specs/015-resource-time-buffer/spec.md", "sha256": "ad2fb57f801052932cf738cf37f52e5519a7dad05a7d32dee4a7f11b0337f93b" },
+      { "path": "specs/015-resource-time-buffer/tasks.md", "sha256": "d79bef94c03ec11579fdad6cbecb2ab1224f4dc07c5c6ad3baea5cdde8b81484" },
+      { "path": "runs/015-resource-time-buffer/contract-next.json", "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414" },
+      { "path": "runs/015-resource-time-buffer/discovery/decisions.jsonl", "sha256": "c9072451caf0fefa64935f24b61c9bb1912fe3164623f480b5935bcc09d91a8c" },
+      { "path": "generated/core-surface.json", "sha256": "1c5ca522929db7f829ba60c35cb9066077118eff86bbd968b36798f8631f2945" },
+      { "path": "generated/capability-map.json", "sha256": "ef9341f9bd76df83af914e1bda2ba6c4d20f4cad1698fe971aae1bccb854048c" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T009", "T010", "T011", "T013", "T014", "T015", "T016"],
+  "tasks_remaining": ["T017"],
+  "files_changed": [
+    "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ZzProbe.cs"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-T1",
+      "made_by": "test-designer",
+      "phase": "C2",
+      "statement": "The recorder is split into two classes: RecordingMessageBroker (the IMessageBroker decorator, registered with the SAME lifetime as the original broker registration) and PublishedMessageLog (a singleton, thread-safe log with Published, OfType<T>() and Clear()). The factory exposes it as `public PublishedMessageLog PublishedMessages`, not as `RecordingMessageBroker Broker` as tasks.md T010 suggests. The reason: the broker's lifetime and implementation type live in Shared.Infrastructure, which is outside my read scope. The decorator rebuilds the original from its ServiceDescriptor (instance, factory or ActivatorUtilities), so any lifetime works.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "T010 allows 'or a GetBroker() helper'. Checked with a throwaway probe test: POST /management-groups showed GroupCreated in Factory.PublishedMessages, so the decorator is wired and forwards to the real broker. The full Resources suite still passes 73/73 of its pre-existing tests.",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "ASM-T2",
+      "made_by": "test-designer",
+      "phase": "C2",
+      "statement": "The new factories build their entities with ResourceType.Create(new CreateResourceTypeCommand(groupId, ownerId, name, description, []), DateTime.UtcNow) and ResourceInstance.Create(new CreateResourceInstanceCommand(typeId, ownerId, name, description, []), type.GroupId, DateTime.UtcNow). Defaults: no property definitions or values, CallerId = the group owner, timestamps = UtcNow.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "core-surface.json lists the Create signatures but not the command record shapes. I got the parameter lists (GroupId|ResourceTypeId, CallerId, Name, Description, PropertyDefinitions|PropertyValues) from compiler CS7036 messages in a throwaway probe. I did not read any Core source.",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "ASM-T3",
+      "made_by": "test-designer",
+      "phase": "C2",
+      "statement": "The AC-9 test gets its 'schema X was soft-deleted' precondition by seeding X through EF and then calling DELETE /resources/types/{id} as the first step of the scenario (asserted 204). It then POSTs X again. Seeding an already soft-deleted row directly through EF (ResourceType.Delete(now) before save) would pass TODAY, because the skeleton already shipped the partial unique index and the app-level uniqueness check ignores deleted rows. That would break the red-first rule. So the test proves AC-9 end-to-end: 201, plus 2 'X' rows in the DB (the original with DeletedAt set, and a new active one).",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "tasks.md T015 prescribes the same flow ('seed type X, DELETE it, POST X same group → 201, DB has one active and one deleted X'). Current failure: expected 2 rows, got 1, because the original is hard-deleted.",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "ASM-T4",
+      "made_by": "test-designer",
+      "phase": "C2",
+      "statement": "ResourcesTestClient gains one read that deliberately does NOT call IgnoreQueryFilters: GetResourceTypeFromDbRespectingQueryFiltersAsync. This goes against the 'IgnoreQueryFilters mandatory' rule in integration-test-infrastructure.md. It is needed to prove the 'visible only with IgnoreQueryFilters' clause of AC-8. The existing GetResourceTypeFromDbAsync is unchanged (still unfiltered). GetResourceTypeFromDbIgnoringFiltersAsync and GetInstancesFromDbIgnoringFiltersAsync are explicit, unfiltered aliases, as T011 asks.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "T011 explicitly asks for 'BOTH a filtered read (null for soft-deleted) and an unfiltered read'. The method's doc comment scopes it to that single purpose.",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "ASM-T5",
+      "made_by": "test-designer",
+      "phase": "C2",
+      "statement": "AC-7 is encoded as a behavioural test: PublishResourceEvents_ThroughLifecycleCommands_UseOnlySharedAbstractionsContracts. It runs all four lifecycle commands over HTTP and asserts that exactly four messages were published, one of each contract. Each must come from assembly ThingsBooksy.Shared.Abstractions, namespace ...Events.Resources, be public, implement IEvent, be a record (<Clone>$), and have a single public constructor with two Guid parameters. The payloads must equal the persisted ids. It runs more flows than T014 describes (T014: only AC-3 and AC-5) and has a different name, so that 'no other type crosses the boundary' is also covered.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "A purely static type check would pass today, because the skeleton records exist, and would break red-first. The current failure is 'Expected: 4, Actual: 0'.",
+      "status": "ACTIVE"
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": { "build": "PASSED", "unit_tests": "SKIPPED", "format": "SKIPPED" },
+  "notes": {
+    "red_proof": "Filtered to the story's AC traits (dotnet test ... --filter \"AC~AC-\"; the ACL hook splits on '|' so the AC=AC-3|... form could not be run): Failed 10, Passed 0, Total 10. Full Resources suite: Failed 10 (exactly the story tests), Passed 73, Total 83. No pre-existing test regressed.",
+    "failure_reasons": {
+      "AC-3 CreateResourceType_WithValidData_PublishesResourceSchemaCreatedEvent": "201 and row persisted; Assert.Single fails because no ResourceSchemaCreatedEvent was recorded",
+      "AC-4 CreateResourceInstance_WithValidData_PublishesResourceInstanceCreatedEvent": "201 and row persisted; no ResourceInstanceCreatedEvent recorded",
+      "AC-5 DeleteResourceType_WithInstances_PublishesExactlyOneResourceSchemaDeletedEvent": "204 and both instances soft-deleted; no ResourceSchemaDeletedEvent recorded",
+      "AC-5 DeleteResourceType_WithoutInstances_PublishesOneResourceSchemaDeletedEvent": "204; no ResourceSchemaDeletedEvent recorded",
+      "AC-6 DeleteResourceInstance_Existing_PublishesResourceInstanceDeletedEvent": "204 and DeletedAt set; no ResourceInstanceDeletedEvent recorded",
+      "AC-7 PublishResourceEvents_ThroughLifecycleCommands_UseOnlySharedAbstractionsContracts": "all four HTTP calls succeed; expected 4 published messages, got 0",
+      "AC-8 DeleteResourceType_AsOwnerWithInstances_SoftDeletesTypeAndHidesIt": "204; the row is gone even with IgnoreQueryFilters (hard delete)",
+      "AC-8 UpdateDeleteResourceTypeTests.DeleteResourceType_AsOwner_Returns204AndSoftDeletesInDb (rewritten)": "the unfiltered row is null (hard delete)",
+      "AC-8 UpdateDeleteResourceTypeTests.DeleteResourceType_WithInstances_SoftDeletesTypeAndCascadesToInstances (rewritten)": "the unfiltered row is null (hard delete)",
+      "AC-9 CreateResourceType_WithNameOfSoftDeletedType_Returns201AndKeepsDeletedRow": "the second POST returns 201; expected 2 'Sauna' rows, got 1 (the original was hard-deleted)"
+    },
+    "rewritten_existing_tests": "UpdateDeleteResourceTypeTests.cs (T016, ASM-14): DeleteResourceType_AsOwner_Returns204AndRemovesFromDb became DeleteResourceType_AsOwner_Returns204AndSoftDeletesInDb, and DeleteResourceType_CascadesToInstances became DeleteResourceType_WithInstances_SoftDeletesTypeAndCascadesToInstances. Both now carry [Trait(\"AC\",\"AC-8\")] and assert: filtered read is null, unfiltered read has DeletedAt set. Their Arrange now seeds through the new EF factories instead of POST. The vacuous 'property definitions removed (cascade)' assertion was dropped, because the type had no definitions and ASM-15 says definitions stay on soft delete.",
+    "tasks_remaining_reasons": {
+      "T017": "Not claimed. I built both test projects (0 errors) and confirmed RED with dotnet test. I did not run the solution-wide build or tools/fleet/red-first-prover.js: tools/fleet is outside my read and run scope. The conductor should run the prover."
+    },
+    "leftover_to_delete": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ZzProbe.cs is an EMPTY untracked file left over from the compiler/recorder probes. The ACL hook denies rm and git clean for this agent, so please delete it. It compiles to nothing and has no effect on the tests.",
+    "infrastructure_added": "ThingsBooksyWebAppFactory.ConfigureTestServices(DecorateMessageBrokerWithRecorder) and PublishedMessages property; PublishedMessageLog + RecordingMessageBroker (Shared.IntegrationTests/Messaging); ResourcesResourceTypeFactory and ResourcesResourceInstanceFactory (EF seeding via Create); ResourcesTestClient: GetResourceTypeFromDbIgnoringFiltersAsync, GetResourceTypeFromDbRespectingQueryFiltersAsync, GetResourceTypesByGroupAndNameFromDbIgnoringFiltersAsync, GetInstancesFromDbIgnoringFiltersAsync.",
+    "out_of_scope_not_written": "The ASM-19 already-deleted/no-event tests belong to T026 (tagged UNSPECIFIED, Phase 6), so I did not write them here."
+  }
+}

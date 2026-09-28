@@ -16,11 +16,11 @@ Return the `result` JSON: `tasks_completed` (test tasks), `files_changed`, `assu
 
 ## Input files handed to you (paths + hashes)
 These are the files this task was built from. They are NOT a read boundary: your read scope is set by your access rules (allowed roots such as `backend/`, `frontend/src/`, `generated/`); read whatever you need inside it. If something you need is outside your scope, say so in the answer.
-- `runs/015-resource-time-buffer/story.md`  (sha256 f483a23dd3d1…)
-- `specs/015-resource-time-buffer/spec.md`  (sha256 3128d40f0e49…)
-- `specs/015-resource-time-buffer/tasks.md`  (sha256 0f84641ef1f4…)
-- `runs/015-resource-time-buffer/contract-next.json`  (sha256 523298c62382…)
-- `runs/015-resource-time-buffer/discovery/decisions.jsonl`  (sha256 23901ee7f561…)
+- `runs/015-resource-time-buffer/story.md`  (sha256 c9591ad203cf…)
+- `specs/015-resource-time-buffer/spec.md`  (sha256 ad2fb57f8010…)
+- `specs/015-resource-time-buffer/tasks.md`  (sha256 d79bef94c03e…)
+- `runs/015-resource-time-buffer/contract-next.json`  (sha256 433a70127610…)
+- `runs/015-resource-time-buffer/discovery/decisions.jsonl`  (sha256 c9072451caf0…)
 - `generated/core-surface.json`  (sha256 1c5ca522929d…)
 - `generated/capability-map.json`  (sha256 ef9341f9bd76…)
 
@@ -217,29 +217,29 @@ These are the files this task was built from. They are NOT a read boundary: your
 ```json
 {
   "author_agent": "test-designer",
-  "run_id": "015-resource-time-buffer-test-designer-mul37sn2",
+  "run_id": "015-resource-time-buffer-test-designer-mul7hfat",
   "story": "015-resource-time-buffer",
   "phase": "C2",
   "inputs": [
     {
       "path": "runs/015-resource-time-buffer/story.md",
-      "sha256": "f483a23dd3d1ab3df94ed1fa975058a1f33c6f1d059eda79e755f9587695c486"
+      "sha256": "c9591ad203cf439589ed0abf7a2578d5cc3336eb89a91a38e8a67f82a2970d19"
     },
     {
       "path": "specs/015-resource-time-buffer/spec.md",
-      "sha256": "3128d40f0e49961d583fe4245b45373c3abdbec496d78be3f0a4aea926b5d929"
+      "sha256": "ad2fb57f801052932cf738cf37f52e5519a7dad05a7d32dee4a7f11b0337f93b"
     },
     {
       "path": "specs/015-resource-time-buffer/tasks.md",
-      "sha256": "0f84641ef1f48f5889f7899dbc711749b143646847bb41242da72a548d6371f8"
+      "sha256": "d79bef94c03ec11579fdad6cbecb2ab1224f4dc07c5c6ad3baea5cdde8b81484"
     },
     {
       "path": "runs/015-resource-time-buffer/contract-next.json",
-      "sha256": "523298c62382bc0d61e92ddbb99110e77564ee5a180e6809f85715f9ab9410d2"
+      "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414"
     },
     {
       "path": "runs/015-resource-time-buffer/discovery/decisions.jsonl",
-      "sha256": "23901ee7f561c5816a602c49343bdcfdc99e2f3df54566ccb54b5fd12eb8235c"
+      "sha256": "c9072451caf0fefa64935f24b61c9bb1912fe3164623f480b5935bcc09d91a8c"
     },
     {
       "path": "generated/core-surface.json",

@@ -1,0 +1,101 @@
+{
+  "story": "015-resource-time-buffer",
+  "expected_ac": [
+    "AC-3",
+    "AC-4",
+    "AC-5",
+    "AC-6",
+    "AC-7",
+    "AC-8",
+    "AC-9"
+  ],
+  "uncovered_ac": [],
+  "tests_without_known_ac": [],
+  "coverage": 100,
+  "matrix": {
+    "AC-3": [
+      {
+        "ac": "AC-3",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.CreateResourceType_WithValidData_PublishesResourceSchemaCreatedEvent",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+        "line": 47
+      }
+    ],
+    "AC-4": [
+      {
+        "ac": "AC-4",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.CreateResourceInstance_WithValidData_PublishesResourceInstanceCreatedEvent",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+        "line": 83
+      }
+    ],
+    "AC-5": [
+      {
+        "ac": "AC-5",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.DeleteResourceType_WithInstances_PublishesExactlyOneResourceSchemaDeletedEvent",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+        "line": 121
+      },
+      {
+        "ac": "AC-5",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.DeleteResourceType_WithoutInstances_PublishesOneResourceSchemaDeletedEvent",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+        "line": 158
+      }
+    ],
+    "AC-6": [
+      {
+        "ac": "AC-6",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.DeleteResourceInstance_Existing_PublishesResourceInstanceDeletedEvent",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+        "line": 186
+      }
+    ],
+    "AC-7": [
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.PublishResourceEvents_ThroughLifecycleCommands_UseOnlySharedAbstractionsContracts",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+        "line": 221
+      }
+    ],
+    "AC-8": [
+      {
+        "ac": "AC-8",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeTests.DeleteResourceType_AsOwnerWithInstances_SoftDeletesTypeAndHidesIt",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+        "line": 47
+      },
+      {
+        "ac": "AC-8",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.UpdateDeleteResourceTypeTests.DeleteResourceType_AsOwner_Returns204AndSoftDeletesInDb",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+        "line": 175
+      },
+      {
+        "ac": "AC-8",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.UpdateDeleteResourceTypeTests.DeleteResourceType_WithInstances_SoftDeletesTypeAndCascadesToInstances",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+        "line": 271
+      }
+    ],
+    "AC-9": [
+      {
+        "ac": "AC-9",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeTests.CreateResourceType_WithNameOfSoftDeletedType_Returns201AndKeepsDeletedRow",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+        "line": 106
+      }
+    ]
+  }
+}

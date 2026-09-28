@@ -31,11 +31,15 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
 
     private readonly ResourcesUserFactory _users;
     private readonly ResourcesGroupReadModelFactory _groups;
+    private readonly ResourcesResourceTypeFactory _types;
+    private readonly ResourcesResourceInstanceFactory _instances;
 
     public UpdateDeleteResourceTypeTests(ThingsBooksyWebAppFactory factory) : base(factory)
     {
         _users = new ResourcesUserFactory(factory);
         _groups = new ResourcesGroupReadModelFactory(factory);
+        _types = new ResourcesResourceTypeFactory(factory);
+        _instances = new ResourcesResourceInstanceFactory(factory);
     }
 
     // -----------------------------------------------------------------------------------------
@@ -163,32 +167,33 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // DELETE /resources/types/{id} — happy path: 204 + hard-delete verified in DB
+    // DELETE /resources/types/{id} — happy path: 204 + soft-delete verified in DB (story 015, AC-8)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task DeleteResourceType_AsOwner_Returns204AndRemovesFromDb()
+    [Trait("AC", "AC-8")]
+    public async Task DeleteResourceType_AsOwner_Returns204AndSoftDeletesInDb()
     {
-        // Arrange — create a type with no instances
+        // Arrange — a type with no instances, seeded through EF
         var owner = await _users.CreateUserAsync("delrt_happy_owner@test.com");
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
+        var seeded = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Type To Delete", "Will be hidden");
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Type To Delete", "Will be gone");
-
         // Act
-        var response = await client.DeleteResourceTypeAsync(typeId);
+        var response = await client.DeleteResourceTypeAsync(seeded.Id);
 
         // Assert — 204 No Content
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
-        // Assert — hard-deleted: NOT found even with IgnoreQueryFilters()
-        var resourceType = await client.GetResourceTypeFromDbAsync(typeId);
-        Assert.Null(resourceType);
+        // Assert — hidden by the global query filter
+        var filtered = await client.GetResourceTypeFromDbRespectingQueryFiltersAsync(seeded.Id);
+        Assert.Null(filtered);
 
-        // Assert — associated property definitions also removed (cascade)
-        var definitions = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
-        Assert.Empty(definitions);
+        // Assert — soft-deleted: row still present with IgnoreQueryFilters(), DeletedAt set
+        var resourceType = await client.GetResourceTypeFromDbIgnoringFiltersAsync(seeded.Id);
+        Assert.NotNull(resourceType);
+        Assert.NotNull(resourceType.DeletedAt);
     }
 
     // -----------------------------------------------------------------------------------------
@@ -262,17 +267,19 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task DeleteResourceType_CascadesToInstances()
+    [Trait("AC", "AC-8")]
+    public async Task DeleteResourceType_WithInstances_SoftDeletesTypeAndCascadesToInstances()
     {
-        // Arrange — create a type with 3 instances
+        // Arrange — a type with 3 instances, seeded through EF
         var owner = await _users.CreateUserAsync("delrt_cascade_owner@test.com");
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Type With Instances");
-        var instanceId1 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance A");
-        var instanceId2 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance B");
-        var instanceId3 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance C");
+        var seededType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Type With Instances");
+        var typeId = seededType.Id;
+        var instanceId1 = (await _instances.CreateResourceInstanceAsync(seededType, owner.UserId, "Instance A")).Id;
+        var instanceId2 = (await _instances.CreateResourceInstanceAsync(seededType, owner.UserId, "Instance B")).Id;
+        var instanceId3 = (await _instances.CreateResourceInstanceAsync(seededType, owner.UserId, "Instance C")).Id;
 
         // Act — delete the type; cascade should soft-delete all instances
         var response = await client.DeleteResourceTypeAsync(typeId);
@@ -280,9 +287,13 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
         // Assert — 204 No Content
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
-        // Assert — type is hard-deleted (NOT found even with IgnoreQueryFilters)
-        var resourceType = await client.GetResourceTypeFromDbAsync(typeId);
-        Assert.Null(resourceType);
+        // Assert — type is soft-deleted: hidden by the query filter, present with IgnoreQueryFilters and DeletedAt set
+        var filtered = await client.GetResourceTypeFromDbRespectingQueryFiltersAsync(typeId);
+        Assert.Null(filtered);
+
+        var resourceType = await client.GetResourceTypeFromDbIgnoringFiltersAsync(typeId);
+        Assert.NotNull(resourceType);
+        Assert.NotNull(resourceType.DeletedAt);
 
         // Assert — GET /resources/types/{id} returns 404
         var getTypeResponse = await client.GetResourceTypeAsync(typeId);

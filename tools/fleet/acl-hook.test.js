@@ -64,6 +64,9 @@ const cases = [
   ["test-designer writes Core (deny)", ev("test-designer", "Write", { file_path: CORE }), 2],
   ["sighted reads Core", ev("test-designer-sighted", "Read", { file_path: CORE }), 0],
   ["sighted writes Core (deny)", ev("test-designer-sighted", "Write", { file_path: CORE }), 2],
+  // shell: a `|` inside quotes is not a pipe (xunit trait filter), a bare `|` still is
+  ["tester runs the AC filter with | in quotes", ev("test-designer", "Bash", { command: 'dotnet test backend/src/Modules/Resources/X.csproj --filter "AC=AC-3|AC=AC-4"' }), 0],
+  ["tester pipes to an unallowed command (deny)", ev("test-designer", "Bash", { command: "dotnet test backend/src/Modules/Resources/X.csproj | tee out.txt" }), 2],
   // C6 guards: architecture-guard sees the whole solution; trace-auditor sees tests + contracts, never production source
   ["guard reads Core", ev("architecture-guard", "Read", { file_path: CORE }), 0],
   ["guard reads writer result (deny)", ev("architecture-guard", "Read", { file_path: path.join(REPO, "runs", "015-x", "impl", "be-writer.C3b", "result.json") }), 2],

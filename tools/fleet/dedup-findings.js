@@ -16,8 +16,8 @@
 // Exit 0 CLEAN · 3 FIX_REQUIRED · 5 DECISIONS_REQUIRED · 4 ESCALATE · 1 error
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { sha256File } from './hash.js';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -32,7 +32,7 @@ const SEV = { BLOCKER: 0, MAJOR: 1, MINOR: 2, OPINION: 3 };
 const MAX_ROUNDS = 3;
 
 const validate = file => spawnSync(process.execPath, [path.join(HERE, 'validate.js'), '--schema', 'findings', '--file', file], { cwd: REPO, encoding: 'utf8' });
-const sha = rel => { try { return crypto.createHash('sha256').update(fs.readFileSync(path.join(REPO, rel))).digest('hex'); } catch { return null; } };
+const sha = rel => { try { return sha256File(path.join(REPO, rel)); } catch { return null; } }; // same normalisation as prompt-builder
 
 const rejected = [], demoted = [], reviewers = [], all = [];
 for (const f of fs.readdirSync(roundDir).filter(f => f.endsWith('.findings.json')).sort()) {

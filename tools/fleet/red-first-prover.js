@@ -12,6 +12,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readAcIds } from './ac-ids.js';
+import { sha256Files, HASH_VERSION } from './hash.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -75,8 +76,9 @@ if (args.fe) {
 
 // hash of acceptance-test sources (post-format is the gate's job; here = current state)
 const testFiles = [...walk(path.join(REPO, 'backend', 'src', 'Modules'), p => /\.IntegrationTests[\\/].*\.cs$/.test(p)), ...walk(path.join(REPO, 'frontend', 'src'), p => p.endsWith('.spec.ts'))].sort();
-const h = crypto.createHash('sha256'); for (const f of testFiles) { h.update(path.relative(REPO, f)); h.update(fs.readFileSync(f)); }
-report.acceptance_tests_hash = h.digest('hex');
+// hash_version 2 = CRLF-normalised content (hash.js); the gate hashes the same way when it sees hash_version 2
+report.acceptance_tests_hash = sha256Files(REPO, testFiles, f => path.relative(REPO, f).replace(/\\/g, '/'));
+report.hash_version = HASH_VERSION;
 // The gate re-hashes exactly THIS file set (D-4b: pass 2 may add files, never change the blind pass's)
 report.acceptance_test_files = testFiles.map(f => path.relative(REPO, f).replace(/\\/g, '/'));
 

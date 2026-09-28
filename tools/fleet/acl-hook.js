@@ -121,8 +121,21 @@ switch (tool) {
     if (hit) deny(`command contains forbidden fragment "${hit}"`);
     if (!Array.isArray(acl.shell)) deny(`agent "${agentType}" has no shell allowlist — ${tool} is not permitted`);
     // every chained segment must be allowed (defeats `allowed && evil`)
-    const segments = cmd.split(/&&|\|\||;|\|/).map(s => s.trim()).filter(Boolean);
-    for (const seg of segments) {
+    // split outside quotes only: `dotnet test --filter "AC=AC-3|AC=AC-4"` is ONE segment (015: the tester could not run
+    // the very filter its template prescribed), while `allowed && evil` and `a | b` are still split
+    const segments = []; let cur = '', q = null;
+    for (let i = 0; i < cmd.length; i++) {
+      const ch = cmd[i];
+      if (q) { cur += ch; if (ch === q) q = null; continue; }
+      if (ch === '"' || ch === "'") { q = ch; cur += ch; continue; }
+      const two = cmd.slice(i, i + 2);
+      if (two === '&&' || two === '||') { segments.push(cur); cur = ''; i++; continue; }
+      if (ch === ';' || ch === '|') { segments.push(cur); cur = ''; continue; }
+      cur += ch;
+    }
+    segments.push(cur);
+    const segs = segments.map(s => s.trim()).filter(Boolean);
+    for (const seg of segs) {
       if (!acl.shell.some(prefix => seg.startsWith(prefix))) deny(`command segment "${seg}" does not start with an allowed prefix`);
     }
     break;

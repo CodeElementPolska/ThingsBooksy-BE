@@ -491,5 +491,6 @@ frontend/dist/
 frontend/.env
 
 # Agent fleet: test runner output inside story runs (TRX, coverage) is regenerated, never committed
-runs/**/tests/
+runs/**/tests/*
+!runs/**/tests/red-first.json
 runs/_unassigned/

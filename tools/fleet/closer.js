@@ -28,7 +28,17 @@ const ac = readJson('ac-matrix.json');
 const gate = readJson('gate.json');
 const rounds = fs.existsSync(path.join(runDir, 'review')) ? fs.readdirSync(path.join(runDir, 'review')).filter(d => /^round-\d+$/.test(d)).length : 0;
 const lastFindings = rounds ? fs.readdirSync(path.join(runDir, 'review', `round-${rounds}`)).filter(f => f.endsWith('.findings.json')).flatMap(f => readJson(`review/round-${rounds}/${f}`)?.findings || []) : [];
-const first = journal[0]?.at, lastAt = journal.at(-1)?.at;
+// every finding of the story (all review rounds + closing guards) — rule candidates and UNSPECIFIED are counted here,
+// not on the last round, which is empty by construction when the loop converged
+const allFindings = [
+  ...Array.from({ length: rounds }, (_, i) => i + 1).flatMap(n => fs.readdirSync(path.join(runDir, 'review', `round-${n}`)).filter(f => f.endsWith('.findings.json')).flatMap(f => readJson(`review/round-${n}/${f}`)?.findings || [])),
+  ...(fs.existsSync(path.join(runDir, 'closing')) ? fs.readdirSync(path.join(runDir, 'closing')).filter(f => f.endsWith('.findings.json')).flatMap(f => readJson(`closing/${f}`)?.findings || []) : []),
+];
+const implAssumptions = fs.existsSync(path.join(runDir, 'impl')) ? fs.readdirSync(path.join(runDir, 'impl')).flatMap(d => readJson(`impl/${d}/result.json`)?.assumptions || []) : [];
+const unspecifiedTests = (ac?.tests_without_known_ac || []).length;
+// wall clock of DELIVERY = from the first session-C event (baseline/skeleton) to now; discovery is session B
+const firstC = journal.find(e => /^C/.test(e.phase || '') || e.event === 'AGENT_START')?.at || journal[0]?.at;
+const first = firstC, lastAt = new Date().toISOString();
 
 // metrics per docs/agent-fleet-v4/workflow.md §6
 const metrics = {
@@ -36,9 +46,10 @@ const metrics = {
   owner_interruptions: journal.filter(e => e.event === 'GATE_OPEN').length,
   owner_answers: journal.filter(e => e.event === 'OWNER_ANSWER').length,
   decisions: { total: decisions.length, by_owner: decisions.filter(d => d.decided_by === 'owner').length, escalated_from_impl: decisions.filter(d => /writer|arbiter/.test(d.asked_by || '')).length },
-  assumptions: { total: assumptions.length, vetoed: assumptions.filter(a => a.veto).length, hard_list: assumptions.filter(a => a.score?.hard_list).length },
+  assumptions: { total: assumptions.length + implAssumptions.length, discovery: assumptions.length, delivery: implAssumptions.length, vetoed: assumptions.filter(a => a.veto).length, hard_list: [...assumptions, ...implAssumptions].filter(a => a.score?.hard_list).length },
   repair_rounds: { C4: journal.filter(e => e.event === 'PHASE_END' && e.phase === 'C4').length, C5: rounds },
-  review: { findings_last_round: lastFindings.length, rule_candidates: lastFindings.filter(f => f.rule_candidate).length, unspecified_behaviour: lastFindings.filter(f => f.type === 'UNSPECIFIED_BEHAVIOR').length },
+  review: { findings_total: allFindings.length, findings_last_round: lastFindings.length, closed_by_decision: allFindings.filter(f => f.decision_id).length, closed_by_fix: allFindings.filter(f => f.closed_by === 'fix').length, rule_candidates: allFindings.filter(f => f.rule_candidate).length, unspecified_behaviour: allFindings.filter(f => f.type === 'UNSPECIFIED_BEHAVIOR').length + unspecifiedTests },
+  agent_runs: journal.filter(e => e.event === 'AGENT_END').length,
   ac_coverage_percent: ac?.coverage ?? null,
   gate_seconds: gate ? Math.round(gate.ms / 1000) : null,
   tokens_spent: journal.filter(e => e.tokens).reduce((s, e) => s + e.tokens, 0),

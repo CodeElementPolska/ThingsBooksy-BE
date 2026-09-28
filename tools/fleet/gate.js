@@ -17,6 +17,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readAcIds } from './ac-ids.js';
+import { sha256Files } from './hash.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -85,8 +86,10 @@ go = go && step('test-hash', () => {
   } else {
     files = [...walk(path.join(REPO, 'backend', 'src', 'Modules'), p => /\.IntegrationTests[\\/].*\.cs$/.test(p)), ...walk(path.join(REPO, 'frontend', 'src'), p => p.endsWith('.spec.ts'))].sort();
   }
-  const h = crypto.createHash('sha256'); for (const f of files) { h.update(path.relative(REPO, f)); h.update(fs.readFileSync(f)); }
-  const actual = h.digest('hex');
+  // hash_version 2 (hash.js): CRLF-normalised content, forward-slash paths; legacy reports (no version) = raw bytes
+  let actual;
+  if (redFirst.hash_version >= 2) actual = sha256Files(REPO, files, f => path.relative(REPO, f).replace(/\\/g, '/'));
+  else { const h = crypto.createHash('sha256'); for (const f of files) { h.update(path.relative(REPO, f)); h.update(fs.readFileSync(f)); } actual = h.digest('hex'); }
   const rebaselined = fs.existsSync(path.join(runDir, 'journal.jsonl')) && fs.readFileSync(path.join(runDir, 'journal.jsonl'), 'utf8').includes(`"REBASELINE"`) && fs.readFileSync(path.join(runDir, 'journal.jsonl'), 'utf8').includes(actual);
   return actual === expected || rebaselined ? { status: 'PASSED' } : { status: 'FAILED', detail: 'acceptance tests changed since red-first proof (no REBASELINE in journal)' };
 });

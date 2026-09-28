@@ -5,6 +5,8 @@ Stan: 2026-09-28, pierwszy przebieg na story `015-resource-time-buffer`. Dyrygen
 ## Zasady dyrygenta
 - Prompty agentów buduje **tylko** `tools/fleet/prompt-builder.js`; dyrygent podaje agentowi ścieżkę do `runs/<story>/prompts/<template>.md` („przeczytaj w całości i wykonaj"), nie streszcza i nie dopisuje kontekstu.
 - Wynik agenta (JSON `result`) zapisuje dyrygent do `runs/<story>/impl/<agent>[.<phase>]/result.json` i waliduje: `node tools/fleet/validate.js --schema result --file …`. `files_changed` porównuje z `git status`.
+- Po KAŻDYM powrocie agenta dyrygent loguje przebieg: `node tools/fleet/journal.js --story <s> --event AGENT_END --agent <typ> --run-id <run_id z provenance> --phase <faza> --status <DONE|FAILED|…> --tokens <subagent_tokens> --duration-ms <duration_ms>` (liczby z powiadomienia Agent tool). Bez tego `closer` liczy 0 tokenów.
+- Każdy prompt ma unikalną instancję (`--instance r2`, `ac10`, `closing`…); `prompt-builder` odmawia nadpisania istniejącego promptu (provenance).
 - Między fazami działają wyłącznie skrypty. Dyrygent nie naprawia kodu sam — porażka wraca do agenta z outputem skryptu (nowa instancja, ten sam szablon, `--var fix_round=n`).
 - Bramki właściciela (G2b migracja destrukcyjna, G3) = pytanie do właściciela w czacie; odpowiedź zapisuje `decide.js --gate`.
 - Commity tylko na wyraźne „tak" właściciela.

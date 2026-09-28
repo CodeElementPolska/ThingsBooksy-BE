@@ -11,8 +11,8 @@
 // Usage: node tools/fleet/prompt-builder.js --story NNN-slug --agent <agent_type> [--instance <name>] [--var key=value …] [--phase C2]
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { sha256File } from './hash.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -58,7 +58,7 @@ function expand(pattern) {
   (function walk(d) { if (!fs.existsSync(d)) return; for (const e of fs.readdirSync(d, { withFileTypes: true })) { const q = path.join(d, e.name); const rel = path.relative(REPO, q).replace(/\\/g, '/'); if (e.isDirectory()) { if (!['node_modules', 'bin', 'obj'].includes(e.name)) walk(q); } else if (re.test(rel)) out.push(rel); } })(path.join(REPO, dir));
   return out.sort();
 }
-const sha = rel => crypto.createHash('sha256').update(fs.readFileSync(path.join(REPO, rel))).digest('hex');
+const sha = rel => sha256File(path.join(REPO, rel)); // CRLF-normalised (hash.js) — stable across autocrlf checkouts
 const inputs = []; const missing = []; const denied = [];
 for (const spec of meta.inputs || []) {
   const optional = spec.endsWith('?'); const pat = optional ? spec.slice(0, -1) : spec;
@@ -104,6 +104,9 @@ const prompt = [
 const outDir = path.join(REPO, 'runs', story, 'prompts');
 fs.mkdirSync(outDir, { recursive: true });
 const base = path.join(outDir, `${args.template || agent}${vars.instance ? '.' + vars.instance : ''}`);
+// a prompt is provenance: never silently overwrite one that was already handed to an agent (015: round-2 prompts
+// replaced round-1's). Re-run with --instance <name> or --force.
+if (fs.existsSync(base + '.md') && !args.force) { console.error(`prompt-builder: ${path.relative(REPO, base)}.md exists — use --instance <name> (e.g. r2) to keep both, or --force to overwrite`); process.exit(3); }
 fs.writeFileSync(base + '.md', prompt);
 fs.writeFileSync(base + '.json', JSON.stringify({ agent_type: agent, run_id: runId, prompt, schema, provenance, tools_hint: meta.tools || null, max_turns: meta.max_turns ? +meta.max_turns : null }, null, 2) + '\n');
 console.log(`prompt-builder: ${agent}${vars.instance ? '/' + vars.instance : ''} — ${inputs.length} inputs, schema ${schemaName || 'none'} → ${path.relative(REPO, base)}.{md,json}`);

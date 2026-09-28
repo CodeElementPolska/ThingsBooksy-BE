@@ -23,9 +23,10 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
 const args = Object.fromEntries(process.argv.slice(2).map((a, i, arr) => a.startsWith('--') ? [a.slice(2), arr[i + 1] && !arr[i + 1].startsWith('--') ? arr[i + 1] : true] : []).filter(Boolean));
-const story = args.story; const round = +args.round;
-if (!story || !round) { console.error('usage: dedup-findings --story NNN-slug --round N'); process.exit(1); }
-const roundDir = path.join(REPO, 'runs', story, 'review', `round-${round}`);
+const story = args.story; const round = args.dir ? 1 : +args.round;
+if (!story || (!round && !args.dir)) { console.error('usage: dedup-findings --story NNN-slug (--round N | --dir closing)'); process.exit(1); }
+// --dir closing: merge the C6 guards' findings (architecture-guard, trace-auditor) with round-1 semantics
+const roundDir = args.dir ? path.join(REPO, 'runs', story, args.dir) : path.join(REPO, 'runs', story, 'review', `round-${round}`);
 if (!fs.existsSync(roundDir)) { console.error(`dedup-findings: no ${path.relative(REPO, roundDir)}`); process.exit(1); }
 const SEV = { BLOCKER: 0, MAJOR: 1, MINOR: 2, OPINION: 3 };
 const MAX_ROUNDS = 3;
@@ -42,9 +43,14 @@ for (const f of fs.readdirSync(roundDir).filter(f => f.endsWith('.findings.json'
   const v = validate(file); if (v.status !== 0) { rejected.push({ file: f, reason: `schema: ${(v.stderr || v.stdout).trim().split('\n').slice(0, 5).join(' | ')}` }); continue; }
   if (round >= 2 && !Array.isArray(j.previous_findings_status)) { rejected.push({ file: f, reason: 'round ≥ 2 without previous_findings_status' }); continue; }
   const stale = (j.provenance?.inputs || []).filter(i => sha(i.path) !== i.sha256).map(i => i.path);
-  if (stale.length) { rejected.push({ file: f, reason: `stale provenance: ${stale.join(', ')}` }); continue; }
+  // an input changed after the review — reject, unless every finding in the file is already closed (its inputs legitimately
+  // change as a consequence of acting on it, e.g. ac-matrix.json after the tester added tests)
+  const allClosed = (j.findings || []).length > 0 && (j.findings || []).every(x => x.decision_id || x.closed_by);
+  if (stale.length && !allClosed) { rejected.push({ file: f, reason: `stale provenance: ${stale.join(', ')}` }); continue; }
+  if (stale.length) console.error(`note: ${f} has stale inputs (${stale.join(', ')}) but all its findings are closed — accepted`);
   reviewers.push(j.reviewer || j.provenance?.author_agent || f.replace('.findings.json', ''));
-  for (const x of j.findings || []) all.push({ ...x, reporters: [x.id] });
+  // a finding already closed by an owner decision or an arbiter OVERTURN is out of the loop
+  for (const x of j.findings || []) if (!x.decision_id && !x.closed_by) all.push({ ...x, reporters: [x.id] });
 }
 
 // --- merge duplicates ------------------------------------------------------------------------------------
@@ -59,14 +65,14 @@ merged.sort((a, b) => SEV[a.severity] - SEV[b.severity] || norm(a.file).localeCo
 // Who acts on a finding (workflow §1.3 C5 / D-4b): behaviour without an AC is the OWNER's call, a weak or
 // wrong acceptance test is the TESTER's (blind-pass hash ⇒ REBASELINE), everything else goes to the writer.
 const TEST_PATH = /IntegrationTests|Tests\.Unit|\.spec\.ts$/;
-for (const m of merged) m.route = m.type === 'UNSPECIFIED_BEHAVIOR' ? 'owner' : (m.type === 'WEAK_ASSERTION' || TEST_PATH.test(m.file)) ? 'tester' : 'writer';
+for (const m of merged) m.route = (m.type === 'UNSPECIFIED_BEHAVIOR' || m.needs_owner_decision === true) ? 'owner' : (m.type === 'WEAK_ASSERTION' || TEST_PATH.test(m.file)) ? 'tester' : 'writer';
 const count = s => merged.filter(m => m.severity === s).length;
 const actionable = merged.filter(m => m.severity === 'BLOCKER' || m.severity === 'MAJOR');
 const summary = { blockers: count('BLOCKER'), majors: count('MAJOR'), minors: count('MINOR'), opinions: count('OPINION'), merged_duplicates: all.length - merged.length, routes: { writer: actionable.filter(m => m.route === 'writer').length, tester: actionable.filter(m => m.route === 'tester').length, owner: actionable.filter(m => m.route === 'owner').length } };
 
 // --- verdict ---------------------------------------------------------------------------------------------
 // CLEAN: nothing above MINOR · FIX_REQUIRED: the writer has work · DECISIONS_REQUIRED: only owner/tester items left
-const prev = round >= 2 ? (() => { try { return JSON.parse(fs.readFileSync(path.join(REPO, 'runs', story, 'review', `round-${round - 1}`, 'dedup.json'), 'utf8')).summary; } catch { return null; } })() : null;
+const prev = round >= 2 && !args.dir ? (() => { try { return JSON.parse(fs.readFileSync(path.join(REPO, 'runs', story, 'review', `round-${round - 1}`, 'dedup.json'), 'utf8')).summary; } catch { return null; } })() : null;
 let verdict = actionable.length === 0 ? 'CLEAN' : summary.routes.writer > 0 ? 'FIX_REQUIRED' : 'DECISIONS_REQUIRED';
 let escalation_reason = null;
 if (verdict === 'FIX_REQUIRED' && round >= 2 && prev && summary.blockers > 0 && summary.blockers >= prev.blockers) { verdict = 'ESCALATE'; escalation_reason = `blockers did not decrease (round ${round - 1}: ${prev.blockers}, round ${round}: ${summary.blockers})`; }

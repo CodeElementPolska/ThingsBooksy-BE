@@ -64,6 +64,13 @@ const cases = [
   ["test-designer writes Core (deny)", ev("test-designer", "Write", { file_path: CORE }), 2],
   ["sighted reads Core", ev("test-designer-sighted", "Read", { file_path: CORE }), 0],
   ["sighted writes Core (deny)", ev("test-designer-sighted", "Write", { file_path: CORE }), 2],
+  // C6 guards: architecture-guard sees the whole solution; trace-auditor sees tests + contracts, never production source
+  ["guard reads Core", ev("architecture-guard", "Read", { file_path: CORE }), 0],
+  ["guard reads writer result (deny)", ev("architecture-guard", "Read", { file_path: path.join(REPO, "runs", "015-x", "impl", "be-writer.C3b", "result.json") }), 2],
+  ["auditor reads test project", ev("trace-auditor", "Read", { file_path: path.join(T, "IntegrationTestCollection.cs") }), 0],
+  ["auditor reads Shared.Abstractions event", ev("trace-auditor", "Read", { file_path: path.join(REPO, "backend", "src", "Shared", "ThingsBooksy.Shared.Abstractions", "Events", "Resources", "X.cs") }), 0],
+  ["auditor reads Core (deny)", ev("trace-auditor", "Read", { file_path: CORE }), 2],
+  ["auditor reads ac-matrix", ev("trace-auditor", "Read", { file_path: path.join(REPO, "runs", "015-x", "ac-matrix.json") }), 0],
   // C5 reviewers: code + own previous findings only; never the writer's notes, never another reviewer's findings
   ["reviewer reads Core", ev("review-spec-conformance", "Read", { file_path: CORE }), 0],
   ["reviewer reads its prompt", ev("review-security-authz", "Read", { file_path: path.join(REPO, "runs", "015-x", "prompts", "review-security-authz.md") }), 0],

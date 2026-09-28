@@ -4,7 +4,7 @@ phase: C5
 output_schema: result
 max_turns: 60
 inputs:
-  - runs/{story}/review/round-{round}/dedup.json
+  - runs/{story}/{review_dir}/dedup.json
   - runs/{story}/story.md
   - specs/{story}/spec.md
   - runs/{story}/contract-next.json?

@@ -46,9 +46,13 @@ check('hard-list', hard.length === 0, hard.length ? `without owner decision: ${h
 
 const reviewDir = path.join(runDir, 'review');
 const rounds = fs.existsSync(reviewDir) ? fs.readdirSync(reviewDir).filter(d => /^round-\d+$/.test(d)).sort((a, b) => +a.slice(6) - +b.slice(6)) : [];
-const lastFindings = rounds.length ? fs.readdirSync(path.join(reviewDir, rounds.at(-1))).filter(f => f.endsWith('.findings.json')).flatMap(f => readJson(`review/${rounds.at(-1)}/${f}`)?.findings || []) : [];
+// findings still open = last review round + C6 guards (runs/<story>/closing), minus those closed by an owner decision or an arbiter
+const closingDir = path.join(runDir, 'closing');
+const closingFindings = fs.existsSync(closingDir) ? fs.readdirSync(closingDir).filter(f => f.endsWith('.findings.json')).flatMap(f => readJson(`closing/${f}`)?.findings || []) : [];
+const openF = f => !f.decision_id && !f.closed_by;
+const lastFindings = [...(rounds.length ? fs.readdirSync(path.join(reviewDir, rounds.at(-1))).filter(f => f.endsWith('.findings.json')).flatMap(f => readJson(`review/${rounds.at(-1)}/${f}`)?.findings || []) : []), ...closingFindings].filter(openF);
 const blockers = lastFindings.filter(f => f.severity === 'BLOCKER');
-check('blockers', blockers.length === 0, rounds.length ? `${rounds.at(-1)}: ${blockers.length} BLOCKER, ${lastFindings.filter(f => f.severity === 'MAJOR').length} MAJOR` : 'no review rounds (allowed only on hotfix track)');
+check('blockers', blockers.length === 0, rounds.length ? `${rounds.at(-1)} + closing: ${blockers.length} BLOCKER, ${lastFindings.filter(f => f.severity === 'MAJOR').length} MAJOR open` : 'no review rounds (allowed only on hotfix track)');
 
 const disputes = readJsonl('impl/disputes.jsonl').filter(d => !d.verdict);
 check('disputes', disputes.length === 0, disputes.length ? `unresolved: ${disputes.map(d => d.target_id).join(', ')}` : 'none open');

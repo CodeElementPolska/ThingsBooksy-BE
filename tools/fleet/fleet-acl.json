@@ -203,6 +203,39 @@
         "node tools/fleet/validate.js",
         "node tools/fleet/ac-matrix.js"
       ]
+    },
+    "architecture-guard": {
+      "read_allow": [
+        "backend",
+        "frontend/src",
+        "specs",
+        "generated",
+        ".specify/memory",
+        ".claude/conventions",
+        "runs/*/prompts",
+        "runs/*/story.md",
+        "runs/*/contract-next.json",
+        "runs/*/review/round-*/scope.json"
+      ],
+      "write_allow": []
+    },
+    "trace-auditor": {
+      "read_allow": [
+        "backend/src/Modules/*/ThingsBooksy.Modules.*.IntegrationTests",
+        "backend/src/Modules/*/ThingsBooksy.Modules.*.Tests.Unit",
+        "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests",
+        "backend/src/Shared/ThingsBooksy.Shared.Abstractions",
+        "frontend/src/app/**/*.spec.ts",
+        "specs",
+        "generated",
+        ".specify/memory",
+        ".claude/conventions",
+        "runs/*/prompts",
+        "runs/*/story.md",
+        "runs/*/ac-matrix.json",
+        "runs/*/review/round-*/review-spec-conformance.findings.json"
+      ],
+      "write_allow": []
     }
   }
 }

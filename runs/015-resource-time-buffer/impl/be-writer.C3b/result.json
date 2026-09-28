@@ -1,0 +1,135 @@
+{
+  "provenance": {
+    "author_agent": "be-writer",
+    "run_id": "015-resource-time-buffer-be-writer-muld2tdk",
+    "story": "015-resource-time-buffer",
+    "phase": "C3b",
+    "inputs": [
+      {
+        "path": "specs/015-resource-time-buffer/spec.md",
+        "sha256": "ad2fb57f801052932cf738cf37f52e5519a7dad05a7d32dee4a7f11b0337f93b"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/plan.md",
+        "sha256": "a78fdf965a2523c2b0efafe30efba2b1294db10eb117de100fefd3db1b3bd4ce"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/tasks.md",
+        "sha256": "d79bef94c03ec11579fdad6cbecb2ab1224f4dc07c5c6ad3baea5cdde8b81484"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/data-model.md",
+        "sha256": "7911cdc82b6d4b95bda4fc132a5eef4a32c63be5053ceae2479cbef7af4e246e"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/contracts/events.md",
+        "sha256": "749a5a0c703a93c19c312ab04401dee39e4d05f86234fec26f5a0bd0c20a6ddc"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/story.md",
+        "sha256": "c9591ad203cf439589ed0abf7a2578d5cc3336eb89a91a38e8a67f82a2970d19"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/contract-next.json",
+        "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/discovery/decisions.jsonl",
+        "sha256": "c9072451caf0fefa64935f24b61c9bb1912fe3164623f480b5935bcc09d91a8c"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/discovery/assumptions.jsonl",
+        "sha256": "9a218b8b2a8f9a081de0704515385ba75642904cb8b24f736ffd1273c21e4891"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/tests/red-first.json",
+        "sha256": "d019842529702d9c9d8c50f34a301855986dfd89484bad196a3415c66ae73d10"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/ac-matrix.json",
+        "sha256": "3d76f7d1225fa4660ebc6f4b8e49ccfd4a4a573ecbca285222f624f5d3ac8155"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": [
+    "T018",
+    "T019",
+    "T020",
+    "T021",
+    "T022",
+    "T023",
+    "T024",
+    "T025",
+    "T028"
+  ],
+  "tasks_remaining": [
+    "T026",
+    "T027",
+    "T029",
+    "T030"
+  ],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-W1",
+      "made_by": "be-writer",
+      "phase": "C3b",
+      "statement": "DeleteResourceTypeCommandHandler reads the clock once (var now = _clock.CurrentDate()) and uses the same timestamp for the bulk instance soft delete and for ResourceType.Delete(now), as T023 asks ('same now as used for SoftDeleteInstancesAsync'). Before this change the clock was read once for the instances only.",
+      "bucket": "NO_ASK",
+      "score": {
+        "hard_list": false,
+        "reversible_cheaply": true,
+        "visible_effect": false,
+        "has_recommendation": true
+      },
+      "evidence": "tasks.md T023; DeleteResourceTypeCommandHandler.cs",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "ASM-W2",
+      "made_by": "be-writer",
+      "phase": "C3b",
+      "statement": "Property definitions of a soft-deleted schema are no longer removed. Before, the EF cascade on hard delete removed them. They now stay in the DB and are hidden along with the schema, as ASM-15 says. The only visible effect is in the database; no API read path exposes them for a deleted schema.",
+      "bucket": "NO_ASK",
+      "score": {
+        "hard_list": false,
+        "reversible_cheaply": true,
+        "visible_effect": true,
+        "has_recommendation": true
+      },
+      "evidence": "spec.md Edge Cases / ASM-15; the old comment 'EF cascade removes ResourcePropertyDefinitions' was replaced in DeleteResourceTypeCommandHandler.cs",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "ASM-W3",
+      "made_by": "be-writer",
+      "phase": "C3b",
+      "statement": "No new code was added for deleting a schema or instance that is already deleted (ASM-19). The tracked load goes through the global query filter, so it returns null and the existing 'not found' ResourcesDomainException (400) is thrown before any SaveChangesAsync or PublishAsync. As a result, no event is published.",
+      "bucket": "NO_ASK",
+      "score": {
+        "hard_list": false,
+        "reversible_cheaply": true,
+        "visible_effect": false,
+        "has_recommendation": true
+      },
+      "evidence": "ResourceTypeConfiguration.cs:15 / ResourceInstanceConfiguration.cs:15 HasQueryFilter(DeletedAt == null); handlers throw before persistence",
+      "status": "ACTIVE"
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": {
+    "build": "PASSED",
+    "unit_tests": "SKIPPED",
+    "format": "PASSED"
+  },
+  "schema_changes": "NONE"
+}

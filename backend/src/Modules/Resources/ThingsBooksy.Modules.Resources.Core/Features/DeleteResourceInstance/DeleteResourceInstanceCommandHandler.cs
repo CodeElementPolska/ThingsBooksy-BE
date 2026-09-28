@@ -2,6 +2,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using ThingsBooksy.Modules.Resources.Core.Exceptions;
 using ThingsBooksy.Shared.Abstractions.Commands;
+using ThingsBooksy.Shared.Abstractions.Events.Resources;
+using ThingsBooksy.Shared.Abstractions.Messaging;
 using ThingsBooksy.Shared.Abstractions.Time;
 
 namespace ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceInstance;
@@ -10,11 +12,16 @@ internal sealed class DeleteResourceInstanceCommandHandler : ICommandHandler<Del
 {
     private readonly IDeleteResourceInstanceCommandDataProvider _dataProvider;
     private readonly IClock _clock;
+    private readonly IMessageBroker _messageBroker;
 
-    public DeleteResourceInstanceCommandHandler(IDeleteResourceInstanceCommandDataProvider dataProvider, IClock clock)
+    public DeleteResourceInstanceCommandHandler(
+        IDeleteResourceInstanceCommandDataProvider dataProvider,
+        IClock clock,
+        IMessageBroker messageBroker)
     {
         _dataProvider = dataProvider;
         _clock = clock;
+        _messageBroker = messageBroker;
     }
 
     public async Task HandleAsync(DeleteResourceInstanceCommand command, CancellationToken cancellationToken = default)
@@ -32,5 +39,6 @@ internal sealed class DeleteResourceInstanceCommandHandler : ICommandHandler<Del
         instance.Delete(_clock.CurrentDate());
 
         await _dataProvider.SaveChangesAsync(cancellationToken);
+        await _messageBroker.PublishAsync(new ResourceInstanceDeletedEvent(instance.Id, instance.ResourceTypeId), cancellationToken);
     }
 }

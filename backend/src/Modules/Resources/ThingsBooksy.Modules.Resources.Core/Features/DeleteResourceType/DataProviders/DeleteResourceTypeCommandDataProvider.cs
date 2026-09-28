@@ -30,9 +30,6 @@ internal sealed class DeleteResourceTypeCommandDataProvider : IDeleteResourceTyp
                 .SetProperty(x => x.UpdatedAt, now),
                 ct);
 
-    public void RemoveResourceType(ResourceType resourceType)
-        => _dbContext.ResourceTypes.Remove(resourceType);
-
     public Task SaveChangesAsync(CancellationToken ct)
         => _dbContext.SaveChangesAsync(ct);
 }

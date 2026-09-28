@@ -33,6 +33,18 @@ Deterministyczne skrypty (bez LLM), na których stoją bramki z `docs/agent-flee
 | `code-researcher` | subagent (sonnet, RO, `omitClaudeMd`) | `.claude/agents/code-researcher.md` + `templates/code-researcher.md` | ✅ headless na prawdziwym pytaniu: `fact` poprawny wg schematu, provenance skopiowane |
 | `impact-analyst` | subagent (sonnet, RO, `omitClaudeMd`) | `.claude/agents/impact-analyst.md` + `templates/impact-analyst.md` | 📝 napisany, nieprzetestowany |
 
+## Dziennik defektów floty (z prawdziwych przebiegów)
+
+| Data | Story | Defekt | Naprawa |
+|---|---|---|---|
+| 2026-09-24 | 015 | szablon `code-researcher`: „nothing else was given to you" odczytane jako zakaz czytania kodu | prompt-builder: wejścia ≠ zakres odczytu; zakres = ACL |
+| 2026-09-24 | 015 | wszystkie fakty `id: F-1` | `prompt-builder` nadaje `F-<nr pytania>` przez `{fact_id}` |
+| 2026-09-24 | 015 | `decide.js` logował `GATE_ANSWER G2` przy każdej decyzji → `status` pokazywał G2 PASSED za wcześnie | zdarzenie `DECISION`; bramkę zamyka tylko `decide --gate G2 --status PASSED|REJECTED` |
+| 2026-09-24 | 015 | `.specify/feature.json` wskazywał 010 → `/speckit-plan` nadpisał `specs/010/plan.md` | `status.js` odmawia przy niezgodności; checklista startu `dev-analyst` |
+| 2026-09-24 | 015 | persona uruchomiła `gate.js` w discovery | zakaz w prompcie persony |
+| 2026-09-24 | 015 | pliki `.trx` w `runs/` | `.gitignore: runs/**/tests/` |
+| 2026-09-24 | 015 | założenia o `BufferMinutes` zostały ACTIVE po rescopingu | pole `status: WITHDRAWN` w schemacie `assumption`; `status`/`dod` je pomijają |
+
 ## Konwencje
 
 - Identyfikator story: `NNN-slug` = gałąź = `specs/NNN-slug/` = `runs/NNN-slug/`.

@@ -12,7 +12,7 @@
       "type": "array", "minItems": 1,
       "items": {
         "oneOf": [
-          { "type": "object", "required": ["file", "line"], "properties": { "file": { "type": "string" }, "line": { "type": "integer", "minimum": 1 }, "excerpt": { "type": "string", "maxLength": 300 } } },
+          { "type": "object", "required": ["file", "line"], "properties": { "file": { "type": "string" }, "line": { "type": "integer", "minimum": 1 }, "excerpt": { "type": "string", "maxLength": 500 } } },
           { "type": "object", "required": ["captured_response"], "properties": { "captured_response": { "type": "string", "description": "verbatim HTTP response / swagger fragment" }, "source": { "type": "string" } } },
           { "type": "object", "required": ["generated"], "properties": { "generated": { "type": "string", "description": "path in generated/ (capability-map, swagger.base, core-surface)" } } }
         ]

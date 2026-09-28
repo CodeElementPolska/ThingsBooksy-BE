@@ -489,3 +489,7 @@ frontend/node_modules/
 frontend/.angular/
 frontend/dist/
 frontend/.env
+
+# Agent fleet: test runner output inside story runs (TRX, coverage) is regenerated, never committed
+runs/**/tests/
+runs/_unassigned/

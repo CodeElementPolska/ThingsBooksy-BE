@@ -8,7 +8,8 @@
     "at": { "type": "string", "format": "date-time" },
     "event": {
       "type": "string",
-      "enum": ["PHASE_START", "PHASE_END", "AGENT_START", "AGENT_END", "GATE_OPEN", "GATE_ANSWER", "OWNER_ANSWER", "ARTIFACT_WRITTEN", "ARTIFACT_REJECTED", "REBASELINE", "ESCALATION", "BUDGET_STOP", "ERROR"]
+      "enum": ["PHASE_START", "PHASE_END", "AGENT_START", "AGENT_END", "GATE_OPEN", "GATE_ANSWER", "OWNER_ANSWER", "DECISION", "ARTIFACT_WRITTEN", "ARTIFACT_REJECTED", "REBASELINE", "ESCALATION", "BUDGET_STOP", "ERROR"],
+      "description": "DECISION = a single decision closed by decide.js (never a gate); GATE_ANSWER = a gate closed by decide.js --gate"
     },
     "phase": { "type": "string" },
     "agent_type": { "type": "string" },

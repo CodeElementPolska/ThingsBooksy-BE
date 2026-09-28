@@ -10,6 +10,8 @@
     "phase": { "type": "string" },
     "statement": { "type": "string", "description": "one sentence: what was assumed" },
     "bucket": { "type": "string", "enum": ["ASSUME", "NO_ASK"], "description": "ASSUME = sensible default chosen, owner may veto; NO_ASK = answer exists in code/docs" },
+    "status": { "type": "string", "enum": ["ACTIVE", "WITHDRAWN"], "default": "ACTIVE", "description": "WITHDRAWN when the story is rescoped and the assumption no longer applies (keep the row: it is history)" },
+    "withdrawn_reason": { "type": "string" },
     "score": {
       "type": "object",
       "description": "the rubric answers, visible so the triage can be audited",

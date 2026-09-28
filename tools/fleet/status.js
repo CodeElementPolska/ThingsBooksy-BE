@@ -15,6 +15,16 @@ const args = Object.fromEntries(process.argv.slice(2).map((a, i, arr) => a.start
 const story = args.story; if (!story) { console.error('usage: status --story NNN-slug [--print]'); process.exit(1); }
 if (!/^\d{3}-[a-z0-9-]+$/.test(story)) { console.error(`status: "${story}" is not NNN-slug`); process.exit(1); }
 const runDir = path.join(REPO, 'runs', story);
+// SpecKit trap: .specify/feature.json overrides the branch for every /speckit-* script. If it points
+// elsewhere, /speckit-plan would silently overwrite ANOTHER story's plan (happened on 015 → 010).
+const featureJson = path.join(REPO, '.specify', 'feature.json');
+if (fs.existsSync(featureJson)) {
+  let fd = null; try { fd = JSON.parse(fs.readFileSync(featureJson, 'utf8')).feature_directory; } catch { /* unreadable → treat as mismatch */ }
+  if (String(fd || '').replace(/\\/g, '/').replace(/\/$/, '') !== `specs/${story}`) {
+    console.error(`status: .specify/feature.json points to "${fd}" but the story is "${story}" — fix it before any /speckit-* skill: {"feature_directory":"specs/${story}"} (or delete the file to fall back to the branch name)`);
+    process.exit(1);
+  }
+}
 const branch = (spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout || '').trim();
 if (branch !== story && !args['skip-branch-check']) { console.error(`status: current branch "${branch}" ≠ story "${story}" — SpecKit scripts would silently target another spec dir`); process.exit(1); }
 
@@ -76,7 +86,7 @@ if (lastPhaseEv && lastPhaseEv.phase === phase && phaseStatus === 'NOT_STARTED')
 // --- open items -----------------------------------------------------------------------------------------
 const decisionsOpen = decisions.filter(d => d.status === 'OPEN').map(d => d.id);
 const decidedIds = new Set(decisions.filter(d => d.status === 'DECIDED').map(d => d.id));
-const hardListWithoutDecision = assumptions.filter(a => a.score?.hard_list && !(a.veto?.replacement_decision_id && decidedIds.has(a.veto.replacement_decision_id))).map(a => a.id);
+const hardListWithoutDecision = assumptions.filter(a => a.status !== 'WITHDRAWN' && a.score?.hard_list && !(a.veto?.replacement_decision_id && decidedIds.has(a.veto.replacement_decision_id))).map(a => a.id);
 const findings = [];
 if (reviewRounds) for (const f of fs.readdirSync(path.join(runDir, 'review', `round-${reviewRounds}`)).filter(f => f.endsWith('.findings.json'))) { const j = readJson(`review/round-${reviewRounds}/${f}`); if (j) findings.push(...(j.findings || [])); }
 const disputes = readJsonl('impl/disputes.jsonl').filter(d => !d.verdict).map(d => d.target_id);

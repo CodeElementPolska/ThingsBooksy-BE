@@ -25,6 +25,8 @@ for (let i = 0; i < argv.length; i++) {
 const { story, agent } = args;
 if (!story || !agent) { console.error('usage: prompt-builder --story NNN-slug --agent <agent_type> [--instance x] [--var k=v] [--phase C2]'); process.exit(1); }
 vars.story = story; vars.instance = args.instance || '';
+// default artifact id for single-fact workers: F-<instance> when the instance is numeric (F-3b is not a valid id → F-3)
+if (!vars.fact_id && vars.instance) { const n = String(vars.instance).match(/^\d+/); if (n) vars.fact_id = `F-${n[0]}`; }
 
 const tplPath = path.join(HERE, 'templates', `${agent}.md`);
 if (!fs.existsSync(tplPath)) { console.error(`prompt-builder: no template ${path.relative(REPO, tplPath)}`); process.exit(1); }
@@ -76,7 +78,8 @@ const provenance = { author_agent: agent, run_id: runId, story, phase: args.phas
 const prompt = [
   subst(body).trim(),
   '',
-  '## Input files (read these; nothing else was given to you)',
+  '## Input files handed to you (paths + hashes)',
+  'These are the files this task was built from. They are NOT a read boundary: your read scope is set by your access rules (allowed roots such as `backend/`, `frontend/src/`, `generated/`); read whatever you need inside it. If something you need is outside your scope, say so in the answer.',
   ...inputs.map(i => `- \`${i.path}\`  (sha256 ${i.sha256.slice(0, 12)}…)`),
   ...(conventions.length ? ['', '## Conventions that apply to your output', ...conventions.map(c => `- \`${c}\``)] : []),
   ...(schema ? ['', '## Your output MUST validate against this JSON Schema', '```json', JSON.stringify(schema, null, 2), '```'] : []),

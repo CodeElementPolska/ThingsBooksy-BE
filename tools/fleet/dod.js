@@ -41,7 +41,7 @@ check('decisions', open.length === 0, open.length ? `open: ${open.map(d => d.id)
 
 const decided = new Set(decisions.filter(d => d.status === 'DECIDED' && d.decided_by === 'owner').map(d => d.id));
 const assumptions = [...readJsonl('discovery/assumptions.jsonl'), ...(fs.existsSync(path.join(runDir, 'impl')) ? fs.readdirSync(path.join(runDir, 'impl')).flatMap(d => (readJson(`impl/${d}/result.json`)?.assumptions) || []) : [])];
-const hard = assumptions.filter(a => a.score?.hard_list && !(a.veto?.replacement_decision_id && decided.has(a.veto.replacement_decision_id)));
+const hard = assumptions.filter(a => a.status !== 'WITHDRAWN' && a.score?.hard_list && !(a.veto?.replacement_decision_id && decided.has(a.veto.replacement_decision_id)));
 check('hard-list', hard.length === 0, hard.length ? `without owner decision: ${hard.map(a => `${a.id} (${a.score.hard_list_category})`).join(', ')}` : `${assumptions.length} assumptions, none on the D-1 list undecided`);
 
 const reviewDir = path.join(runDir, 'review');

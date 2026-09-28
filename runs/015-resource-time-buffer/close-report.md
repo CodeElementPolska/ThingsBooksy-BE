@@ -5,12 +5,12 @@
 | DoD | DONE (10 kontroli) |
 | AC pokryte testami | 100% |
 | Decyzje właściciela | 7 / 9 |
-| Założenia (zawetowane) | 18 (0) |
+| Założenia (zawetowane) | 37 (0) |
 | Rundy napraw C4 / C5 | 0 / 3 |
-| Zachowanie niezamówione (UNSPECIFIED) | 0 |
-| Kandydaci na reguły deterministyczne | 0 |
+| Zachowanie niezamówione (UNSPECIFIED) | 2 |
+| Kandydaci na reguły deterministyczne | 4 |
 | Przerwania właściciela | 0 |
-| Tokeny / czas | 0 / 100.06 h |
+| Tokeny / czas | 1378320 / 1.33 h |
 
 ## Checklista na issue #10 (wkleja dyrygent przez MCP)
 

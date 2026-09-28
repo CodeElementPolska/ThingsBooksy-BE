@@ -1,0 +1,77 @@
+{
+  "provenance": {
+    "author_agent": "be-writer",
+    "run_id": "015-resource-time-buffer-be-writer-mul37skr",
+    "story": "015-resource-time-buffer",
+    "phase": "C3a",
+    "inputs": [
+      { "path": "specs/015-resource-time-buffer/spec.md", "sha256": "3128d40f0e49961d583fe4245b45373c3abdbec496d78be3f0a4aea926b5d929" },
+      { "path": "specs/015-resource-time-buffer/plan.md", "sha256": "f1a8fda23bfda2f7bb3cb70126817a699134f7528f4ae1b0bb32b47f7a889eb1" },
+      { "path": "specs/015-resource-time-buffer/tasks.md", "sha256": "0f84641ef1f48f5889f7899dbc711749b143646847bb41242da72a548d6371f8" },
+      { "path": "specs/015-resource-time-buffer/data-model.md", "sha256": "96ef74e8e68ee64f1195f957466f0d369f5d6b1624b221ac5b87efcf066a1d4e" },
+      { "path": "specs/015-resource-time-buffer/contracts/events.md", "sha256": "423a3078c745db5b614b081a436241c6330e583e69528a11ea827cec39fe8aa9" },
+      { "path": "runs/015-resource-time-buffer/story.md", "sha256": "f483a23dd3d1ab3df94ed1fa975058a1f33c6f1d059eda79e755f9587695c486" },
+      { "path": "runs/015-resource-time-buffer/contract-next.json", "sha256": "523298c62382bc0d61e92ddbb99110e77564ee5a180e6809f85715f9ab9410d2" },
+      { "path": "runs/015-resource-time-buffer/discovery/decisions.jsonl", "sha256": "23901ee7f561c5816a602c49343bdcfdc99e2f3df54566ccb54b5fd12eb8235c" },
+      { "path": "runs/015-resource-time-buffer/discovery/assumptions.jsonl", "sha256": "7027b12d714b98019a997653e2222e4e65aa913a7676c2e17ef62f6e6514b8dc" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T003", "T004", "T005", "T006", "T007"],
+  "tasks_remaining": ["T008", "T009", "T010", "T011", "T012"],
+  "files_changed": [
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-W1",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "The partial-index SQL literal is written as \"DeletedAt\" IS NULL (quoted PascalCase column name), not deleted_at — the project maps properties to PascalCase columns and only table names are snake_case.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "ManagementGroupConfiguration.cs:14 uses the same literal; the existing Resources migration 20260514155140_AddResourceTypeUniqueAndCursorIndexes.cs:25 already creates IX_resource_instances_GroupId_Id with filter: \"\\\"DeletedAt\\\" IS NULL\"; ResourcesDbContextModelSnapshot.cs:35 shows the column is named DeletedAt. data-model.md prescribes the same literal.",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "ASM-W2",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "The 39 skeleton-check violations reported on this branch are pre-existing (they come from commits that landed the fleet infrastructure on the story branch) and were left untouched; T012's '0 violations' criterion is therefore not achievable by this run and the task is reported as remaining rather than forced green.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "skeleton-check was run BEFORE any edit: 112 skeleton files, 39 violations — identical file list to the run AFTER my edits (118 files, the same 39 violations). Every violated path is outside the be-writer write-allow roots. All five files I wrote appear in the 'accepted' list of runs/015-resource-time-buffer/skeleton-check.json.",
+      "status": "WITHDRAWN",
+      "withdrawn_reason": "conductor: skeleton-check now diffs against runs/<story>/baseline.json (bcde2fc) — re-run: 15 skeleton files, 0 violations; T012 satisfied"
+    },
+    {
+      "id": "ASM-W3",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "No entity, DbSet, command/query/result record or read model was added or changed: the skeleton of this story consists only of the four event contracts plus the index filter.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "data-model.md: 'ResourceType (schema) — existing, no new columns', 'ResourceInstance — existing, unchanged'; ResourceType.cs:40 already provides Delete(DateTime now) and DeletedAt, so no domain method had to be added; spec FR-010 forbids any HTTP contract change, so no request/result record changes.",
+      "status": "ACTIVE"
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": { "build": "PASSED", "unit_tests": "SKIPPED", "format": "SKIPPED" },
+  "schema_changes": "ADDITIVE",
+  "notes": {
+    "tasks_remaining_reasons": {
+      "T008": "developer-only — dotnet ef migrations add SoftDeleteResourceTypeUniqueIndex (constitution VI). Expected Up(): drop IX_resource_types_GroupId_Name and recreate it with unique: true, filter: \"\\\"DeletedAt\\\" IS NULL\", nothing else.",
+      "T009": "test infrastructure (RecordingMessageBroker) — test designer.",
+      "T010": "test infrastructure (WebAppFactory broker registration) — test designer.",
+      "T011": "test infrastructure (ResourcesTestClient read helpers) — test designer.",
+      "T012": "build green (0 errors); skeleton-check: see ASM-W2 (resolved by conductor with baseline.js)."
+    },
+    "phase_discipline": "No handler, endpoint, event handler or domain method was touched. DeleteResourceTypeCommandHandler still hard-deletes and no handler publishes anything, so AC-3..AC-9 all stay red for the test designer's red-first proof.",
+    "fleet_defect_reported": "skeleton-check used merge-base with main as baseline → 39 false violations from fleet commits on the story branch. Fixed by conductor: tools/fleet/baseline.js + skeleton-check/coverage-gaps read runs/<story>/baseline.json."
+  }
+}

@@ -146,7 +146,8 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GroupId", "Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL");
 
                     b.ToTable("resource_types", "resources");
                 });

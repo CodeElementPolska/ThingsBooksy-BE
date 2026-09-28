@@ -11,6 +11,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { readAcIds } from './ac-ids.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -19,10 +20,7 @@ const story = args.story; if (!story) { console.error('usage: red-first-prover -
 
 // --- AC ids -------------------------------------------------------------------------------
 let acIds = args.ac ? String(args.ac).split(',').map(s => s.trim()).filter(Boolean) : [];
-if (!acIds.length) {
-  const src = [path.join(REPO, 'runs', story, 'story.md'), path.join(REPO, 'specs', story, 'spec.md')].find(f => fs.existsSync(f));
-  if (src) acIds = [...new Set([...fs.readFileSync(src, 'utf8').matchAll(/\bAC-\d+\b/g)].map(m => m[0]))];
-}
+if (!acIds.length) acIds = readAcIds(REPO, story);
 if (!acIds.length) { console.error('red-first-prover: no AC ids (pass --ac or provide runs/<story>/story.md)'); process.exit(1); }
 
 // --- test projects --------------------------------------------------------------------------

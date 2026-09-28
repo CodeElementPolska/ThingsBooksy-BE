@@ -31,7 +31,8 @@ if (!vars.fact_id && vars.instance) { const n = String(vars.instance).match(/^\d
 // --template lets one agent type run different phases (be-writer-skeleton vs be-writer-behaviour)
 const tplPath = path.join(HERE, 'templates', `${args.template || agent}.md`);
 if (!fs.existsSync(tplPath)) { console.error(`prompt-builder: no template ${path.relative(REPO, tplPath)}`); process.exit(1); }
-const raw = fs.readFileSync(tplPath, 'utf8');
+// core.autocrlf=true checks templates out with CRLF on Windows — normalise before parsing the front matter
+const raw = fs.readFileSync(tplPath, 'utf8').replace(/\r\n/g, '\n');
 const fm = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
 if (!fm) { console.error('prompt-builder: template needs YAML-ish front matter'); process.exit(1); }
 

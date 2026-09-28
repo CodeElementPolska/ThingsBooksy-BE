@@ -16,6 +16,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { readAcIds } from './ac-ids.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -25,8 +26,7 @@ const runDir = path.join(REPO, 'runs', story);
 const run = (cmd, a, extra = {}) => spawnSync(cmd, a, { cwd: REPO, encoding: 'utf8', shell: true, ...extra });
 const node = (script, a) => run(process.execPath, [`"${path.join(HERE, script)}"`, ...a]);
 
-let acIds = [];
-{ const src = [path.join(runDir, 'story.md'), path.join(REPO, 'specs', story, 'spec.md')].find(f => fs.existsSync(f)); if (src) acIds = [...new Set([...fs.readFileSync(src, 'utf8').matchAll(/\bAC-\d+\b/g)].map(m => m[0]))]; }
+const acIds = readAcIds(REPO, story);
 
 const steps = [];
 const t0 = Date.now();

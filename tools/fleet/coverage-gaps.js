@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { readAcIds } from './ac-ids.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -38,7 +39,7 @@ if (!Object.keys(changed).length) { console.log('coverage-gaps: no changed produ
 
 // --- 2. coverage run ------------------------------------------------------------------------
 let acIds = args.ac ? String(args.ac).split(',') : [];
-if (!acIds.length) { const src = [path.join(REPO, 'runs', story, 'story.md'), path.join(REPO, 'specs', story, 'spec.md')].find(f => fs.existsSync(f)); if (src) acIds = [...new Set([...fs.readFileSync(src, 'utf8').matchAll(/\bAC-\d+\b/g)].map(m => m[0]))]; }
+if (!acIds.length) acIds = readAcIds(REPO, story);
 function walk(dir, pred, acc = []) { if (!fs.existsSync(dir)) return acc; for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const p = path.join(dir, e.name); if (e.isDirectory()) { if (!['bin', 'obj', 'node_modules'].includes(e.name)) walk(p, pred, acc); } else if (pred(p)) acc.push(p); } return acc; }
 const projects = args.projects ? String(args.projects).split(',') : walk(path.join(REPO, 'backend', 'src', 'Modules'), p => /\.IntegrationTests\.csproj$/.test(p));
 const covDir = path.join(REPO, 'runs', story, 'tests', 'coverage');

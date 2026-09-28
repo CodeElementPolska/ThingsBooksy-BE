@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readAcIds } from './ac-ids.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -19,11 +20,7 @@ if (!story) { console.error('usage: ac-matrix --story NNN-slug [--ac …] [--sto
 // --- expected AC ids -----------------------------------------------------------
 let expected = [];
 if (args.ac) expected = String(args.ac).split(',').map(s => s.trim()).filter(Boolean);
-else {
-  const candidates = [args['story-file'], path.join(REPO, 'runs', story, 'story.md'), path.join(REPO, 'specs', story, 'spec.md')].filter(Boolean);
-  const src = candidates.find(f => fs.existsSync(f));
-  if (src) expected = [...new Set([...fs.readFileSync(src, 'utf8').matchAll(/\bAC-\d+\b/g)].map(m => m[0]))];
-}
+else expected = readAcIds(REPO, story, args['story-file']);
 
 // --- scan test sources -----------------------------------------------------------
 function walk(dir, pred, acc = []) {

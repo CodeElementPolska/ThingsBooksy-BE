@@ -14,10 +14,13 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
 const args = Object.fromEntries(process.argv.slice(2).map((a, i, arr) => a.startsWith('--') ? [a.slice(2), arr[i + 1] && !arr[i + 1].startsWith('--') ? arr[i + 1] : true] : []).filter(Boolean));
 const story = args.story; if (!story) { console.error('usage: skeleton-check --story NNN-slug [--base ref] [--out …]'); process.exit(1); }
-const baseRef = args.base || 'main';
+// base: runs/<story>/baseline.json (recorded by baseline.js before C3a) → else --base → else merge-base with main
+const baselineFile = path.join(REPO, 'runs', story, 'baseline.json');
+const baseline = fs.existsSync(baselineFile) ? JSON.parse(fs.readFileSync(baselineFile, 'utf8')).commit : null;
+const baseRef = args.base || baseline || 'main';
 
 const git = (...a) => { const r = spawnSync('git', a, { cwd: REPO, encoding: 'utf8' }); if (r.status !== 0) { console.error(r.stderr); process.exit(1); } return r.stdout; };
-const mergeBase = git('merge-base', baseRef, 'HEAD').trim();
+const mergeBase = baseline && !args.base ? baseline : git('merge-base', baseRef, 'HEAD').trim();
 const changed = new Set([
   ...git('diff', '--name-only', mergeBase).split('\n'),
   ...git('ls-files', '--others', '--exclude-standard').split('\n'),

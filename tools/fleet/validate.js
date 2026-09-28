@@ -17,7 +17,10 @@ if (!args.schema) { console.error('usage: validate --schema <name> [--file path]
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
 addFormats(ajv);
-for (const f of fs.readdirSync(SCHEMAS).filter(f => f.endsWith('.schema.json'))) ajv.addSchema(JSON.parse(fs.readFileSync(path.join(SCHEMAS, f), 'utf8')));
+// Schemas reference each other as "fleet-v4/<name>" while their $id is also "fleet-v4/<name>"; URI resolution
+// would turn the ref into "fleet-v4/fleet-v4/<name>". Make refs relative to the shared base in memory.
+const relRefs = node => { if (Array.isArray(node)) node.forEach(relRefs); else if (node && typeof node === 'object') { if (typeof node.$ref === 'string' && node.$ref.startsWith('fleet-v4/')) node.$ref = node.$ref.slice('fleet-v4/'.length); Object.values(node).forEach(relRefs); } return node; };
+for (const f of fs.readdirSync(SCHEMAS).filter(f => f.endsWith('.schema.json'))) ajv.addSchema(relRefs(JSON.parse(fs.readFileSync(path.join(SCHEMAS, f), 'utf8'))));
 const validate = ajv.getSchema(`fleet-v4/${args.schema}`);
 if (!validate) { console.error(`validate: unknown schema "${args.schema}"`); process.exit(1); }
 

@@ -18,7 +18,9 @@ const story = args.story; if (!story) { console.error('usage: coverage-gaps --st
 const run = (cmd, a, extra = {}) => spawnSync(cmd, a, { cwd: REPO, encoding: 'utf8', shell: true, ...extra });
 
 // --- 1. changed production lines ------------------------------------------------------------
-const mergeBase = run('git', ['merge-base', args.base || 'main', 'HEAD']).stdout.trim();
+const baselineFile = path.join(REPO, 'runs', story, 'baseline.json');
+const baseline = fs.existsSync(baselineFile) ? JSON.parse(fs.readFileSync(baselineFile, 'utf8')).commit : null;
+const mergeBase = baseline && !args.base ? baseline : run('git', ['merge-base', args.base || 'main', 'HEAD']).stdout.trim();
 const diff = run('git', ['diff', '-U0', mergeBase, '--', 'backend/src/Modules', 'backend/src/Shared/ThingsBooksy.Shared.Abstractions']).stdout;
 const untracked = run('git', ['ls-files', '--others', '--exclude-standard', '--', 'backend/src/Modules']).stdout.split('\n').filter(f => f.endsWith('.cs'));
 const changed = {}; // relPath → Set(lines)

@@ -9,7 +9,7 @@ Modular Monolith (.NET 10 backend + Angular 21 frontend, single deployable). Thi
 - **Architecture rules** → `.specify/memory/constitution.md`
 - **Backend conventions** → `.claude/conventions/*.md` (table below)
 - **Frontend conventions** → `.claude/conventions/angular-*.md` (table below)
-- **Agent fleet (design in progress)** → `docs/agent-fleet-v4/` — do not read files or agents prefixed `obsolete-`
+- **Agent fleet** → `docs/agent-fleet-v4/` (`HANDOFF.md` = entry point for a new session, `workflow.md` = design, `decisions.md` = owner decisions D-1…D-15, `runbook-delivery.md` = delivery procedure); scripts and defect journal in `tools/fleet/README.md`
 - **Bootstrapper** → `backend/src/Bootstrapper/ThingsBooksy.Bootstrapper`
 - **Shared contracts** → `backend/src/Shared/ThingsBooksy.Shared.Abstractions`
 
@@ -88,7 +88,11 @@ All other rules (entity encapsulation, naming, DI pattern, schema isolation, etc
 ## Workflow
 
 - **Small bugfixes / single-file changes:** edit directly. No SpecKit, no agent pipeline.
-- **Features:** the agent workflow is being redesigned — see `docs/agent-fleet-v4/workflow.md` and `decisions.md`. Until it ships, use SpecKit skills (`/speckit-plan`, `/speckit-tasks`, `/speckit-clarify`, `/speckit-analyze`) manually on a `NNN-slug` branch; `/speckit-implement` is not used. The previous fleet is archived in `docs/obsolete-fleet.md` and must not be used as a reference.
+- **Features:** the agent fleet v4, three sessions per story, each started fresh from the repo root in PowerShell (not from inside a running Claude session):
+  1. **Session A — business:** `claude --agent scrum` on the branch the story should grow from (normally `main`). Shapes the story with the owner, allocates `NNN-slug`, creates the branch and `runs/NNN-slug/story.md`, ends with gate G1 and the GitHub Story issue.
+  2. **Session B — discovery:** `claude --agent dev-analyst` on the story branch. Facts from `code-researcher`/`impact-analyst`, owner decisions via `AskUserQuestion` + `tools/fleet/decide.js`, writes `specs/NNN-slug/` (spec, plan, tasks via `/speckit-plan` and `/speckit-tasks`; `/speckit-clarify` and `/speckit-analyze` only as lint; `/speckit-implement` is never used), ends with gate G2.
+  3. **Session C — delivery:** a plain session acting as conductor by `docs/agent-fleet-v4/runbook-delivery.md` (phases C1–C6: skeleton → migration by the developer → blind acceptance tests → behaviour → gate → sighted tests → review rounds → guards → DoD → G3). Agents get the PATH to a prompt built by `tools/fleet/prompt-builder.js`; scripts decide between phases; the owner decides only through `decide.js`; commits only with the owner's explicit yes.
+  Story id = `NNN-slug` = branch = `specs/NNN-slug/` = `runs/NNN-slug/`. `runs/` and `generated/` are committed (provenance). Never run `dotnet ef database update` from an agent.
 
 ---
 

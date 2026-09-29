@@ -5,7 +5,7 @@
 // Exit 0 always (state is a fact, not a verdict), 1 on usage/branch mismatch.
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
+import { sha256File } from './hash.js';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -28,7 +28,7 @@ if (fs.existsSync(featureJson)) {
 const branch = (spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout || '').trim();
 if (branch !== story && !args['skip-branch-check']) { console.error(`status: current branch "${branch}" ≠ story "${story}" — SpecKit scripts would silently target another spec dir`); process.exit(1); }
 
-const sha = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+const sha = f => sha256File(f); // CRLF-normalised like every other fleet script (hash.js)
 const exists = rel => fs.existsSync(path.join(runDir, rel));
 const readJson = rel => { try { return JSON.parse(fs.readFileSync(path.join(runDir, rel), 'utf8')); } catch { return null; } };
 const readJsonl = rel => { try { return fs.readFileSync(path.join(runDir, rel), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)); } catch { return []; } };

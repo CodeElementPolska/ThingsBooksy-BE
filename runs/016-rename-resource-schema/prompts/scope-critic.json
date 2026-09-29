@@ -1,0 +1,120 @@
+{
+  "agent_type": "scope-critic",
+  "run_id": "016-rename-resource-schema-scope-critic-mumqtu3f",
+  "prompt": "Blind critique of the story proposal `016-rename-resource-schema` — **value and scope**.\n\nRead `proposal.md` (the story front matter, the narrative and the `rejected_alternatives`), then the capability report (facts about what the application does today, with ids `F-n`) and the capability map. Judge the proposal on the four rubrics `value`, `cheapest-version`, `scope-creep`, `dependency` and nothing else.\n\nOutput rules:\n- `critic` = `scope-critic`; `verdict` = `NO_OBJECTIONS` or `OBJECTIONS`; `reply_round` = 1 (or 2 when `## Owner reply` is present in the proposal — then judge only whether the reply answers your earlier items, one last time).\n- Each item: `id` = `scope-<n>`, `rubric`, `weight` 1–5 (5 = the story would be wrong or pointless as written), `objection` in two or three plain sentences, `evidence` (`F-n` or a quote from the proposal; without it weight ≤ 2), `alternative` (concrete: the smaller story, the AC to drop, the dependency to name), `addresses_rejected_alternative` when you repeat a rejected option.\n- At most six items. Do not restate the proposal. Do not design.\n\nReturn the `critique` JSON and nothing else.\n\n## Input files handed to you (paths + hashes)\nThese are the files this task was built from. They are NOT a read boundary: your read scope is set by your access rules (allowed roots such as `backend/`, `frontend/src/`, `generated/`); read whatever you need inside it. If something you need is outside your scope, say so in the answer.\n- `runs/016-rename-resource-schema/proposal.md`  (sha256 5c7630570217…)\n- `runs/016-rename-resource-schema/capability-report.jsonl`  (sha256 fadb09623558…)\n- `generated/capability-map.json`  (sha256 461ba2aa78c0…)\n\n## Your output MUST validate against this JSON Schema\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/critique\",\n  \"title\": \"critique.json — output of scope-critic / premortem-critic (session A); goes to the owner unfiltered\",\n  \"type\": \"object\",\n  \"required\": [\n    \"provenance\",\n    \"critic\",\n    \"verdict\",\n    \"items\"\n  ],\n  \"properties\": {\n    \"provenance\": {\n      \"$ref\": \"fleet-v4/provenance\"\n    },\n    \"critic\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"scope-critic\",\n        \"premortem-critic\"\n      ]\n    },\n    \"verdict\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"NO_OBJECTIONS\",\n        \"OBJECTIONS\"\n      ]\n    },\n    \"items\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"id\",\n          \"rubric\",\n          \"weight\",\n          \"objection\",\n          \"alternative\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"rubric\": {\n            \"type\": \"string\",\n            \"description\": \"scope-critic: value | cheapest-version | scope-creep | dependency. premortem-critic: data-loss | migration | authz | ops | timing | concurrency\",\n            \"enum\": [\n              \"value\",\n              \"cheapest-version\",\n              \"scope-creep\",\n              \"dependency\",\n              \"data-loss\",\n              \"migration\",\n              \"authz\",\n              \"ops\",\n              \"timing\",\n              \"concurrency\"\n            ]\n          },\n          \"weight\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"maximum\": 5,\n            \"description\": \"5 = would make the story wrong or harmful; 1 = nice to know\"\n          },\n          \"objection\": {\n            \"type\": \"string\"\n          },\n          \"evidence\": {\n            \"type\": \"string\",\n            \"description\": \"reference to capability-report / story text; opinions without evidence get weight ≤ 2\"\n          },\n          \"alternative\": {\n            \"type\": \"string\",\n            \"description\": \"mandatory: what to do instead\"\n          },\n          \"addresses_rejected_alternative\": {\n            \"type\": \"string\",\n            \"description\": \"if the objection repeats a rejected alternative, name it — the owner already decided\"\n          }\n        }\n      }\n    },\n    \"reply_round\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"maximum\": 2,\n      \"description\": \"1 = initial critique, 2 = single reply after the owner's response; no further rounds\"\n    }\n  }\n}\n```\n\n### Referenced schema `fleet-v4/provenance` (items of the fields that `$ref` it must have this shape)\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/provenance\",\n  \"title\": \"Provenance header — common to every agent-produced artifact\",\n  \"type\": \"object\",\n  \"required\": [\n    \"author_agent\",\n    \"run_id\",\n    \"story\",\n    \"inputs\"\n  ],\n  \"properties\": {\n    \"author_agent\": {\n      \"type\": \"string\",\n      \"description\": \"agent_type that produced the artifact (as seen by hooks)\"\n    },\n    \"agent_id\": {\n      \"type\": \"string\"\n    },\n    \"run_id\": {\n      \"type\": \"string\",\n      \"description\": \"workflow run id or session id\"\n    },\n    \"story\": {\n      \"type\": \"string\",\n      \"pattern\": \"^[0-9]{3}-[a-z0-9-]+$\",\n      \"description\": \"NNN-slug (SpecKit branch/dir name)\"\n    },\n    \"phase\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"A\",\n        \"B\",\n        \"C1\",\n        \"C2\",\n        \"C3a\",\n        \"C3b\",\n        \"C4\",\n        \"C4b\",\n        \"C5\",\n        \"C6\"\n      ]\n    },\n    \"inputs\": {\n      \"type\": \"array\",\n      \"description\": \"Every file the agent was given. A consumer script rejects the artifact if any input hash changed since.\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"path\",\n          \"sha256\"\n        ],\n        \"properties\": {\n          \"path\": {\n            \"type\": \"string\"\n          },\n          \"sha256\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[a-f0-9]{64}$\"\n          }\n        }\n      }\n    },\n    \"schema_version\": {\n      \"type\": \"string\",\n      \"default\": \"1\"\n    }\n  }\n}\n```\n\n## Provenance block — copy VERBATIM into the `provenance` field of your output\n```json\n{\n  \"author_agent\": \"scope-critic\",\n  \"run_id\": \"016-rename-resource-schema-scope-critic-mumqtu3f\",\n  \"story\": \"016-rename-resource-schema\",\n  \"phase\": \"A\",\n  \"inputs\": [\n    {\n      \"path\": \"runs/016-rename-resource-schema/proposal.md\",\n      \"sha256\": \"5c76305702172ede10724c980385490ef24808291248e8eb010fb5521f4253e8\"\n    },\n    {\n      \"path\": \"runs/016-rename-resource-schema/capability-report.jsonl\",\n      \"sha256\": \"fadb0962355888afa0a8605a2398cbc8ea0d9a8049c6e8cf9647dc5c3e975b3f\"\n    },\n    {\n      \"path\": \"generated/capability-map.json\",\n      \"sha256\": \"461ba2aa78c0c9a87c1770a052ad83697165a8f78b8421d2cab7675ddfc9d6d4\"\n    }\n  ],\n  \"schema_version\": \"1\"\n}\n```\n",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "fleet-v4/critique",
+    "title": "critique.json — output of scope-critic / premortem-critic (session A); goes to the owner unfiltered",
+    "type": "object",
+    "required": [
+      "provenance",
+      "critic",
+      "verdict",
+      "items"
+    ],
+    "properties": {
+      "provenance": {
+        "$ref": "fleet-v4/provenance"
+      },
+      "critic": {
+        "type": "string",
+        "enum": [
+          "scope-critic",
+          "premortem-critic"
+        ]
+      },
+      "verdict": {
+        "type": "string",
+        "enum": [
+          "NO_OBJECTIONS",
+          "OBJECTIONS"
+        ]
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "rubric",
+            "weight",
+            "objection",
+            "alternative"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "rubric": {
+              "type": "string",
+              "description": "scope-critic: value | cheapest-version | scope-creep | dependency. premortem-critic: data-loss | migration | authz | ops | timing | concurrency",
+              "enum": [
+                "value",
+                "cheapest-version",
+                "scope-creep",
+                "dependency",
+                "data-loss",
+                "migration",
+                "authz",
+                "ops",
+                "timing",
+                "concurrency"
+              ]
+            },
+            "weight": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5,
+              "description": "5 = would make the story wrong or harmful; 1 = nice to know"
+            },
+            "objection": {
+              "type": "string"
+            },
+            "evidence": {
+              "type": "string",
+              "description": "reference to capability-report / story text; opinions without evidence get weight ≤ 2"
+            },
+            "alternative": {
+              "type": "string",
+              "description": "mandatory: what to do instead"
+            },
+            "addresses_rejected_alternative": {
+              "type": "string",
+              "description": "if the objection repeats a rejected alternative, name it — the owner already decided"
+            }
+          }
+        }
+      },
+      "reply_round": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 2,
+        "description": "1 = initial critique, 2 = single reply after the owner's response; no further rounds"
+      }
+    }
+  },
+  "provenance": {
+    "author_agent": "scope-critic",
+    "run_id": "016-rename-resource-schema-scope-critic-mumqtu3f",
+    "story": "016-rename-resource-schema",
+    "phase": "A",
+    "inputs": [
+      {
+        "path": "runs/016-rename-resource-schema/proposal.md",
+        "sha256": "5c76305702172ede10724c980385490ef24808291248e8eb010fb5521f4253e8"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/capability-report.jsonl",
+        "sha256": "fadb0962355888afa0a8605a2398cbc8ea0d9a8049c6e8cf9647dc5c3e975b3f"
+      },
+      {
+        "path": "generated/capability-map.json",
+        "sha256": "461ba2aa78c0c9a87c1770a052ad83697165a8f78b8421d2cab7675ddfc9d6d4"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "tools_hint": null,
+  "max_turns": 6
+}

@@ -113,6 +113,11 @@ const state = {
   budget_tokens: budgetEv?.budget_tokens,
 };
 fs.mkdirSync(runDir, { recursive: true });
-fs.writeFileSync(path.join(runDir, 'state.json'), JSON.stringify(state, null, 2) + '\n');
+// idempotent: rewrite state.json only when something other than computed_at changed — a fresh timestamp alone
+// would dirty the tree after every status run (commits happen only with the owner's consent, so churn is noise)
+const statePath = path.join(runDir, 'state.json');
+const strip = o => JSON.stringify({ ...o, computed_at: undefined });
+let previous = null; try { previous = JSON.parse(fs.readFileSync(statePath, 'utf8')); } catch { /* first run */ }
+if (!previous || strip(previous) !== strip(state)) fs.writeFileSync(statePath, JSON.stringify(state, null, 2) + '\n'); else state.computed_at = previous.computed_at;
 if (args.print) console.log(JSON.stringify(state, null, 2));
 else console.log(`status: ${story} @ ${phase} (${phaseStatus}) — gates ${Object.entries(gates).map(([g, v]) => `${g}:${v.status}`).join(' ')} — open: ${decisionsOpen.length} decisions, ${hardListWithoutDecision.length} hard-list assumptions, ${state.open_items.blockers.length} blockers`);

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "ManagementGroups",
+    "policies": [
+      "managementgroups"
+    ]
+  },
+  {
+    "name": "Resources",
+    "policies": [
+      "resources"
+    ]
+  },
+  {
+    "name": "Users",
+    "policies": [
+      "users"
+    ]
+  }
+]

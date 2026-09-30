@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/arbiter-verdict",
+  "title": "arbiter.json — one verdict per disputed finding (review-arbiter). Input: ONE finding + ONE dispute + the cited rules; nothing else.",
+  "type": "object",
+  "required": ["provenance", "finding_id", "verdict", "reasoning", "rule_applied"],
+  "properties": {
+    "provenance": { "$ref": "fleet-v4/provenance" },
+    "finding_id": { "type": "string" },
+    "verdict": {
+      "type": "string",
+      "enum": ["UPHOLD", "OVERTURN", "ESCALATE"],
+      "description": "UPHOLD = reviewer is right, writer must fix. OVERTURN = writer is right, finding closed. ESCALATE = the answer changes observable behaviour or touches a D-1 category — the owner decides. Any verdict that would change spec/contract MUST be ESCALATE."
+    },
+    "reasoning": { "type": "string" },
+    "rule_applied": { "type": "string", "description": "the rule_ref that decided it (AC / convention / constitution / contract)" },
+    "escalation": {
+      "type": "object", "description": "required when verdict = ESCALATE; becomes a decision entry for the owner",
+      "required": ["question", "options", "recommendation", "argument_against"],
+      "properties": { "question": { "type": "string" }, "options": { "type": "array", "minItems": 2, "items": { "type": "string" } }, "recommendation": { "type": "string" }, "argument_against": { "type": "string" } }
+    }
+  },
+  "allOf": [ { "if": { "properties": { "verdict": { "const": "ESCALATE" } } }, "then": { "required": ["escalation"] } } ]
+}

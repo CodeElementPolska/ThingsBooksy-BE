@@ -1,0 +1,151 @@
+{
+  "story": "015-resource-time-buffer",
+  "ac": [
+    "AC-3",
+    "AC-4",
+    "AC-5",
+    "AC-6",
+    "AC-7",
+    "AC-8",
+    "AC-9"
+  ],
+  "compiled": {
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj": "OK",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj": "OK",
+    "backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/ThingsBooksy.Modules.Users.IntegrationTests.csproj": "OK"
+  },
+  "tests": [
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.DeleteResourceType_WithoutInstances_PublishesOneResourceSchemaDeletedEvent",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.CreateResourceInstance_WithValidData_PublishesResourceInstanceCreatedEvent",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeTests.CreateResourceType_WithNameOfSoftDeletedType_Returns201AndKeepsDeletedRow",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.DeleteResourceType_WithInstances_PublishesExactlyOneResourceSchemaDeletedEvent",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.DeleteResourceInstance_Existing_PublishesResourceInstanceDeletedEvent",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.UpdateDeleteResourceTypeTests.DeleteResourceType_AsOwner_Returns204AndSoftDeletesInDb",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.SoftDeleteResourceTypeTests.DeleteResourceType_AsOwnerWithInstances_SoftDeletesTypeAndHidesIt",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes.UpdateDeleteResourceTypeTests.DeleteResourceType_WithInstances_SoftDeletesTypeAndCascadesToInstances",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.CreateResourceType_WithValidData_PublishesResourceSchemaCreatedEvent",
+      "outcome": "Failed",
+      "message": ""
+    },
+    {
+      "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Events.ResourceLifecycleEventTests.PublishResourceEvents_ThroughLifecycleCommands_UseOnlySharedAbstractionsContracts",
+      "outcome": "Failed",
+      "message": ""
+    }
+  ],
+  "fe": null,
+  "verdict": "RED",
+  "acceptance_tests_hash": "4cb515f22134d04e1c037304a3c1f65a8c1446d948d687fdefc717193ba7f5ec",
+  "passed_prematurely": [],
+  "acceptance_test_files": [
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsUserFactory.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/IntegrationTestCollection.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/CreateManagementGroupTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/DeleteManagementGroupTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/EventPublishingTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/GetManagementGroupTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/GetManagementGroupsTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/IsGroupNameAvailableTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/RestoreManagementGroupTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/UpdateManagementGroupTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Members/AddGroupMemberTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Members/GetGroupMembersTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Members/RemoveGroupMemberTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesGroupReadModelFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesUserFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/GroupDeletedHandlerTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/GroupReadModelEventHandlerTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/IntegrationTestCollection.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/CreateResourceInstanceTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/GetResourceInstanceTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/GetResourceInstancesEndpointTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/UpdateDeleteResourceInstanceTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/CreateResourceTypeEndpointTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/CreateResourceTypeTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/GetResourceTypeTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateResourceTypeEndpointTests.cs",
+    "backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/IntegrationTestCollection.cs",
+    "backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/Users/LogoutEndpointTests.cs",
+    "backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/Users/SignInEndpointTests.cs",
+    "backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/Users/SignUpEndpointTests.cs",
+    "frontend/src/app/app.spec.ts",
+    "frontend/src/app/features/auth/agree-checkbox/agree-checkbox.component.spec.ts",
+    "frontend/src/app/features/auth/animated-counter/animated-counter.component.spec.ts",
+    "frontend/src/app/features/auth/auth-card/auth-card.component.spec.ts",
+    "frontend/src/app/features/auth/auth-divider/auth-divider.component.spec.ts",
+    "frontend/src/app/features/auth/auth-page/auth-page.component.spec.ts",
+    "frontend/src/app/features/auth/auth-tab-switcher/auth-tab-switcher.component.spec.ts",
+    "frontend/src/app/features/auth/password-strength-meter/password-strength-meter.component.spec.ts",
+    "frontend/src/app/features/auth/post-login-confirmation/post-login-confirmation.component.spec.ts",
+    "frontend/src/app/features/auth/sign-in-form/sign-in-form.component.spec.ts",
+    "frontend/src/app/features/auth/sign-up-form/sign-up-form.component.spec.ts",
+    "frontend/src/app/features/auth/social-button-row/social-button-row.component.spec.ts",
+    "frontend/src/app/features/auth/status-message/status-message.component.spec.ts",
+    "frontend/src/app/features/auth/text-field/text-field.component.spec.ts",
+    "frontend/src/app/features/dashboard/create-group-modal/create-group-modal.component.spec.ts",
+    "frontend/src/app/features/dashboard/dashboard-admin-panel/dashboard-admin-panel.component.spec.ts",
+    "frontend/src/app/features/dashboard/dashboard-header/dashboard-header.component.spec.ts",
+    "frontend/src/app/features/dashboard/dashboard-history-panel/dashboard-history-panel.component.spec.ts",
+    "frontend/src/app/features/dashboard/dashboard-page/dashboard-page.component.spec.ts",
+    "frontend/src/app/features/dashboard/dashboard-welcome-bar/dashboard-welcome-bar.component.spec.ts",
+    "frontend/src/app/features/groups/group-detail-page/group-detail-page.component.spec.ts",
+    "frontend/src/app/features/groups/group-header-panel/group-header-panel.component.spec.ts",
+    "frontend/src/app/features/groups/members-panel/members-panel.component.spec.ts",
+    "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
+    "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
+    "frontend/src/app/shared/components/animated-background/animated-background.component.spec.ts",
+    "frontend/src/app/shared/components/avatar/avatar.component.spec.ts",
+    "frontend/src/app/shared/components/confirm-dialog/confirm-dialog.component.spec.ts",
+    "frontend/src/app/shared/components/count-chip/count-chip.component.spec.ts",
+    "frontend/src/app/shared/components/icon-chevron/icon-chevron.component.spec.ts",
+    "frontend/src/app/shared/components/icon-close/icon-close.component.spec.ts",
+    "frontend/src/app/shared/components/icon-logout/icon-logout.component.spec.ts",
+    "frontend/src/app/shared/components/icon-plus/icon-plus.component.spec.ts",
+    "frontend/src/app/shared/components/icon-settings/icon-settings.component.spec.ts",
+    "frontend/src/app/shared/components/modal/modal.component.spec.ts",
+    "frontend/src/app/shared/components/status-badge/status-badge.component.spec.ts",
+    "frontend/src/app/shared/components/toast/toast.component.spec.ts",
+    "frontend/src/app/shared/components/type-pill/type-pill.component.spec.ts",
+    "frontend/src/app/shared/components/user-menu/user-menu.component.spec.ts"
+  ]
+}

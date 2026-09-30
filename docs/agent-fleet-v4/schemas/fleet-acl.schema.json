@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/fleet-acl",
+  "title": "fleet-acl.json — per agent_type filesystem/shell allowlist enforced by the PreToolUse hook (prototype: docs/agent-fleet-v4/prototypes/acl-hook.js)",
+  "type": "object",
+  "required": ["version", "agents"],
+  "properties": {
+    "version": { "type": "integer" },
+    "defaults": { "$ref": "#/$defs/acl", "description": "applied to any agent_type not listed (fail-closed: empty lists)" },
+    "agents": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/acl" },
+      "description": "key = agent_type as delivered in hook stdin"
+    }
+  },
+  "$defs": {
+    "acl": {
+      "type": "object",
+      "properties": {
+        "read_allow": { "type": "array", "items": { "type": "string" }, "description": "repo-relative directory roots; Read/Grep/Glob scope must resolve inside one of them (canonicalised via realpath, case-insensitive). Grep/Glob without `path` resolve to cwd ⇒ denied unless cwd is allowed. Placeholders: {story}, {module}, {component}" },
+        "write_allow": { "type": "array", "items": { "type": "string" }, "description": "roots for Write/Edit; empty = read-only agent" },
+        "shell": {
+          "type": "array", "description": "exact command prefixes allowed for Bash/PowerShell; absent = no shell tool at all (preferred for blind agents)",
+          "items": { "type": "string", "examples": ["dotnet build backend/src/Modules/{module}/", "dotnet test backend/src/Modules/{module}/", "ng build", "npm test -- --run"] }
+        },
+        "deny_always": { "type": "array", "items": { "type": "string" }, "default": ["git push", "git commit", "git reset", "dotnet ef database update", "rm -rf"], "description": "never overridable per agent" }
+      }
+    }
+  }
+}

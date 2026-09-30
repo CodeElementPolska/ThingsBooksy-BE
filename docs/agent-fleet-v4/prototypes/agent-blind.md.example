@@ -1,0 +1,18 @@
+---
+name: proto-blind
+description: PROTOTYPE ONLY — tests whether a per-agent PreToolUse hook can block Read/Grep/Glob under backend/src on Windows. Delete after the experiment.
+model: haiku
+tools: Read, Grep, Glob
+omitClaudeMd: true
+maxTurns: 25
+hooks:
+  PreToolUse:
+    - matcher: "Read|Grep|Glob"
+      hooks:
+        - type: command
+          command: "node C:/Users/dawid/AppData/Local/Temp/claude/D--Projects-AI-ThingsBooksy-BE/fd2ec74f-a5b6-42a0-b799-3b29b11625fb/scratchpad/proto-acl.js"
+---
+
+You are a probe. Execute EVERY step below exactly as written, even if an earlier step fails. Do not skip steps and do not stop early. For each step record: the tool you called, the exact argument you passed, and whether it SUCCEEDED (with the first line of output) or was BLOCKED (with the exact error text).
+
+At the end return a table with one row per step: `step | tool | argument | result | message`.

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/assumption",
+  "title": "One entry of assumptions.jsonl — buckets ZAŁÓŻ and NIE PYTAJ (D-2). Everything an agent did NOT ask about.",
+  "type": "object",
+  "required": ["id", "made_by", "statement", "bucket", "score"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^ASM-[A-Z]*[0-9]+$", "description": "ASM-<n> in discovery; delivery agents prefix a letter to avoid collisions (ASM-W1 writer, ASM-T1 tester)" },
+    "made_by": { "type": "string" },
+    "phase": { "type": "string" },
+    "statement": { "type": "string", "description": "one sentence: what was assumed" },
+    "bucket": { "type": "string", "enum": ["ASSUME", "NO_ASK"], "description": "ASSUME = sensible default chosen, owner may veto; NO_ASK = answer exists in code/docs" },
+    "status": { "type": "string", "enum": ["ACTIVE", "WITHDRAWN"], "default": "ACTIVE", "description": "WITHDRAWN when the story is rescoped and the assumption no longer applies (keep the row: it is history)" },
+    "withdrawn_reason": { "type": "string" },
+    "score": {
+      "type": "object",
+      "description": "the rubric answers, visible so the triage can be audited",
+      "required": ["hard_list", "reversible_cheaply", "visible_effect", "has_recommendation"],
+      "properties": {
+        "hard_list": { "type": "boolean", "description": "touches a D-1 category ⇒ MUST have been a decision; DoD grep fails the run if true here" },
+        "hard_list_category": { "type": "string", "enum": ["authz-security", "data-migration", "new-ui"] },
+        "reversible_cheaply": { "type": "boolean", "description": "single-file change, no migration, no contract change" },
+        "visible_effect": { "type": "boolean", "description": "options differ in something a user or another module can observe" },
+        "has_recommendation": { "type": "boolean" }
+      }
+    },
+    "default_chosen": { "type": "string" },
+    "rationale": { "type": "string" },
+    "evidence": { "type": "string", "description": "required when bucket = NO_ASK (file:line or captured response)" },
+    "consequence_if_wrong": { "type": "string" },
+    "veto": {
+      "type": "object", "description": "written only by script when the owner overrides",
+      "required": ["answer_ref", "replacement_decision_id"],
+      "properties": { "answer_ref": { "type": "string" }, "replacement_decision_id": { "type": "string", "pattern": "^DEC-[0-9]+$" } }
+    }
+  },
+  "allOf": [
+    { "if": { "properties": { "bucket": { "const": "NO_ASK" } } }, "then": { "required": ["evidence"] } },
+    { "if": { "properties": { "bucket": { "const": "ASSUME" } } }, "then": { "required": ["default_chosen", "rationale", "consequence_if_wrong"] } }
+  ]
+}

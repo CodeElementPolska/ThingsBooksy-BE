@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fleet-v4/decision",
+  "title": "One entry of runs/<story>/discovery/decisions.jsonl — bucket ZAPYTAJ (D-2)",
+  "type": "object",
+  "required": ["id", "question", "context", "options", "recommendation", "argument_against", "consequences", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^DEC-[0-9]+$" },
+    "asked_by": { "type": "string", "description": "agent_type that raised it (dev-analyst, be-writer…)" },
+    "phase": { "type": "string" },
+    "hard_list_category": {
+      "type": "string",
+      "enum": ["authz-security", "data-migration", "new-ui"],
+      "description": "D-1 categories. Present ⇒ the decision can never be defaulted; DoD fails without decided_by=owner"
+    },
+    "question": { "type": "string", "description": "one sentence, plain language" },
+    "context": { "type": "string", "description": "why this matters, for someone who has not read the code" },
+    "code_says": {
+      "type": "array", "description": "what the code/docs already establish, with evidence",
+      "items": { "type": "object", "required": ["claim", "evidence"], "properties": { "claim": { "type": "string" }, "evidence": { "type": "string", "description": "file:line or captured response" } } }
+    },
+    "options": {
+      "type": "array", "minItems": 2,
+      "items": { "type": "object", "required": ["label", "consequences"], "properties": { "label": { "type": "string" }, "consequences": { "type": "string" } } }
+    },
+    "recommendation": { "type": "string", "description": "label of the recommended option + argument" },
+    "argument_against": { "type": "string", "description": "the strongest argument AGAINST the recommendation (anti-anchoring, mandatory)" },
+    "consequences": { "type": "string", "description": "what changes downstream once decided (spec, contract, tests)" },
+    "status": { "type": "string", "enum": ["OPEN", "DECIDED", "WITHDRAWN"] },
+    "chosen": { "type": "string" },
+    "decided_by": { "type": "string", "enum": ["owner"], "description": "ONLY a script may write this field, from owner-answers.jsonl" },
+    "answer_ref": { "type": "string", "description": "tool_use_id (AskUserQuestion) or prompt_id (typed answer) in owner-answers.jsonl" },
+    "decided_at": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    { "if": { "properties": { "status": { "const": "DECIDED" } } }, "then": { "required": ["chosen", "decided_by", "answer_ref", "decided_at"] } }
+  ]
+}

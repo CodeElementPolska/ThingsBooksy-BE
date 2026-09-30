@@ -1,17 +1,32 @@
+<!--
+Sync Impact Report — 2026-09-24
+Version change: 1.2.0 → 1.3.0 (MINOR: Article V materially expanded; Governance section extended)
+Modified principles: I. Modular Monolith Architecture (project list), II. Simplified DDD (project list),
+  V. Test-First Approach (test style, acceptance-before-behaviour, AC tags, red-first, two tester passes),
+  VI. Persistence and Migrations (database update by developer only; one regenerated migration per story)
+Modified sections: Development Workflow (agent fleet v4 pointer, SpecKit usage), Docker and Local Environment
+  (docker from PowerShell), Governance (agent fleet: rule_ref, BLOCKER, enforced-by, generated/ and specs/ rules)
+Added sections: none. Removed sections: none.
+Templates: ⚠ .specify/templates/tasks-template.md still uses generic tests/integration/test_[name].py paths
+  (pre-existing; not changed here) · ✅ plan-template.md Constitution Check gate remains valid ·
+  ✅ CLAUDE.md already points to docs/agent-fleet-v4/ · ✅ docs/agent-fleet-v4/decisions.md D-4…D-15 are the source
+Follow-up TODOs: create {ModuleName}.Tests.Unit projects (scaffold-module script); tag articles with enforced-by
+  when the deferred static-analysis epic lands (docs/backlog/deferred-static-analysis-sonarqube.md)
+-->
 # ThingsBooksy Constitution
 
 ## Core Principles
 
 ### I. Modular Monolith Architecture (NON-NEGOTIABLE)
 The application is built as a **Modular Monolith**: a single deployable artifact composed of independent, self-contained modules.
-- Each module lives in `backend/src/Modules/{ModuleName}/` and contains exactly two source projects: `{Name}.Api` and `{Name}.Core`
+- Each module lives in `backend/src/Modules/{ModuleName}/` and contains two **source** projects — `{Name}.Api` and `{Name}.Core` — plus `{Name}.Migrations`, `{Name}.IntegrationTests` and `{Name}.Tests.Unit`
 - Modules **must never** directly reference each other — communication happens exclusively through `IMessageBroker` (events) or `IModuleClient` (queries)
 - Shared infrastructure belongs exclusively to `backend/src/Shared/` — no cross-module dependencies
 - Each module exposes its public contract via `IModule` and registers endpoints in `Expose(IEndpointRouteBuilder)`
 
 ### II. Simplified DDD (NON-NEGOTIABLE)
 The project applies **Simplified DDD** — no separate Application or Infrastructure layers.
-- Each module has exactly two projects: `{Name}.Api` (HTTP layer, Minimal API) and `{Name}.Core` (domain, persistence, commands, queries, events)
+- Production code lives in exactly two projects: `{Name}.Api` (HTTP layer, Minimal API) and `{Name}.Core` (domain, persistence, commands, queries, events); migrations and tests live in their own projects (see I, V, VI)
 - `Core` contains: domain entities, EF `DbContext`, command/query handlers, domain events, value objects
 - `Api` contains: `IModule` registration, endpoint definitions, DTOs (request/response records), module JSON config file
 - No MediatR — commands/queries are plain C# classes dispatched via `IDispatcher`
@@ -32,10 +47,13 @@ Modules communicate through domain events published via `IMessageBroker`.
 
 ### V. Test-First Approach
 New features and bug fixes require tests before implementation.
-- Unit tests for domain logic (entities, value objects, handlers)
-- Integration tests for database interactions (EF Core, migrations)
+- Test projects: `{ModuleName}.IntegrationTests` (acceptance/integration) and `{ModuleName}.Tests.Unit` (unit; created by the module scaffold when missing)
+- **Integration test style**: Arrange = seed data through EF Core and domain factories (per-entity Factory in the test project), Act = HTTP call through the test client, Assert = re-read from the database through EF Core and compare with the response. Seeding through the public API is forbidden — it couples every test to every endpoint
+- **Acceptance tests come before behaviour**: they are written after the entity skeleton (entities, EF configuration, migration) exists and before any handler, endpoint or domain method is implemented; they MUST compile and MUST fail before the behaviour is implemented (red-first proof). A test that passes before the behaviour exists proves nothing and is rejected
+- **Traceability**: every acceptance test carries `[Trait("AC", "AC-n")]` (frontend: `it("[AC-n] …")`) linking it to an acceptance criterion of the story; every acceptance criterion MUST have at least one test
+- **Unit tests** for domain logic (entities, value objects, handlers) are written by the implementer alongside the behaviour
+- After the behaviour is green, a second test pass covers branches of the new code not exercised by the acceptance tests; each such test is tagged with an `AC-n` or, when the behaviour has no criterion, `UNSPECIFIED` — an `UNSPECIFIED` test is a decision for the owner, never a silently accepted behaviour
 - No tests = no merge for business logic changes
-- Test projects: `{ModuleName}.Tests.Unit` and `{ModuleName}.Tests.Integration`
 
 ### VI. Persistence and Migrations
 Each module has its own **EF Core DbContext** with schema isolation.
@@ -43,7 +61,8 @@ Each module has its own **EF Core DbContext** with schema isolation.
 - Every `DbContext` must call `modelBuilder.HasDefaultSchema(...)` — using `"public"` or omitting the call is forbidden (causes cross-module table collisions and silent Respawn data loss in tests)
 - Migrations live in a dedicated `{ModuleName}.Migrations` project
 - Migration command: `dotnet ef migrations add {Name} --project backend/src/Modules/{M}/{M}.Migrations --startup-project backend/src/Bootstrapper/ThingsBooksy.Bootstrapper`
-- Always run `dotnet ef database update` after adding a migration
+- `dotnet ef database update` is run only by the developer against the local database — never by an agent
+- Within one story a module has a single migration: when the model changes later in the story, the migration is removed and regenerated (`migrations remove` + `migrations add`), never stacked
 
 ### VII. Simplicity and YAGNI
 Do not add abstractions, patterns, or packages unless they solve a current problem.
@@ -138,14 +157,15 @@ Every `.Core` project must declare four `InternalsVisibleTo` attributes in `Exte
 
 ## Development Workflow
 
-1. **New module**: create `{Name}.Api` + `{Name}.Core` + `{Name}.Migrations`, register in `Bootstrapper`, add `module.{name}.json`
-2. **New feature**: specify (`/speckit-specify`), plan (`/speckit-plan`), tasks (`/speckit-tasks`), implement (`/speckit-implement`)
-3. **Database change**: add EF migration, update database, verify in Docker
-4. **Before commit**: ensure the project builds, Swagger shows all endpoints, Docker Compose starts correctly
+1. **New module**: create `{Name}.Api` + `{Name}.Core` + `{Name}.Migrations` + `{Name}.IntegrationTests` + `{Name}.Tests.Unit`, register in `Bootstrapper`, add `module.{name}.json`
+2. **New feature**: the agent workflow in `docs/agent-fleet-v4/workflow.md` (business session → discovery session → delivery). SpecKit skills used inside it: `/speckit-plan`, `/speckit-tasks`, and `/speckit-clarify` / `/speckit-analyze` as lint; `/speckit-specify` and `/speckit-implement` are not used
+3. **Story identity**: one identifier `NNN-slug` names the branch, `specs/NNN-slug/` and `runs/NNN-slug/`; SpecKit scripts resolve the feature from the branch name, so a mismatching branch silently targets another spec
+4. **Database change**: add EF migration (see VI), update the local database, verify in Docker
+5. **Before commit**: ensure the project builds, Swagger shows all endpoints, Docker Compose starts correctly
 
 ## Docker and Local Environment
 
-- Local Docker runs via **WSL** — prefix every docker command with `wsl`: `wsl docker compose up --build`
+- Local Docker is Docker Desktop with the WSL backend: from PowerShell or cmd call `docker` directly (`docker compose up --build`); `wsl docker …` works only inside a WSL distribution, and Git Bash can use neither form
 - Environment: `ASPNETCORE_ENVIRONMENT=Docker` activates `appsettings.Docker.json`
 - PostgreSQL connection string in `appsettings.Docker.json` must include username and password
 - App available at `localhost:8080`, Swagger at `localhost:8080/swagger`
@@ -174,5 +194,7 @@ Detailed, example-rich rules for recurring code patterns live in `.claude/conven
 - Changes require updating this file with a justification and a version increment
 - All PRs must verify compliance with Modular Monolith and Simplified DDD principles
 - Any deviation from the `AddEndpointsApiExplorer()` requirement is forbidden — Swagger compliance is mandatory
+- **Agent fleet**: guards and reviewers of the agent workflow (`docs/agent-fleet-v4/`) cite this constitution by article number (`rule_ref: constitution#<article>`); a violation of an article is a BLOCKER that stops the delivery gate. Articles that can be checked by a machine (analyzers, architecture tests) will be tagged `enforced-by` once the deferred static-analysis epic lands (`docs/backlog/deferred-static-analysis-sonarqube.md`); until then they are reviewed by agents. Process rules of the workflow (owner decisions, triage, phases) are not part of this constitution
+- **Sources of truth**: the API contract is the OpenAPI document generated from the built backend (`generated/swagger.base.json`) plus a per-story OpenAPI Overlay — never a hand-written description; `generated/` (swagger, capability map, core surface) is the source of truth about what the application can do today; `specs/NNN-slug/` is an immutable record once the story is closed
 
-**Version**: 1.2.0 | **Ratified**: 2026-04-23 | **Last Amended**: 2026-05-12
+**Version**: 1.3.0 | **Ratified**: 2026-04-23 | **Last Amended**: 2026-09-24

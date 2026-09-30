@@ -1,0 +1,511 @@
+{
+  "generated_at_commit": "047c6ee",
+  "swagger_sha256": "4ad8b820ca57f87cd41e331883f7a9951105a22d272fa9b1d805aef6423aa6eb",
+  "modules": [
+    {
+      "name": "ManagementGroups",
+      "policies": [
+        "managementgroups"
+      ]
+    },
+    {
+      "name": "Resources",
+      "policies": [
+        "resources"
+      ]
+    },
+    {
+      "name": "Users",
+      "policies": [
+        "users"
+      ]
+    }
+  ],
+  "endpoints_by_module": {
+    "": [
+      {
+        "method": "GET",
+        "route": "/",
+        "operationId": "Info",
+        "tags": [
+          "API"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      }
+    ],
+    "management-groups": [
+      {
+        "method": "GET",
+        "route": "/management-groups/name-available",
+        "operationId": "Is group name available",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": "Check whether a group name is available for the authenticated user.",
+        "requiresAuth": true,
+        "responses": [
+          "200",
+          "400"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "GET",
+        "route": "/management-groups/{id}/members",
+        "operationId": "Get group members",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": "Get paginated list of members for a management group.",
+        "requiresAuth": true,
+        "responses": [
+          "200",
+          "403",
+          "404"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "POST",
+        "route": "/management-groups/{id}/members",
+        "operationId": "Add group member",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.ManagementGroups.Api.Requests.AddGroupMemberRequest"
+      },
+      {
+        "method": "POST",
+        "route": "/management-groups",
+        "operationId": "Create management group",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.ManagementGroups.Api.Requests.CreateManagementGroupRequest"
+      },
+      {
+        "method": "GET",
+        "route": "/management-groups",
+        "operationId": "Get management groups",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "GET",
+        "route": "/management-groups/{id}",
+        "operationId": "Get management group",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200",
+          "404"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "PUT",
+        "route": "/management-groups/{id}",
+        "operationId": "Update management group",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.ManagementGroups.Api.Requests.UpdateManagementGroupRequest"
+      },
+      {
+        "method": "DELETE",
+        "route": "/management-groups/{id}",
+        "operationId": "Delete management group",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "POST",
+        "route": "/management-groups/{id}/restore",
+        "operationId": "Restore management group",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "DELETE",
+        "route": "/management-groups/{id}/members/{memberId}",
+        "operationId": "Remove group member",
+        "tags": [
+          "ManagementGroups"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      }
+    ],
+    "modules": [
+      {
+        "method": "GET",
+        "route": "/modules",
+        "operationId": null,
+        "tags": [
+          "ThingsBooksy.Bootstrapper"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      }
+    ],
+    "ping": [
+      {
+        "method": "GET",
+        "route": "/ping",
+        "operationId": "Pong",
+        "tags": [
+          "API"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      }
+    ],
+    "resources": [
+      {
+        "method": "POST",
+        "route": "/resources/types",
+        "operationId": "Create resource type",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceTypeRequest"
+      },
+      {
+        "method": "GET",
+        "route": "/resources/types",
+        "operationId": "Get resource types",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "PUT",
+        "route": "/resources/types/{id}",
+        "operationId": "Update resource type",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceTypeRequest"
+      },
+      {
+        "method": "DELETE",
+        "route": "/resources/types/{id}",
+        "operationId": "Delete resource type",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "GET",
+        "route": "/resources/types/{id}",
+        "operationId": "Get resource type",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "POST",
+        "route": "/resources/instances",
+        "operationId": "Create resource instance",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceInstanceRequest"
+      },
+      {
+        "method": "GET",
+        "route": "/resources/instances",
+        "operationId": "Get resource instances",
+        "tags": [
+          "Resources"
+        ],
+        "summary": "Returns a cursor-paginated list of resource instances. Use afterId + take for forward-only infinite scroll.",
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "GET",
+        "route": "/resources/instances/{id}",
+        "operationId": "Get resource instance",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "PUT",
+        "route": "/resources/instances/{id}",
+        "operationId": "Update resource instance",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceInstanceRequest"
+      },
+      {
+        "method": "DELETE",
+        "route": "/resources/instances/{id}",
+        "operationId": "Delete resource instance",
+        "tags": [
+          "Resources"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      }
+    ],
+    "users": [
+      {
+        "method": "GET",
+        "route": "/users/me",
+        "operationId": "Get account",
+        "tags": [
+          "Account"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "POST",
+        "route": "/users/sign-up",
+        "operationId": "Sign up",
+        "tags": [
+          "Account"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.Users.Api.Requests.SignUpRequest"
+      },
+      {
+        "method": "POST",
+        "route": "/users/sign-in",
+        "operationId": "Sign in",
+        "tags": [
+          "Account"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": "ThingsBooksy.Modules.Users.Api.Requests.SignInRequest"
+      },
+      {
+        "method": "POST",
+        "route": "/users/logout",
+        "operationId": "Sign out",
+        "tags": [
+          "Account"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      },
+      {
+        "method": "GET",
+        "route": "/users/{id}",
+        "operationId": "Get user",
+        "tags": [
+          "Users"
+        ],
+        "summary": null,
+        "requiresAuth": true,
+        "responses": [
+          "200"
+        ],
+        "requestSchema": null
+      }
+    ]
+  },
+  "screens_by_feature": {
+    "app": [
+      {
+        "path": "",
+        "component": "() =>",
+        "guards": [
+          "authGuard"
+        ],
+        "file": "frontend/src/app/app.routes.ts"
+      },
+      {
+        "path": "dashboard",
+        "component": "() =>",
+        "guards": [
+          "authGuard"
+        ],
+        "file": "frontend/src/app/app.routes.ts"
+      },
+      {
+        "path": "groups",
+        "component": "() =>",
+        "guards": [
+          "authGuard"
+        ],
+        "file": "frontend/src/app/app.routes.ts"
+      }
+    ],
+    "auth": [
+      {
+        "path": "",
+        "component": "() =>",
+        "guards": [],
+        "file": "frontend/src/app/features/auth/auth.routes.ts"
+      }
+    ],
+    "dashboard": [
+      {
+        "path": "",
+        "component": "() =>",
+        "guards": [],
+        "file": "frontend/src/app/features/dashboard/dashboard.routes.ts"
+      }
+    ],
+    "groups": [
+      {
+        "path": ":groupId",
+        "component": "() =>",
+        "guards": [],
+        "file": "frontend/src/app/features/groups/groups.routes.ts"
+      },
+      {
+        "path": ":groupId/schemas",
+        "component": "() =>",
+        "guards": [],
+        "file": "frontend/src/app/features/groups/groups.routes.ts"
+      }
+    ],
+    "schemas": [
+      {
+        "path": "new",
+        "component": "() =>",
+        "guards": [],
+        "file": "frontend/src/app/features/schemas/schemas.routes.ts"
+      },
+      {
+        "path": ":schemaId",
+        "component": "() =>",
+        "guards": [],
+        "file": "frontend/src/app/features/schemas/schemas.routes.ts"
+      }
+    ]
+  },
+  "counts": {
+    "endpoints": 28,
+    "screens": 9,
+    "modules": 3
+  }
+}

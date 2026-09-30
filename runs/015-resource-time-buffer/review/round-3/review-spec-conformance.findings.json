@@ -1,0 +1,41 @@
+{
+  "provenance": {
+    "author_agent": "review-spec-conformance",
+    "run_id": "015-resource-time-buffer-review-spec-conformance-r3-mulhg9hc",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      { "path": "runs/015-resource-time-buffer/review/round-3/diff.patch", "sha256": "d477262bd13a4aafa8fb3db5691ff13c4973cffd57c0f8e0ee51890a4551c94b" },
+      { "path": "runs/015-resource-time-buffer/review/round-3/scope.json", "sha256": "c3d93acc67d287ea3282722c5a1601d0d5ec3cbb0516a3915eb67b471787c5ae" },
+      { "path": "runs/015-resource-time-buffer/story.md", "sha256": "9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490" },
+      { "path": "specs/015-resource-time-buffer/spec.md", "sha256": "dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66" },
+      { "path": "runs/015-resource-time-buffer/contract-next.json", "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414" },
+      { "path": "runs/015-resource-time-buffer/ac-matrix.json", "sha256": "f048c9fe2958727d2163c8a16b591e5a92f269c83c73680eb87b52c9fa3971ab" },
+      { "path": "runs/015-resource-time-buffer/discovery/decisions.jsonl", "sha256": "b1185a95ddbae5292e15a6cd300130f5f77ea799a1fbc79ef5a6dd9ca05fbb22" },
+      { "path": "runs/015-resource-time-buffer/review/round-2/review-spec-conformance.findings.json", "sha256": "8660a998e1668b8613cb579b911a739d6eddc112608e13ce9706b77adc9bfa35" }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "review-spec-conformance",
+  "round": 3,
+  "scope": {
+    "diff_sha": "1ce028a018dd5d9d0ba8796b44320ec5964b76af",
+    "files": [
+      "runs/015-resource-time-buffer/review/round-3/diff.patch",
+      "runs/015-resource-time-buffer/review/round-3/scope.json",
+      "runs/015-resource-time-buffer/review/round-2/review-spec-conformance.findings.json",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyDefinitionFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyValueFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommand.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommand.cs"
+    ]
+  },
+  "previous_findings_status": [
+    { "id": "review-spec-conformance-1-2", "status": "STILL_OPEN", "note": "My round-2 findings array was empty. I carry this item forward only for traceability. The round-3 fix diff does not touch ResourceLifecycleEventTests or the recording broker. The owner accepted this gap in DEC-7, so it does not block." },
+    { "id": "review-spec-conformance-1-3", "status": "STILL_OPEN", "note": "OPINION, non-blocking, carried forward for traceability. The round-3 fix diff does not touch the coverlet.collector csproj additions." }
+  ],
+  "findings": [],
+  "summary": { "blockers": 0, "majors": 0, "minors": 0, "opinions": 0 }
+}

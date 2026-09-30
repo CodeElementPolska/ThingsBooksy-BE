@@ -1,0 +1,18 @@
+{
+  "overlay": "1.0.0",
+  "info": {
+    "title": "015-resource-time-buffer contract delta",
+    "version": "1.0.0",
+    "description": "No HTTP contract change. The story adds integration events (Shared.Abstractions/Events/Resources/) and switches DELETE /resources/types/{id} from hard to soft delete; every existing route, request and response shape stays as in generated/swagger.base.json."
+  },
+  "extends": "generated/swagger.base.json",
+  "actions": [
+    {
+      "target": "$.info",
+      "description": "Annotate the contract with the story marker; no operation is added, removed or changed.",
+      "update": {
+        "x-story-015-resource-time-buffer": "events-only; DELETE /resources/types/{id} semantics: soft delete (204 unchanged)"
+      }
+    }
+  ]
+}

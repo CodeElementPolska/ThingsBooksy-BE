@@ -12,6 +12,5 @@ internal interface IDeleteResourceTypeCommandDataProvider : IDataProvider
     Task<ResourceType?> GetResourceTypeAsync(Guid typeId, CancellationToken ct);
     Task<GroupReadModel?> GetGroupAsync(Guid groupId, CancellationToken ct);
     Task SoftDeleteInstancesAsync(Guid typeId, DateTime now, CancellationToken ct);
-    void RemoveResourceType(ResourceType resourceType);
     Task SaveChangesAsync(CancellationToken ct);
 }

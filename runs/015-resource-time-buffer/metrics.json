@@ -1,0 +1,36 @@
+{
+  "story": "015-resource-time-buffer",
+  "owner_interruptions": 0,
+  "owner_answers": 7,
+  "decisions": {
+    "total": 9,
+    "by_owner": 7,
+    "escalated_from_impl": 0
+  },
+  "assumptions": {
+    "total": 37,
+    "discovery": 18,
+    "delivery": 19,
+    "vetoed": 0,
+    "hard_list": 0
+  },
+  "repair_rounds": {
+    "C4": 0,
+    "C5": 3
+  },
+  "review": {
+    "findings_total": 15,
+    "findings_last_round": 0,
+    "closed_by_decision": 5,
+    "closed_by_fix": 3,
+    "rule_candidates": 4,
+    "unspecified_behaviour": 2
+  },
+  "agent_runs": 21,
+  "ac_coverage_percent": 100,
+  "gate_seconds": 48,
+  "tokens_spent": 1378320,
+  "wall_clock_hours": 1.33,
+  "rebaselines": 0,
+  "escalations": 0
+}

@@ -1,0 +1,54 @@
+{
+  "provenance": {
+    "author_agent": "test-designer-sighted",
+    "run_id": "015-resource-time-buffer-test-designer-sighted-closing-mulirhor",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      { "path": "runs/015-resource-time-buffer/closing/dedup.json", "sha256": "02261bab7b2bb5e9e04e7009e04fa7997cf61be9cd461a1ecd5d3bea8a77e852" },
+      { "path": "runs/015-resource-time-buffer/story.md", "sha256": "9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490" },
+      { "path": "specs/015-resource-time-buffer/spec.md", "sha256": "dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66" },
+      { "path": "runs/015-resource-time-buffer/tests/red-first.json", "sha256": "e84a95c389f692497cff32b98f474d5ac67d4bb1e0a8b9cfb11a7b0e49ca0222" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": [],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeOwnerRuleTests.cs"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-T20",
+      "made_by": "test-designer-sighted",
+      "phase": "C5",
+      "statement": "All three tester findings can be fixed by adding tests in a new file. The acceptance files the findings point at (UpdateDeleteResourceTypeTests.cs, CreateResourceTypeTests.cs, SoftDeleteResourceTypeTests.cs) and ResourcesTestClient.cs are left unchanged.",
+      "bucket": "ASSUME",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "default_chosen": "New test class ResourceTypes/SoftDeleteResourceTypeOwnerRuleTests.cs with one AC-8 and two AC-9 tests. It uses only the existing factories and the existing IgnoreQueryFilters TestClient reads.",
+      "rationale": "red-first.json lists those files under acceptance_test_files, which are hash-checked. The findings ask for new AC-mapped coverage, not a change to the unmapped legacy tests, so a new file covers them without a REBASELINE.",
+      "consequence_if_wrong": "If the owner wants the legacy tests DeleteResourceType_AsNonOwner_Returns403 and CreateResourceType_AsNonOwner_Returns403 strengthened in place, that needs a REBASELINE of the acceptance hash. The coverage added here would then duplicate them."
+    },
+    {
+      "id": "ASM-T21",
+      "made_by": "test-designer-sighted",
+      "phase": "C5",
+      "statement": "The soft-deleted predecessor for the AC-9 tests is seeded through EF with the domain ResourceType.Delete(now), not through a DELETE HTTP call, so that Arrange stays EF seeding.",
+      "bucket": "NO_ASK",
+      "evidence": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs:136-154 uses the same seeding pattern; .claude/conventions/integration-test-infrastructure.md (Arrange = EF seeding).",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true }
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": { "build": "PASSED", "unit_tests": "PASSED", "format": "SKIPPED" },
+  "schema_changes": "NONE",
+  "notes": {
+    "fixed": ["trace-auditor-1-3", "trace-auditor-1-5", "trace-auditor-1-4"],
+    "details": {
+      "trace-auditor-1-3": "New test DeleteResourceType_AsNonOwnerMemberWithInstances_Returns403AndKeepsTypeAndInstancesActive, tagged AC-8. Setup: a schema with 2 instances and a group member who is not the owner. The member calls DELETE and gets 403. The schema row, read with IgnoreQueryFilters, still has DeletedAt null and an unchanged UpdatedAt, and it is still visible through the query filter. Both instances still have DeletedAt null. No ResourceSchemaDeletedEvent or ResourceInstanceDeletedEvent is recorded.",
+      "trace-auditor-1-5": "New test CreateResourceType_AsNonOwnerMemberWithNameOfSoftDeletedType_Returns403AndPersistsNothing, tagged AC-9. Setup: 'Sauna' is soft-deleted in G, and a non-owner member of G tries to create 'Sauna'. The call returns 403. Read with IgnoreQueryFilters, the only 'Sauna' row in G is the soft-deleted original. No ResourceSchemaCreatedEvent is recorded.",
+      "trace-auditor-1-4": "New test CreateResourceType_WithNameOfActiveTypeAfterSoftDeletedPredecessor_Returns409AndKeepsOneActiveRow, tagged AC-9. Setup: 'Sauna' is soft-deleted and a new active 'Sauna' exists. The owner creates a third 'Sauna' and gets 409. The DB still holds exactly two rows, one active (the seeded active id) and one soft-deleted. No ResourceSchemaCreatedEvent is recorded. This is a new test rather than the reviewer's suggestion to extend the AC-9 blind-pass test, because that file is hash-locked."
+    },
+    "local_checks_detail": "The fleet ACL allows only per-project builds, so a solution-wide build of backend/ was not run. dotnet build of the Resources IntegrationTests project succeeded with 0 errors. dotnet test of that project: 89 passed, 0 failed, 0 skipped. Filtered to SoftDeleteResourceTypeOwnerRuleTests: 3 passed. No acceptance_test_files and no production code were touched."
+  }
+}

@@ -167,6 +167,39 @@ public class ResourcesTestClient
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <summary>
+    /// Unfiltered read (IgnoreQueryFilters): returns the row even when it is soft-deleted, so the
+    /// caller can assert on <c>DeletedAt</c>. Same query as <see cref="GetResourceTypeFromDbAsync"/>,
+    /// named explicitly for soft-delete assertions.
+    /// </summary>
+    internal Task<ResourceType?> GetResourceTypeFromDbIgnoringFiltersAsync(Guid id)
+        => GetResourceTypeFromDbAsync(id);
+
+    /// <summary>
+    /// Filtered read — deliberately WITHOUT IgnoreQueryFilters. Returns null for a soft-deleted row.
+    /// Used only to prove that a soft-deleted schema is visible exclusively through IgnoreQueryFilters.
+    /// </summary>
+    internal async Task<ResourceType?> GetResourceTypeFromDbRespectingQueryFiltersAsync(Guid id)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+        return await db.ResourceTypes
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    /// <summary>
+    /// Unfiltered read of all ResourceType rows of a group with the given name (active and soft-deleted).
+    /// </summary>
+    internal async Task<List<ResourceType>> GetResourceTypesByGroupAndNameFromDbIgnoringFiltersAsync(Guid groupId, string name)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+        return await db.ResourceTypes
+            .IgnoreQueryFilters()
+            .Where(x => x.GroupId == groupId && x.Name == name)
+            .ToListAsync();
+    }
+
     internal async Task<List<ResourcePropertyDefinition>> GetResourcePropertyDefinitionsFromDbAsync(Guid resourceTypeId)
     {
         using var scope = _factory.Services.CreateScope();
@@ -296,6 +329,12 @@ public class ResourcesTestClient
             .Where(x => x.ResourceTypeId == resourceTypeId)
             .ToListAsync();
     }
+
+    /// <summary>
+    /// Unfiltered read of all instances of a resource type, including soft-deleted ones.
+    /// </summary>
+    internal Task<List<ResourceInstance>> GetInstancesFromDbIgnoringFiltersAsync(Guid resourceTypeId)
+        => GetResourceInstancesByTypeFromDbAsync(resourceTypeId);
 
     internal async Task<List<ResourceInstance>> GetResourceInstancesByGroupFromDbAsync(Guid groupId)
     {

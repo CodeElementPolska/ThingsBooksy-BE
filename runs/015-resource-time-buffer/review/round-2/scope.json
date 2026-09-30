@@ -1,0 +1,17 @@
+{
+  "story": "015-resource-time-buffer",
+  "round": 2,
+  "base": "6cab1a3c121e0acf6ade50a097e25c59411301ae",
+  "tree": "b7244d457f9e50f2c670cbe47693b1dd5097ddb9",
+  "head": "545348043941a2e1d3c5806b5874bb086c8a9885",
+  "diff_sha256": "647c2ac8ad5217d237646a7c21dbabd790026f87e1ff254de6ce4883436ea293",
+  "files": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs"
+  ],
+  "stats": {
+    "files": 1,
+    "insertions": 154,
+    "deletions": 0
+  },
+  "created_at": "2026-09-28T16:41:31.392Z"
+}

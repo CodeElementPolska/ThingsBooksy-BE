@@ -1,0 +1,121 @@
+{
+  "provenance": {
+    "author_agent": "review-spec-conformance",
+    "run_id": "015-resource-time-buffer-review-spec-conformance-mulfed5o",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      {
+        "path": "runs/015-resource-time-buffer/review/round-1/diff.patch",
+        "sha256": "b5797dd6a0dc0bce31201c5634cfe5db534e69ff60d827f924c219af396eea95"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/review/round-1/scope.json",
+        "sha256": "490c202fbfbe50612052cdb3cf83b854aa0f172646c901423fbc553cd492f069"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/story.md",
+        "sha256": "c9591ad203cf439589ed0abf7a2578d5cc3336eb89a91a38e8a67f82a2970d19"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/spec.md",
+        "sha256": "ad2fb57f801052932cf738cf37f52e5519a7dad05a7d32dee4a7f11b0337f93b"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/contract-next.json",
+        "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/ac-matrix.json",
+        "sha256": "3d76f7d1225fa4660ebc6f4b8e49ccfd4a4a573ecbca285222f624f5d3ac8155"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/discovery/decisions.jsonl",
+        "sha256": "c9072451caf0fefa64935f24b61c9bb1912fe3164623f480b5935bcc09d91a8c"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "review-spec-conformance",
+  "round": 1,
+  "scope": {
+    "diff_sha": "6cab1a3c121e0acf6ade50a097e25c59411301ae",
+    "files": [
+      "runs/015-resource-time-buffer/review/round-1/diff.patch",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Domain/ResourceType.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceInstanceConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Events/Handlers/GroupDeletedHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/GetResourceInstancesQueryHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/DataProviders/GetResourceInstancesQueryDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstance/DataProviders/GetResourceInstanceQueryDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.Designer.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/ResourcesDbContextModelSnapshot.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Messaging/Brokers/InMemoryMessageBroker.cs"
+    ]
+  },
+  "findings": [
+    {
+      "id": "review-spec-conformance-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+      "line": 47,
+      "rule_ref": "AC-8",
+      "severity": "MAJOR",
+      "type": "UNSPECIFIED_BEHAVIOR",
+      "message": "Switching from hard delete (EF cascade removed ResourcePropertyDefinitions) to soft delete (definitions kept, ASM-15) changes what an existing read endpoint returns, and no AC or decision covers that change. ResourcePropertyDefinition has no query filter, and GET /resources/instances with groupId + includeDeleted=true reads soft-deleted instances with IgnoreQueryFilters. Before this diff, the property values of instances whose schema was deleted came back with Name = \"\" and DataType = \"\" because the definitions were gone. Now they come back with the definition's real Name and DataType. FR-009 says read paths MUST NOT change. AC-8 only fixes GET /resources/types/{id} (404) and the type list. ASM-15 only says definitions are kept; it does not say this visible effect is accepted. No test in the diff covers this path. The diff removes the old assertion that definitions are gone (UpdateDeleteResourceTypeTests: 'Assert.Empty(definitions)') and adds no replacement for the instances-list read. The owner needs to decide whether this new read-path output is accepted.",
+      "evidence": "DeleteResourceTypeCommandHandler.cs:47 `resourceType.Delete(now);` (replaces `_dataProvider.RemoveResourceType(resourceType);`). GetResourceInstancesQueryDataProvider.cs:31 `? _dbContext.ResourceInstances.IgnoreQueryFilters().Include(x => x.PropertyValues)`; :47-49 `_dbContext.ResourcePropertyDefinitions.Where(d => resourceTypeIds.Contains(d.ResourceTypeId)).ToListAsync(ct);` (no filter on definitions). GetResourceInstancesQueryHandler.cs:69-73 `defMap.TryGetValue(pv.PropertyDefinitionId, out var def); return new PropertyValueResult(pv.PropertyDefinitionId, def?.Name ?? string.Empty, def?.DataType.ToString() ?? string.Empty, pv.Value);`. ResourceTypeConfiguration.cs:19-22 `HasMany(x => x.PropertyDefinitions)...OnDelete(DeleteBehavior.Cascade)` (cascade no longer runs).",
+      "decision_id": "DEC-6",
+      "closed_by": "owner",
+      "chosen": "Accept and add AC-10 with a test",
+      "answer_ref": "toolu_013MskC6K77m6eE7CRqrEg2w",
+      "closed_at": "2026-09-28T16:36:16.441Z"
+    },
+    {
+      "id": "review-spec-conformance-1-2",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+      "line": 71,
+      "rule_ref": "AC-3",
+      "severity": "MAJOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-3 says the event is published 'When SaveChangesAsync has completed'. The test does not check that order. RecordingMessageBroker.PublishAsync only appends the message to a list, and the test reads both the list and the DB after the whole HTTP request has finished. If CreateResourceTypeCommandHandler called `_messageBroker.PublishAsync(...)` before `_dataProvider.SaveChangesAsync(...)`, AC-3 would be violated but this test would still pass: the row exists at assert time and exactly one event is in the log. AC-4 (line 108), AC-5 (line 144) and AC-6 (line 208) have the same gap, since their ACs also require publish after SaveChangesAsync. The production handlers are correct today (publish is on the line after SaveChangesAsync in all four), so this only affects how much the tests guard. No test checks at record time that the row already exists, and no test checks that a failed persist publishes nothing.",
+      "evidence": "ResourceLifecycleEventTests.cs:65 `var resourceType = await client.GetResourceTypeFromDbIgnoringFiltersAsync(body.Id);` then :71-72 `var created = Factory.PublishedMessages.OfType<ResourceSchemaCreatedEvent>(); var evt = Assert.Single(created);`. RecordingMessageBroker.cs:24-27 `_log.Record(message); return _inner.PublishAsync(message, cancellationToken);` (no persistence check at record time).",
+      "decision_id": "DEC-7",
+      "closed_by": "owner",
+      "chosen": "Accept for this story; make the order a deterministic check later",
+      "answer_ref": "toolu_013MskC6K77m6eE7CRqrEg2w",
+      "closed_at": "2026-09-28T16:36:16.509Z"
+    },
+    {
+      "id": "review-spec-conformance-1-3",
+      "file": "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj",
+      "line": 18,
+      "severity": "OPINION",
+      "type": "UNSPECIFIED_BEHAVIOR",
+      "message": "The diff adds the coverlet.collector package to the ManagementGroups and Users integration test projects. These modules are outside the story's blast_radius (Resources, Shared.Abstractions), and no AC asks for this. It is tooling, not runtime behaviour, so it is listed for visibility only.",
+      "evidence": "ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj:18 `<PackageReference Include=\"coverlet.collector\" Version=\"6.0.4\">`; same addition in ThingsBooksy.Modules.Users.IntegrationTests.csproj:18."
+    }
+  ],
+  "summary": {
+    "blockers": 0,
+    "majors": 2,
+    "minors": 0,
+    "opinions": 1
+  }
+}

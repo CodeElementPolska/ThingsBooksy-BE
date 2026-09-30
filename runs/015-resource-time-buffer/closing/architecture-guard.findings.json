@@ -1,0 +1,84 @@
+{
+  "provenance": {
+    "author_agent": "architecture-guard",
+    "run_id": "015-resource-time-buffer-architecture-guard-mulhqble",
+    "story": "015-resource-time-buffer",
+    "phase": "C6",
+    "inputs": [
+      {
+        "path": "runs/015-resource-time-buffer/review/round-1/scope.json",
+        "sha256": "490c202fbfbe50612052cdb3cf83b854aa0f172646c901423fbc553cd492f069"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/story.md",
+        "sha256": "9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/spec.md",
+        "sha256": "dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/contract-next.json",
+        "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "architecture-guard",
+  "round": 1,
+  "scope": {
+    "diff_sha": "6cab1a3c121e0acf6ade50a097e25c59411301ae",
+    "files": [
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/ResourcesDbContext.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Extensions.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.Designer.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/ResourcesDbContextModelSnapshot.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj",
+      "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj",
+      "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs",
+      "backend/src/Bootstrapper/ThingsBooksy.Bootstrapper/ThingsBooksy.Bootstrapper.csproj"
+    ]
+  },
+  "findings": [
+    {
+      "id": "architecture-guard-1-1",
+      "file": "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+      "line": 3,
+      "rule_ref": "constitution#IV",
+      "severity": "MAJOR",
+      "type": "ARCHITECTURE",
+      "message": "None of the four new Resources lifecycle events has a consumer anywhere in the solution. Each is published only by its owning module (Resources), which is correct, and each payload carries identifiers only. But no IEventHandler<T> exists for any of them, and there is no Availability module in backend/src/Modules yet. The story lists 'Availability module read models and handlers consuming the new events' as out of scope. Owner decision needed: confirm that these four contracts are meant to ship without a consumer until the Availability module exists, and record which story/module will own the handlers. Until then the events are published into the broker with no subscriber. I have not resolved this.",
+      "evidence": "Events/Resources/ResourceSchemaCreatedEvent.cs:3 `public record ResourceSchemaCreatedEvent(Guid SchemaId, Guid GroupId) : IEvent;` | ResourceSchemaDeletedEvent.cs:3 `(Guid SchemaId, Guid GroupId)` | ResourceInstanceCreatedEvent.cs:3 `(Guid ResourceId, Guid SchemaId)` | ResourceInstanceDeletedEvent.cs:3 `(Guid ResourceId, Guid SchemaId)`. Publishers (only): CreateResourceTypeCommandHandler.cs:58, CreateResourceInstanceCommandHandler.cs:86, DeleteResourceTypeCommandHandler.cs:51, DeleteResourceInstanceCommandHandler.cs:42, all in ThingsBooksy.Modules.Resources.Core. Handlers: a solution-wide search for `IEventHandler<` finds only Resources.Core/Events/Handlers (GroupCreated, GroupDeleted, GroupMemberAdded, GroupMemberRemoved) and ManagementGroups.Core UserSignedUpHandler. None of them handles Resource*Event. The only other references are in Resources.IntegrationTests/Events/*.",
+      "suggested_fix": "Owner decision: either (a) accept the four events as contracts awaiting the future Availability module and record that in the story/decision log, or (b) schedule the Availability consumer story before these events are relied on.",
+      "rule_candidate": {
+        "kind": "arch-test",
+        "description": "Every IEvent type in ThingsBooksy.Shared.Abstractions.Events.* must have at least one IEventHandler<T> implementation in some module .Core assembly, or be listed in an explicit allow-list of events awaiting a future consumer (with the owning story id)."
+      },
+      "decision_id": "DEC-8",
+      "closed_by": "owner",
+      "chosen": "Accept: contracts awaiting the Availability module",
+      "answer_ref": "toolu_01B5ogAmrwdpBB6Lxru6N1Ms",
+      "closed_at": "2026-09-28T17:26:25.088Z"
+    }
+  ],
+  "summary": {
+    "blockers": 0,
+    "majors": 1,
+    "minors": 0,
+    "opinions": 0
+  }
+}

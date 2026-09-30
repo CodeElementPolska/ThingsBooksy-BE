@@ -1,0 +1,57 @@
+{
+  "story": "015-resource-time-buffer",
+  "status": "DONE",
+  "checks": [
+    {
+      "name": "gate",
+      "status": "PASSED",
+      "detail": "GREEN (8 steps)"
+    },
+    {
+      "name": "ac",
+      "status": "PASSED",
+      "detail": "100% (8 AC, uncovered: none)"
+    },
+    {
+      "name": "decisions",
+      "status": "PASSED",
+      "detail": "9 decided/withdrawn"
+    },
+    {
+      "name": "hard-list",
+      "status": "PASSED",
+      "detail": "37 assumptions, none on the D-1 list undecided"
+    },
+    {
+      "name": "blockers",
+      "status": "PASSED",
+      "detail": "round-3 + closing: 0 BLOCKER, 0 MAJOR open"
+    },
+    {
+      "name": "disputes",
+      "status": "PASSED",
+      "detail": "none open"
+    },
+    {
+      "name": "unspecified",
+      "status": "PASSED",
+      "detail": "none open"
+    },
+    {
+      "name": "contract",
+      "status": "PASSED",
+      "detail": "CLEAR"
+    },
+    {
+      "name": "tasks",
+      "status": "PASSED",
+      "detail": "31/31 ticked"
+    },
+    {
+      "name": "tests-hash",
+      "status": "PASSED",
+      "detail": "PASSED"
+    }
+  ],
+  "computed_at": "2026-09-28T17:32:53.004Z"
+}

@@ -1,0 +1,72 @@
+{
+  "provenance": {
+    "author_agent": "test-designer-sighted",
+    "run_id": "015-resource-time-buffer-test-designer-sighted-r2-mulhaczg",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      {
+        "path": "runs/015-resource-time-buffer/review/round-2/dedup.json",
+        "sha256": "fb96a22b39c9680eb40f15da91e6538d714fbe28835330d4d2eacfd63976fa9c"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/story.md",
+        "sha256": "9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/spec.md",
+        "sha256": "dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/tests/red-first.json",
+        "sha256": "e84a95c389f692497cff32b98f474d5ac67d4bb1e0a8b9cfb11a7b0e49ca0222"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": [],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyDefinitionFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyValueFactory.cs"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-S6",
+      "made_by": "test-designer-sighted",
+      "phase": "C5",
+      "statement": "The two factories extracted for review-maintainability-2-2 are named ResourcesResourcePropertyDefinitionFactory and ResourcesResourcePropertyValueFactory, and their Create methods are internal.",
+      "bucket": "NO_ASK",
+      "default_chosen": "The names follow the {ModuleName}{Entity}Factory pattern: ResourcesResourcePropertyDefinitionFactory.CreateResourcePropertyDefinitionAsync and ResourcesResourcePropertyValueFactory.CreateResourcePropertyValueAsync. The methods are internal. I did not use the reviewer's example names ResourcesPropertyDefinitionFactory and ResourcesPropertyValueFactory.",
+      "rationale": "The existing factories in this module use the full entity name after the module prefix (ResourcesResourceTypeFactory, ResourcesResourceInstanceFactory), and the entities are ResourcePropertyDefinition and ResourcePropertyValue. The methods are internal like ResourcesResourceInstanceFactory.CreateResourceInstanceAsync, because they return domain entities that are internal to the module.",
+      "consequence_if_wrong": "Only the class and file names change: two files in Clients/ and one test file that uses them. Behaviour and assertions stay the same.",
+      "score": {
+        "hard_list": false,
+        "reversible_cheaply": true,
+        "visible_effect": false,
+        "has_recommendation": true
+      },
+      "evidence": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs:16 (public sealed class ResourcesResourceInstanceFactory), :23 (internal async Task<ResourceInstance> CreateResourceInstanceAsync); .claude/conventions/integration-test-infrastructure.md:69 (public sealed class {ModuleName}{Entity}Factory)",
+      "status": "ACTIVE"
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": {
+    "build": "PASSED",
+    "unit_tests": "PASSED",
+    "format": "SKIPPED"
+  },
+  "notes": {
+    "fixed": [
+      "review-maintainability-2-1",
+      "review-maintainability-2-2"
+    ],
+    "details": [
+      "review-maintainability-2-1 (MAJOR): I deleted the private helper GetPropertyDefinitionIdsFromDbAsync. The test now calls client.GetResourcePropertyDefinitionsFromDbAsync(resourceType.Id), which already exists in ResourcesTestClient and uses IgnoreQueryFilters, and projects the result with .Select(d => d.Id).ToList(). ResourcesTestClient.cs is an acceptance-test file and was not modified. The assertions are unchanged: 2 definitions, and both seatsDef.Id and colourDef.Id are present.",
+      "review-maintainability-2-2 (MINOR, local and cheap, so fixed): I moved CreatePropertyDefinitionInDbAsync and CreatePropertyValueInDbAsync out of the test class into Clients/ResourcesResourcePropertyDefinitionFactory.cs and Clients/ResourcesResourcePropertyValueFactory.cs. They use the Standard entity factory shape from the convention. Both factories are created in the test constructor like the other factories, and the test no longer uses DbContext directly.",
+      "No assertion was weakened. The [Trait(\"AC\", \"AC-10\")] tag and the test name GetResourceInstances_IncludeDeletedForSoftDeletedType_ReturnsPropertyValuesWithDefinitionNames are unchanged. None of the files listed in red-first.json acceptance_test_files were touched.",
+      "Checks: dotnet build of the Resources.IntegrationTests project finished with 0 errors. dotnet test of backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests passed 86 of 86 (0 failed, 0 skipped). Format was not run."
+    ]
+  }
+}

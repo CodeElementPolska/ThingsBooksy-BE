@@ -1,0 +1,30 @@
+{
+  "provenance": {
+    "author_agent": "review-maintainability",
+    "run_id": "015-resource-time-buffer-review-maintainability-r3-mulhg9mi",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      { "path": "runs/015-resource-time-buffer/review/round-3/diff.patch", "sha256": "d477262bd13a4aafa8fb3db5691ff13c4973cffd57c0f8e0ee51890a4551c94b" },
+      { "path": "runs/015-resource-time-buffer/review/round-3/scope.json", "sha256": "c3d93acc67d287ea3282722c5a1601d0d5ec3cbb0516a3915eb67b471787c5ae" },
+      { "path": "runs/015-resource-time-buffer/review/round-2/review-maintainability.findings.json", "sha256": "d783630180e289545238e42e48187d5e39b7a52b01cc5d4d961b14b533afda54" }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "review-maintainability",
+  "round": 3,
+  "scope": {
+    "diff_sha": "1ce028a018dd5d9d0ba8796b44320ec5964b76af",
+    "files": [
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyDefinitionFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyValueFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs"
+    ]
+  },
+  "previous_findings_status": [
+    { "id": "review-maintainability-2-1", "status": "RESOLVED" },
+    { "id": "review-maintainability-2-2", "status": "RESOLVED" }
+  ],
+  "findings": [],
+  "summary": { "blockers": 0, "majors": 0, "minors": 0, "opinions": 0 }
+}

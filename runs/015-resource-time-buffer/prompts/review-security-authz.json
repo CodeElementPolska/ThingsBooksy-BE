@@ -1,0 +1,236 @@
+{
+  "agent_type": "review-security-authz",
+  "run_id": "015-resource-time-buffer-review-security-authz-mulh5qy2",
+  "prompt": "Phase **C5 — review round 2, security and authorization** for story `015-resource-time-buffer`.\n\nYou review the code diff in `diff.patch` (scope in `scope.json`) for the categories the owner always decides personally (D-1: authorization and security, data loss and destructive changes) plus classic security defects. Read the surrounding code to verify — the diff is your scope, the code is your evidence.\n\nChecklist (report only what you can prove with quoted code):\n- **Authorization** (`AUTHZ`): every command/query touching a group's data checks that the requester is allowed (owner / member as the AC says); the requester identity comes from the token, never from the request body; IDs from the URL are checked against the requester's scope (no IDOR across groups, schemas, instances); role clauses in AC (`role: owner`) are enforced. `rule_ref` = `AC-n` when the AC states the role, otherwise `CWE-862` (missing authz), `CWE-639` (IDOR), `CWE-285`. Severity `BLOCKER`.\n- **Data safety** (`DATA_SAFETY`): soft-delete semantics kept (no hard delete of rows the spec keeps), bulk updates (`ExecuteUpdate/DeleteAsync`) scoped by the right predicates, global query filters not bypassed on write paths, cascades that lose data, events published before the row is persisted, migrations that drop or narrow columns. `rule_ref` = `AC-n`, `constitution#VI` or `CWE-n`. Severity `BLOCKER` when data can be lost or leaked, `MAJOR` otherwise.\n- **Input handling** (`SECURITY`): raw SQL / interpolated queries (`CWE-89`), unbounded collections or strings, missing validation on new request fields, secrets or PII in events, logs or error messages (`CWE-532`, `CWE-209`). Severity by impact.\n- **Event payloads** (`SECURITY`/`DATA_SAFETY`): cross-module events carry only identifiers and non-sensitive data; consumers cannot be tricked into acting on another group's data.\n\nRules:\n- Every finding needs `rule_ref` (`CWE-n`, `constitution#<article>`, `AC-n`) and `evidence` with `file:line`. No `rule_ref` ⇒ `OPINION`.\n- Not your job: style, naming, spec completeness beyond authorization/data clauses — other reviewers own those.\n- Round ≥ 2: review only the fix diff; fill `previous_findings_status` for each of your previous findings; findings outside the fix diff only as `BLOCKER` with `out_of_diff: true`.\n- `id` = `review-security-authz-2-<n>`; `reviewer` = `review-security-authz`; `round` = 2; `scope.diff_sha` = the `tree` value from `scope.json`; `scope.files` = files examined.\n- An empty `findings` array is a valid result. Fill `summary`.\n\nReturn the `findings` JSON and nothing else.\n\n## Input files handed to you (paths + hashes)\nThese are the files this task was built from. They are NOT a read boundary: your read scope is set by your access rules (allowed roots such as `backend/`, `frontend/src/`, `generated/`); read whatever you need inside it. If something you need is outside your scope, say so in the answer.\n- `runs/015-resource-time-buffer/review/round-2/diff.patch`  (sha256 647c2ac8ad52…)\n- `runs/015-resource-time-buffer/review/round-2/scope.json`  (sha256 85769aba578c…)\n- `runs/015-resource-time-buffer/story.md`  (sha256 9212e4b66dae…)\n- `specs/015-resource-time-buffer/spec.md`  (sha256 dbdfe2408791…)\n- `runs/015-resource-time-buffer/contract-next.json`  (sha256 433a70127610…)\n- `runs/015-resource-time-buffer/review/round-1/review-security-authz.findings.json`  (sha256 12112fe2600c…)\n\n## Conventions that apply to your output\n- `.specify/memory/constitution.md`\n\n## Your output MUST validate against this JSON Schema\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/findings\",\n  \"title\": \"findings.json — output of every reviewer and guard (spec-conformance, security-authz, maintainability, plan-guard, architecture-guard, trace-auditor)\",\n  \"type\": \"object\",\n  \"required\": [\n    \"provenance\",\n    \"reviewer\",\n    \"round\",\n    \"scope\",\n    \"findings\"\n  ],\n  \"properties\": {\n    \"provenance\": {\n      \"$ref\": \"fleet-v4/provenance\"\n    },\n    \"reviewer\": {\n      \"type\": \"string\"\n    },\n    \"round\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"description\": \"round ≥ 2 ⇒ scope must be the fix diff + previous findings only\"\n    },\n    \"scope\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"diff_sha\": {\n          \"type\": \"string\"\n        },\n        \"files\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    },\n    \"previous_findings_status\": {\n      \"type\": \"array\",\n      \"description\": \"round ≥ 2: verdict on each finding from the previous round\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"id\",\n          \"status\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"status\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"RESOLVED\",\n              \"STILL_OPEN\",\n              \"REGRESSED\"\n            ]\n          }\n        }\n      }\n    },\n    \"findings\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"id\",\n          \"file\",\n          \"line\",\n          \"severity\",\n          \"type\",\n          \"message\",\n          \"evidence\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"<reviewer>-<round>-<n>\"\n          },\n          \"file\": {\n            \"type\": \"string\"\n          },\n          \"line\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"rule_ref\": {\n            \"type\": \"string\",\n            \"description\": \"AC-<n> | conventions/<file>#<section> | constitution#<article> | CWE-<n> | contract:<path> — REQUIRED for any severity above OPINION\"\n          },\n          \"severity\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"BLOCKER\",\n              \"MAJOR\",\n              \"MINOR\",\n              \"OPINION\"\n            ],\n            \"description\": \"BLOCKER: violates an AC, a constitution article, the contract, or a D-1 category (authz/data/UI) — blocks the gate. MAJOR: violates a convention with rule_ref, or UNSPECIFIED_BEHAVIOR — must be fixed or disputed before close. MINOR: rule_ref present, cosmetic/maintainability — fixed if cheap, else tech-debt issue. OPINION: no rule_ref — never blocks; shown to the owner in one batch.\"\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"SPEC_VIOLATION\",\n              \"UNSPECIFIED_BEHAVIOR\",\n              \"CONVENTION\",\n              \"SECURITY\",\n              \"AUTHZ\",\n              \"DATA_SAFETY\",\n              \"ARCHITECTURE\",\n              \"CONTRACT_DRIFT\",\n              \"WEAK_ASSERTION\",\n              \"MAINTAINABILITY\",\n              \"PERFORMANCE\"\n            ],\n            \"description\": \"UNSPECIFIED_BEHAVIOR = behaviour in code with no AC (mandatory type for spec-conformance reviewer); WEAK_ASSERTION = trace-auditor\"\n          },\n          \"message\": {\n            \"type\": \"string\"\n          },\n          \"evidence\": {\n            \"type\": \"string\",\n            \"description\": \"quoted code / observed behaviour; opinions are not evidence\"\n          },\n          \"suggested_fix\": {\n            \"type\": \"string\"\n          },\n          \"rule_candidate\": {\n            \"type\": \"object\",\n            \"description\": \"if this finding can be generalised into a deterministic check\",\n            \"required\": [\n              \"kind\",\n              \"description\"\n            ],\n            \"properties\": {\n              \"kind\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"roslyn-analyzer\",\n                  \"arch-test\",\n                  \"eslint\",\n                  \"script\"\n                ]\n              },\n              \"description\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"out_of_diff\": {\n            \"type\": \"boolean\",\n            \"description\": \"round ≥ 2: finding outside the fix diff — allowed only as BLOCKER (constitution/security), otherwise goes to tech-debt\"\n          }\n        },\n        \"allOf\": [\n          {\n            \"if\": {\n              \"properties\": {\n                \"severity\": {\n                  \"enum\": [\n                    \"BLOCKER\",\n                    \"MAJOR\",\n                    \"MINOR\"\n                  ]\n                }\n              }\n            },\n            \"then\": {\n              \"required\": [\n                \"rule_ref\"\n              ]\n            }\n          }\n        ]\n      }\n    },\n    \"summary\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"blockers\": {\n          \"type\": \"integer\"\n        },\n        \"majors\": {\n          \"type\": \"integer\"\n        },\n        \"minors\": {\n          \"type\": \"integer\"\n        },\n        \"opinions\": {\n          \"type\": \"integer\"\n        }\n      }\n    }\n  }\n}\n```\n\n## Provenance block — copy VERBATIM into the `provenance` field of your output\n```json\n{\n  \"author_agent\": \"review-security-authz\",\n  \"run_id\": \"015-resource-time-buffer-review-security-authz-mulh5qy2\",\n  \"story\": \"015-resource-time-buffer\",\n  \"phase\": \"C5\",\n  \"inputs\": [\n    {\n      \"path\": \"runs/015-resource-time-buffer/review/round-2/diff.patch\",\n      \"sha256\": \"647c2ac8ad5217d237646a7c21dbabd790026f87e1ff254de6ce4883436ea293\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/review/round-2/scope.json\",\n      \"sha256\": \"85769aba578c3dae6a354f13961f5195078b92a05f6c30f13cdfce0af01cdb02\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/story.md\",\n      \"sha256\": \"9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490\"\n    },\n    {\n      \"path\": \"specs/015-resource-time-buffer/spec.md\",\n      \"sha256\": \"dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/contract-next.json\",\n      \"sha256\": \"433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/review/round-1/review-security-authz.findings.json\",\n      \"sha256\": \"12112fe2600ca4b21ce0e4e2dc915bc710beace5089d0d75d6605c895607d781\"\n    }\n  ],\n  \"schema_version\": \"1\"\n}\n```\n",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "fleet-v4/findings",
+    "title": "findings.json — output of every reviewer and guard (spec-conformance, security-authz, maintainability, plan-guard, architecture-guard, trace-auditor)",
+    "type": "object",
+    "required": [
+      "provenance",
+      "reviewer",
+      "round",
+      "scope",
+      "findings"
+    ],
+    "properties": {
+      "provenance": {
+        "$ref": "fleet-v4/provenance"
+      },
+      "reviewer": {
+        "type": "string"
+      },
+      "round": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "round ≥ 2 ⇒ scope must be the fix diff + previous findings only"
+      },
+      "scope": {
+        "type": "object",
+        "properties": {
+          "diff_sha": {
+            "type": "string"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "previous_findings_status": {
+        "type": "array",
+        "description": "round ≥ 2: verdict on each finding from the previous round",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "status"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "RESOLVED",
+                "STILL_OPEN",
+                "REGRESSED"
+              ]
+            }
+          }
+        }
+      },
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "file",
+            "line",
+            "severity",
+            "type",
+            "message",
+            "evidence"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "<reviewer>-<round>-<n>"
+            },
+            "file": {
+              "type": "string"
+            },
+            "line": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "rule_ref": {
+              "type": "string",
+              "description": "AC-<n> | conventions/<file>#<section> | constitution#<article> | CWE-<n> | contract:<path> — REQUIRED for any severity above OPINION"
+            },
+            "severity": {
+              "type": "string",
+              "enum": [
+                "BLOCKER",
+                "MAJOR",
+                "MINOR",
+                "OPINION"
+              ],
+              "description": "BLOCKER: violates an AC, a constitution article, the contract, or a D-1 category (authz/data/UI) — blocks the gate. MAJOR: violates a convention with rule_ref, or UNSPECIFIED_BEHAVIOR — must be fixed or disputed before close. MINOR: rule_ref present, cosmetic/maintainability — fixed if cheap, else tech-debt issue. OPINION: no rule_ref — never blocks; shown to the owner in one batch."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "SPEC_VIOLATION",
+                "UNSPECIFIED_BEHAVIOR",
+                "CONVENTION",
+                "SECURITY",
+                "AUTHZ",
+                "DATA_SAFETY",
+                "ARCHITECTURE",
+                "CONTRACT_DRIFT",
+                "WEAK_ASSERTION",
+                "MAINTAINABILITY",
+                "PERFORMANCE"
+              ],
+              "description": "UNSPECIFIED_BEHAVIOR = behaviour in code with no AC (mandatory type for spec-conformance reviewer); WEAK_ASSERTION = trace-auditor"
+            },
+            "message": {
+              "type": "string"
+            },
+            "evidence": {
+              "type": "string",
+              "description": "quoted code / observed behaviour; opinions are not evidence"
+            },
+            "suggested_fix": {
+              "type": "string"
+            },
+            "rule_candidate": {
+              "type": "object",
+              "description": "if this finding can be generalised into a deterministic check",
+              "required": [
+                "kind",
+                "description"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "roslyn-analyzer",
+                    "arch-test",
+                    "eslint",
+                    "script"
+                  ]
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            },
+            "out_of_diff": {
+              "type": "boolean",
+              "description": "round ≥ 2: finding outside the fix diff — allowed only as BLOCKER (constitution/security), otherwise goes to tech-debt"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "severity": {
+                    "enum": [
+                      "BLOCKER",
+                      "MAJOR",
+                      "MINOR"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "rule_ref"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "summary": {
+        "type": "object",
+        "properties": {
+          "blockers": {
+            "type": "integer"
+          },
+          "majors": {
+            "type": "integer"
+          },
+          "minors": {
+            "type": "integer"
+          },
+          "opinions": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "provenance": {
+    "author_agent": "review-security-authz",
+    "run_id": "015-resource-time-buffer-review-security-authz-mulh5qy2",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      {
+        "path": "runs/015-resource-time-buffer/review/round-2/diff.patch",
+        "sha256": "647c2ac8ad5217d237646a7c21dbabd790026f87e1ff254de6ce4883436ea293"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/review/round-2/scope.json",
+        "sha256": "85769aba578c3dae6a354f13961f5195078b92a05f6c30f13cdfce0af01cdb02"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/story.md",
+        "sha256": "9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/spec.md",
+        "sha256": "dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/contract-next.json",
+        "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/review/round-1/review-security-authz.findings.json",
+        "sha256": "12112fe2600ca4b21ce0e4e2dc915bc710beace5089d0d75d6605c895607d781"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "tools_hint": null,
+  "max_turns": 40
+}

@@ -1,0 +1,244 @@
+{
+  "agent_type": "review-spec-conformance",
+  "run_id": "015-resource-time-buffer-review-spec-conformance-mulh5qvk",
+  "prompt": "Phase **C5 — review round 2, spec conformance** for story `015-resource-time-buffer`.\n\nYou review the code diff in `diff.patch` (scope in `scope.json`) against the story's acceptance criteria (`story.md` front matter and the `**AC-n**` scenarios in `spec.md`), the owner's decisions (`decisions.jsonl`) and the HTTP contract (`contract-next.json`, when present). One question only: **does the code do exactly what the AC say — no less, no more?**\n\nWhat to report (each as a finding with `evidence` = quoted code with `file:line`):\n- `SPEC_VIOLATION` — an AC, decision or contract clause is not met, or met differently (wrong status code, wrong payload, wrong message, wrong order of persist/publish). `rule_ref` = `AC-n`, `DEC-n` or `contract:<path>`. Severity `BLOCKER`.\n- `UNSPECIFIED_BEHAVIOR` — behaviour in the diff that no AC or decision asks for (extra branch, extra side effect, defaulted rule). This type is **mandatory**: every such branch is a finding, even if it looks harmless. `rule_ref` = `story:acceptance_criteria` (the AC list is the rule violated by omission) or the nearest `AC-n`. Severity `MAJOR`. A test tagged `UNSPECIFIED` covering it does not close the finding — say which test covers it in `message`.\n- `CONTRACT_DRIFT` — a route, request or response shape differs from `contract-next.json`. `rule_ref` = `contract:<path>`. Severity `BLOCKER`.\n- `WEAK_ASSERTION` only when an acceptance test in the diff would pass while its AC is violated (state exactly how). `rule_ref` = `AC-n`. Severity `MAJOR`.\n\nRules:\n- Verify every claim by reading the code (you may read the whole backend and frontend source; the diff is your scope, the code is your evidence). Never report from the diff hunk alone if the surrounding code changes the meaning.\n- Not your job: naming, style, conventions, security — other reviewers own those. Do not mention them.\n- No `rule_ref` ⇒ `severity: OPINION`. Opinions are allowed but never block; keep them few.\n- Round ≥ 2: review only the fix diff; fill `previous_findings_status` for **each** of your previous findings (`RESOLVED` / `STILL_OPEN` / `REGRESSED`); a finding outside the fix diff is allowed only as `BLOCKER` with `out_of_diff: true`.\n- `id` = `review-spec-conformance-2-<n>`; `reviewer` = `review-spec-conformance`; `round` = 2; `scope.diff_sha` = the `tree` value from `scope.json`; `scope.files` = the files you actually examined.\n- Fill `summary` counts. If there is nothing to report, return an empty `findings` array — that is a valid, welcome result.\n\nReturn the `findings` JSON and nothing else.\n\n## Input files handed to you (paths + hashes)\nThese are the files this task was built from. They are NOT a read boundary: your read scope is set by your access rules (allowed roots such as `backend/`, `frontend/src/`, `generated/`); read whatever you need inside it. If something you need is outside your scope, say so in the answer.\n- `runs/015-resource-time-buffer/review/round-2/diff.patch`  (sha256 647c2ac8ad52…)\n- `runs/015-resource-time-buffer/review/round-2/scope.json`  (sha256 85769aba578c…)\n- `runs/015-resource-time-buffer/story.md`  (sha256 9212e4b66dae…)\n- `specs/015-resource-time-buffer/spec.md`  (sha256 dbdfe2408791…)\n- `runs/015-resource-time-buffer/contract-next.json`  (sha256 433a70127610…)\n- `runs/015-resource-time-buffer/ac-matrix.json`  (sha256 1cc409585f0c…)\n- `runs/015-resource-time-buffer/discovery/decisions.jsonl`  (sha256 b1185a95ddba…)\n- `runs/015-resource-time-buffer/review/round-1/review-spec-conformance.findings.json`  (sha256 b9dbba7f5cb1…)\n\n## Conventions that apply to your output\n- `.specify/memory/constitution.md`\n\n## Your output MUST validate against this JSON Schema\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/findings\",\n  \"title\": \"findings.json — output of every reviewer and guard (spec-conformance, security-authz, maintainability, plan-guard, architecture-guard, trace-auditor)\",\n  \"type\": \"object\",\n  \"required\": [\n    \"provenance\",\n    \"reviewer\",\n    \"round\",\n    \"scope\",\n    \"findings\"\n  ],\n  \"properties\": {\n    \"provenance\": {\n      \"$ref\": \"fleet-v4/provenance\"\n    },\n    \"reviewer\": {\n      \"type\": \"string\"\n    },\n    \"round\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"description\": \"round ≥ 2 ⇒ scope must be the fix diff + previous findings only\"\n    },\n    \"scope\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"diff_sha\": {\n          \"type\": \"string\"\n        },\n        \"files\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    },\n    \"previous_findings_status\": {\n      \"type\": \"array\",\n      \"description\": \"round ≥ 2: verdict on each finding from the previous round\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"id\",\n          \"status\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"status\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"RESOLVED\",\n              \"STILL_OPEN\",\n              \"REGRESSED\"\n            ]\n          }\n        }\n      }\n    },\n    \"findings\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"id\",\n          \"file\",\n          \"line\",\n          \"severity\",\n          \"type\",\n          \"message\",\n          \"evidence\"\n        ],\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"<reviewer>-<round>-<n>\"\n          },\n          \"file\": {\n            \"type\": \"string\"\n          },\n          \"line\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"rule_ref\": {\n            \"type\": \"string\",\n            \"description\": \"AC-<n> | conventions/<file>#<section> | constitution#<article> | CWE-<n> | contract:<path> — REQUIRED for any severity above OPINION\"\n          },\n          \"severity\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"BLOCKER\",\n              \"MAJOR\",\n              \"MINOR\",\n              \"OPINION\"\n            ],\n            \"description\": \"BLOCKER: violates an AC, a constitution article, the contract, or a D-1 category (authz/data/UI) — blocks the gate. MAJOR: violates a convention with rule_ref, or UNSPECIFIED_BEHAVIOR — must be fixed or disputed before close. MINOR: rule_ref present, cosmetic/maintainability — fixed if cheap, else tech-debt issue. OPINION: no rule_ref — never blocks; shown to the owner in one batch.\"\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"SPEC_VIOLATION\",\n              \"UNSPECIFIED_BEHAVIOR\",\n              \"CONVENTION\",\n              \"SECURITY\",\n              \"AUTHZ\",\n              \"DATA_SAFETY\",\n              \"ARCHITECTURE\",\n              \"CONTRACT_DRIFT\",\n              \"WEAK_ASSERTION\",\n              \"MAINTAINABILITY\",\n              \"PERFORMANCE\"\n            ],\n            \"description\": \"UNSPECIFIED_BEHAVIOR = behaviour in code with no AC (mandatory type for spec-conformance reviewer); WEAK_ASSERTION = trace-auditor\"\n          },\n          \"message\": {\n            \"type\": \"string\"\n          },\n          \"evidence\": {\n            \"type\": \"string\",\n            \"description\": \"quoted code / observed behaviour; opinions are not evidence\"\n          },\n          \"suggested_fix\": {\n            \"type\": \"string\"\n          },\n          \"rule_candidate\": {\n            \"type\": \"object\",\n            \"description\": \"if this finding can be generalised into a deterministic check\",\n            \"required\": [\n              \"kind\",\n              \"description\"\n            ],\n            \"properties\": {\n              \"kind\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"roslyn-analyzer\",\n                  \"arch-test\",\n                  \"eslint\",\n                  \"script\"\n                ]\n              },\n              \"description\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"out_of_diff\": {\n            \"type\": \"boolean\",\n            \"description\": \"round ≥ 2: finding outside the fix diff — allowed only as BLOCKER (constitution/security), otherwise goes to tech-debt\"\n          }\n        },\n        \"allOf\": [\n          {\n            \"if\": {\n              \"properties\": {\n                \"severity\": {\n                  \"enum\": [\n                    \"BLOCKER\",\n                    \"MAJOR\",\n                    \"MINOR\"\n                  ]\n                }\n              }\n            },\n            \"then\": {\n              \"required\": [\n                \"rule_ref\"\n              ]\n            }\n          }\n        ]\n      }\n    },\n    \"summary\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"blockers\": {\n          \"type\": \"integer\"\n        },\n        \"majors\": {\n          \"type\": \"integer\"\n        },\n        \"minors\": {\n          \"type\": \"integer\"\n        },\n        \"opinions\": {\n          \"type\": \"integer\"\n        }\n      }\n    }\n  }\n}\n```\n\n## Provenance block — copy VERBATIM into the `provenance` field of your output\n```json\n{\n  \"author_agent\": \"review-spec-conformance\",\n  \"run_id\": \"015-resource-time-buffer-review-spec-conformance-mulh5qvk\",\n  \"story\": \"015-resource-time-buffer\",\n  \"phase\": \"C5\",\n  \"inputs\": [\n    {\n      \"path\": \"runs/015-resource-time-buffer/review/round-2/diff.patch\",\n      \"sha256\": \"647c2ac8ad5217d237646a7c21dbabd790026f87e1ff254de6ce4883436ea293\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/review/round-2/scope.json\",\n      \"sha256\": \"85769aba578c3dae6a354f13961f5195078b92a05f6c30f13cdfce0af01cdb02\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/story.md\",\n      \"sha256\": \"9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490\"\n    },\n    {\n      \"path\": \"specs/015-resource-time-buffer/spec.md\",\n      \"sha256\": \"dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/contract-next.json\",\n      \"sha256\": \"433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/ac-matrix.json\",\n      \"sha256\": \"1cc409585f0cfcc19347172a5d14de6ebdc267ac79b769dc85de0fbfa39ea01d\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/discovery/decisions.jsonl\",\n      \"sha256\": \"b1185a95ddbae5292e15a6cd300130f5f77ea799a1fbc79ef5a6dd9ca05fbb22\"\n    },\n    {\n      \"path\": \"runs/015-resource-time-buffer/review/round-1/review-spec-conformance.findings.json\",\n      \"sha256\": \"b9dbba7f5cb181ed048a6163105f9c1ac2d3fd924042fa2b986c76ebfb50f99a\"\n    }\n  ],\n  \"schema_version\": \"1\"\n}\n```\n",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "fleet-v4/findings",
+    "title": "findings.json — output of every reviewer and guard (spec-conformance, security-authz, maintainability, plan-guard, architecture-guard, trace-auditor)",
+    "type": "object",
+    "required": [
+      "provenance",
+      "reviewer",
+      "round",
+      "scope",
+      "findings"
+    ],
+    "properties": {
+      "provenance": {
+        "$ref": "fleet-v4/provenance"
+      },
+      "reviewer": {
+        "type": "string"
+      },
+      "round": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "round ≥ 2 ⇒ scope must be the fix diff + previous findings only"
+      },
+      "scope": {
+        "type": "object",
+        "properties": {
+          "diff_sha": {
+            "type": "string"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "previous_findings_status": {
+        "type": "array",
+        "description": "round ≥ 2: verdict on each finding from the previous round",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "status"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "RESOLVED",
+                "STILL_OPEN",
+                "REGRESSED"
+              ]
+            }
+          }
+        }
+      },
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "file",
+            "line",
+            "severity",
+            "type",
+            "message",
+            "evidence"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "<reviewer>-<round>-<n>"
+            },
+            "file": {
+              "type": "string"
+            },
+            "line": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "rule_ref": {
+              "type": "string",
+              "description": "AC-<n> | conventions/<file>#<section> | constitution#<article> | CWE-<n> | contract:<path> — REQUIRED for any severity above OPINION"
+            },
+            "severity": {
+              "type": "string",
+              "enum": [
+                "BLOCKER",
+                "MAJOR",
+                "MINOR",
+                "OPINION"
+              ],
+              "description": "BLOCKER: violates an AC, a constitution article, the contract, or a D-1 category (authz/data/UI) — blocks the gate. MAJOR: violates a convention with rule_ref, or UNSPECIFIED_BEHAVIOR — must be fixed or disputed before close. MINOR: rule_ref present, cosmetic/maintainability — fixed if cheap, else tech-debt issue. OPINION: no rule_ref — never blocks; shown to the owner in one batch."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "SPEC_VIOLATION",
+                "UNSPECIFIED_BEHAVIOR",
+                "CONVENTION",
+                "SECURITY",
+                "AUTHZ",
+                "DATA_SAFETY",
+                "ARCHITECTURE",
+                "CONTRACT_DRIFT",
+                "WEAK_ASSERTION",
+                "MAINTAINABILITY",
+                "PERFORMANCE"
+              ],
+              "description": "UNSPECIFIED_BEHAVIOR = behaviour in code with no AC (mandatory type for spec-conformance reviewer); WEAK_ASSERTION = trace-auditor"
+            },
+            "message": {
+              "type": "string"
+            },
+            "evidence": {
+              "type": "string",
+              "description": "quoted code / observed behaviour; opinions are not evidence"
+            },
+            "suggested_fix": {
+              "type": "string"
+            },
+            "rule_candidate": {
+              "type": "object",
+              "description": "if this finding can be generalised into a deterministic check",
+              "required": [
+                "kind",
+                "description"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "roslyn-analyzer",
+                    "arch-test",
+                    "eslint",
+                    "script"
+                  ]
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            },
+            "out_of_diff": {
+              "type": "boolean",
+              "description": "round ≥ 2: finding outside the fix diff — allowed only as BLOCKER (constitution/security), otherwise goes to tech-debt"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "severity": {
+                    "enum": [
+                      "BLOCKER",
+                      "MAJOR",
+                      "MINOR"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "rule_ref"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "summary": {
+        "type": "object",
+        "properties": {
+          "blockers": {
+            "type": "integer"
+          },
+          "majors": {
+            "type": "integer"
+          },
+          "minors": {
+            "type": "integer"
+          },
+          "opinions": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "provenance": {
+    "author_agent": "review-spec-conformance",
+    "run_id": "015-resource-time-buffer-review-spec-conformance-mulh5qvk",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      {
+        "path": "runs/015-resource-time-buffer/review/round-2/diff.patch",
+        "sha256": "647c2ac8ad5217d237646a7c21dbabd790026f87e1ff254de6ce4883436ea293"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/review/round-2/scope.json",
+        "sha256": "85769aba578c3dae6a354f13961f5195078b92a05f6c30f13cdfce0af01cdb02"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/story.md",
+        "sha256": "9212e4b66dae0a890f38c3653c2c4a06771aa7d4c12c3c14a06da84604f56490"
+      },
+      {
+        "path": "specs/015-resource-time-buffer/spec.md",
+        "sha256": "dbdfe2408791cff4604b73dee20dba490b69a674be806a0ed09ff7cba9f21a66"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/contract-next.json",
+        "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/ac-matrix.json",
+        "sha256": "1cc409585f0cfcc19347172a5d14de6ebdc267ac79b769dc85de0fbfa39ea01d"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/discovery/decisions.jsonl",
+        "sha256": "b1185a95ddbae5292e15a6cd300130f5f77ea799a1fbc79ef5a6dd9ca05fbb22"
+      },
+      {
+        "path": "runs/015-resource-time-buffer/review/round-1/review-spec-conformance.findings.json",
+        "sha256": "b9dbba7f5cb181ed048a6163105f9c1ac2d3fd924042fa2b986c76ebfb50f99a"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "tools_hint": null,
+  "max_turns": 40
+}

@@ -1,0 +1,23 @@
+{
+  "story": "015-resource-time-buffer",
+  "base": "bcde2fc54911923b736db1e650e81569ec6e37cd",
+  "status": "OK",
+  "accepted": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+    "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs",
+    "docs/agent-fleet-v4/runbook-delivery.md",
+    "runs/015-resource-time-buffer/baseline.json",
+    "runs/015-resource-time-buffer/prompts/be-writer-skeleton.json",
+    "runs/015-resource-time-buffer/prompts/be-writer-skeleton.md",
+    "runs/015-resource-time-buffer/prompts/test-designer.json",
+    "runs/015-resource-time-buffer/prompts/test-designer.md",
+    "runs/015-resource-time-buffer/skeleton-check.json",
+    "tools/fleet/baseline.js",
+    "tools/fleet/coverage-gaps.js",
+    "tools/fleet/skeleton-check.js"
+  ],
+  "violations": []
+}

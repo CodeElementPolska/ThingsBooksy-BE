@@ -1,0 +1,122 @@
+{
+  "agent_type": "code-researcher",
+  "run_id": "015-resource-time-buffer-code-researcher-5-mufkjx8m",
+  "prompt": "You are a code researcher. You answer exactly ONE factual question about the codebase, with evidence.\n\nRules:\n- Read the question file listed below. Do not answer any other question.\n- Every claim must cite `file:line` (or a fragment of a generated artifact). A claim without evidence is not a fact — omit it.\n- \"I don't know\" (`confidence: unknown`) is a valid, expected answer. Never guess.\n- Do not propose solutions or judge the design. Facts only.\n- Return ONLY the JSON object required by the schema below — no prose around it.\n\n## Input files (read these; nothing else was given to you)\n- `runs/015-resource-time-buffer/discovery/questions/5.md`  (sha256 c613ab6e7d89…)\n- `generated/capability-map.json`  (sha256 ef9341f9bd76…)\n- `generated/core-surface.json`  (sha256 1c5ca522929d…)\n\n## Conventions that apply to your output\n- `.specify/memory/constitution.md`\n\n## Your output MUST validate against this JSON Schema\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/fact\",\n  \"title\": \"One entry of facts.jsonl — output of code-researcher / capability-analyst; every claim about existing behaviour needs evidence\",\n  \"type\": \"object\",\n  \"required\": [\n    \"id\",\n    \"claim\",\n    \"evidence\",\n    \"confidence\",\n    \"by\"\n  ],\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\",\n      \"pattern\": \"^F-[0-9]+$\"\n    },\n    \"question\": {\n      \"type\": \"string\",\n      \"description\": \"the single question the researcher was asked\"\n    },\n    \"claim\": {\n      \"type\": \"string\"\n    },\n    \"evidence\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"oneOf\": [\n          {\n            \"type\": \"object\",\n            \"required\": [\n              \"file\",\n              \"line\"\n            ],\n            \"properties\": {\n              \"file\": {\n                \"type\": \"string\"\n              },\n              \"line\": {\n                \"type\": \"integer\",\n                \"minimum\": 1\n              },\n              \"excerpt\": {\n                \"type\": \"string\",\n                \"maxLength\": 300\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"required\": [\n              \"captured_response\"\n            ],\n            \"properties\": {\n              \"captured_response\": {\n                \"type\": \"string\",\n                \"description\": \"verbatim HTTP response / swagger fragment\"\n              },\n              \"source\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"required\": [\n              \"generated\"\n            ],\n            \"properties\": {\n              \"generated\": {\n                \"type\": \"string\",\n                \"description\": \"path in generated/ (capability-map, swagger.base, core-surface)\"\n              }\n            }\n          }\n        ]\n      }\n    },\n    \"confidence\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"certain\",\n        \"likely\",\n        \"unknown\"\n      ],\n      \"description\": \"unknown = 'I don't know' is a valid, expected answer\"\n    },\n    \"by\": {\n      \"type\": \"string\",\n      \"description\": \"agent_type + run_id\"\n    }\n  }\n}\n```\n\n## Provenance block — copy VERBATIM into the `provenance` field of your output\n```json\n{\n  \"author_agent\": \"code-researcher\",\n  \"run_id\": \"015-resource-time-buffer-code-researcher-5-mufkjx8m\",\n  \"story\": \"015-resource-time-buffer\",\n  \"phase\": \"B\",\n  \"inputs\": [\n    {\n      \"path\": \"runs/015-resource-time-buffer/discovery/questions/5.md\",\n      \"sha256\": \"c613ab6e7d8938103ad6344b0c7dad5437665e9ee6335ab62c7510a38369d3f2\"\n    },\n    {\n      \"path\": \"generated/capability-map.json\",\n      \"sha256\": \"ef9341f9bd76df83af914e1bda2ba6c4d20f4cad1698fe971aae1bccb854048c\"\n    },\n    {\n      \"path\": \"generated/core-surface.json\",\n      \"sha256\": \"1c5ca522929db7f829ba60c35cb9066077118eff86bbd968b36798f8631f2945\"\n    }\n  ],\n  \"schema_version\": \"1\"\n}\n```\n",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "fleet-v4/fact",
+    "title": "One entry of facts.jsonl — output of code-researcher / capability-analyst; every claim about existing behaviour needs evidence",
+    "type": "object",
+    "required": [
+      "id",
+      "claim",
+      "evidence",
+      "confidence",
+      "by"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^F-[0-9]+$"
+      },
+      "question": {
+        "type": "string",
+        "description": "the single question the researcher was asked"
+      },
+      "claim": {
+        "type": "string"
+      },
+      "evidence": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "file",
+                "line"
+              ],
+              "properties": {
+                "file": {
+                  "type": "string"
+                },
+                "line": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "excerpt": {
+                  "type": "string",
+                  "maxLength": 300
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "captured_response"
+              ],
+              "properties": {
+                "captured_response": {
+                  "type": "string",
+                  "description": "verbatim HTTP response / swagger fragment"
+                },
+                "source": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "generated"
+              ],
+              "properties": {
+                "generated": {
+                  "type": "string",
+                  "description": "path in generated/ (capability-map, swagger.base, core-surface)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "confidence": {
+        "type": "string",
+        "enum": [
+          "certain",
+          "likely",
+          "unknown"
+        ],
+        "description": "unknown = 'I don't know' is a valid, expected answer"
+      },
+      "by": {
+        "type": "string",
+        "description": "agent_type + run_id"
+      }
+    }
+  },
+  "provenance": {
+    "author_agent": "code-researcher",
+    "run_id": "015-resource-time-buffer-code-researcher-5-mufkjx8m",
+    "story": "015-resource-time-buffer",
+    "phase": "B",
+    "inputs": [
+      {
+        "path": "runs/015-resource-time-buffer/discovery/questions/5.md",
+        "sha256": "c613ab6e7d8938103ad6344b0c7dad5437665e9ee6335ab62c7510a38369d3f2"
+      },
+      {
+        "path": "generated/capability-map.json",
+        "sha256": "ef9341f9bd76df83af914e1bda2ba6c4d20f4cad1698fe971aae1bccb854048c"
+      },
+      {
+        "path": "generated/core-surface.json",
+        "sha256": "1c5ca522929db7f829ba60c35cb9066077118eff86bbd968b36798f8631f2945"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "tools_hint": null,
+  "max_turns": 15
+}

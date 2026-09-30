@@ -5,13 +5,17 @@ using System.Threading.Tasks;
 using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Respawn;
 using Respawn.Graph;
 using Testcontainers.PostgreSql;
+using ThingsBooksy.Shared.Abstractions.Messaging;
+using ThingsBooksy.Shared.IntegrationTests.Messaging;
 using Xunit;
 
 namespace ThingsBooksy.Shared.IntegrationTests;
@@ -40,6 +44,45 @@ public class ThingsBooksyWebAppFactory : WebApplicationFactory<Program>, IAsyncL
                 ["resources:module:enabled"] = "true",
             });
         });
+
+        builder.ConfigureTestServices(DecorateMessageBrokerWithRecorder);
+    }
+
+    /// <summary>
+    /// Log of every message published through <see cref="IMessageBroker"/> by the application
+    /// under test (recorded by <see cref="RecordingMessageBroker"/>). Call <c>Clear()</c> in Arrange.
+    /// </summary>
+    public PublishedMessageLog PublishedMessages => Services.GetRequiredService<PublishedMessageLog>();
+
+    /// <summary>
+    /// Replaces every <see cref="IMessageBroker"/> registration with a <see cref="RecordingMessageBroker"/>
+    /// that wraps the originally registered broker (same lifetime), so tests can observe published
+    /// messages without changing the application's messaging behaviour.
+    /// </summary>
+    private static void DecorateMessageBrokerWithRecorder(IServiceCollection services)
+    {
+        services.AddSingleton<PublishedMessageLog>();
+
+        var original = services.LastOrDefault(d => d.ServiceType == typeof(IMessageBroker) && !d.IsKeyedService);
+        if (original is null)
+            return;
+
+        services.RemoveAll<IMessageBroker>();
+        services.Add(new ServiceDescriptor(
+            typeof(IMessageBroker),
+            sp => new RecordingMessageBroker(CreateInnerBroker(sp, original), sp.GetRequiredService<PublishedMessageLog>()),
+            original.Lifetime));
+    }
+
+    private static IMessageBroker CreateInnerBroker(IServiceProvider sp, ServiceDescriptor original)
+    {
+        if (original.ImplementationInstance is IMessageBroker instance)
+            return instance;
+
+        if (original.ImplementationFactory is not null)
+            return (IMessageBroker)original.ImplementationFactory(sp);
+
+        return (IMessageBroker)ActivatorUtilities.CreateInstance(sp, original.ImplementationType!);
     }
 
     async Task IAsyncLifetime.InitializeAsync()

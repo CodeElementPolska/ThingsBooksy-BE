@@ -1,0 +1,19 @@
+{
+  "story": "015-resource-time-buffer",
+  "round": 3,
+  "base": "b7244d457f9e50f2c670cbe47693b1dd5097ddb9",
+  "tree": "1ce028a018dd5d9d0ba8796b44320ec5964b76af",
+  "head": "545348043941a2e1d3c5806b5874bb086c8a9885",
+  "diff_sha256": "d477262bd13a4aafa8fb3db5691ff13c4973cffd57c0f8e0ee51890a4551c94b",
+  "files": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyDefinitionFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyValueFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeReadPathTests.cs"
+  ],
+  "stats": {
+    "files": 3,
+    "insertions": 90,
+    "deletions": 51
+  },
+  "created_at": "2026-09-28T16:49:42.064Z"
+}

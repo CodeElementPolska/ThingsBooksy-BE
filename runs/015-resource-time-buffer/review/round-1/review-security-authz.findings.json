@@ -1,0 +1,98 @@
+{
+  "provenance": {
+    "author_agent": "review-security-authz",
+    "run_id": "015-resource-time-buffer-review-security-authz-mulfed84",
+    "story": "015-resource-time-buffer",
+    "phase": "C5",
+    "inputs": [
+      { "path": "runs/015-resource-time-buffer/review/round-1/diff.patch", "sha256": "b5797dd6a0dc0bce31201c5634cfe5db534e69ff60d827f924c219af396eea95" },
+      { "path": "runs/015-resource-time-buffer/review/round-1/scope.json", "sha256": "490c202fbfbe50612052cdb3cf83b854aa0f172646c901423fbc553cd492f069" },
+      { "path": "runs/015-resource-time-buffer/story.md", "sha256": "c9591ad203cf439589ed0abf7a2578d5cc3336eb89a91a38e8a67f82a2970d19" },
+      { "path": "specs/015-resource-time-buffer/spec.md", "sha256": "ad2fb57f801052932cf738cf37f52e5519a7dad05a7d32dee4a7f11b0337f93b" },
+      { "path": "runs/015-resource-time-buffer/contract-next.json", "sha256": "433a701276108c541bac93297e953a39cbd80181bfb17675616e2211325b5414" }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "review-security-authz",
+  "round": 1,
+  "scope": {
+    "diff_sha": "6cab1a3c121e0acf6ade50a097e25c59411301ae",
+    "files": [
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/DataProviders/CreateResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/UpdateResourceType/DataProviders/UpdateResourceTypeCommandDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/DataProviders/GetResourceInstancesQueryDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Events/Handlers/GroupDeletedHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceInstanceConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Extensions.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/ResourcesModule.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Messaging/Brokers/InMemoryMessageBroker.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Postgres/Extensions.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Postgres/PostgresUnitOfWork.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Postgres/Decorators/TransactionalCommandHandlerDecorator.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Commands/Extensions.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Commands/CommandDispatcher.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Extensions.cs",
+      "backend/src/Bootstrapper/ThingsBooksy.Bootstrapper/Program.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      ".specify/memory/constitution.md"
+    ]
+  },
+  "findings": [
+    {
+      "id": "review-security-authz-1-1",
+      "reviewer": "review-security-authz",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Events/Handlers/GroupDeletedHandler.cs",
+      "line": 34,
+      "severity": "OPINION",
+      "type": "DATA_SAFETY",
+      "message": "Out of diff, and FR-011/DEC-5 deliberately leave it unchanged. After this story, schemas deleted through DELETE /resources/types/{id} are kept as rows 'for history and for a future restore feature' (spec edge cases). The unchanged GroupDeleted path still hard-deletes every resource_types row of the group, including those soft-deleted rows, because it uses IgnoreQueryFilters. The DB cascade also removes their property definitions. ManagementGroups has a RestoreManagementGroup feature, so after a group delete and restore the schema history in Resources is gone for good. Compared with the base branch nothing gets worse, since the schema was hard-deleted before. It does conflict with the owner rule 'everything deleted is a soft delete' (DEC-5), so it belongs on the owner's D-1 list as a follow-up.",
+      "evidence": "GroupDeletedHandler.cs:33-37: \"// Hard-delete all resource types for the group — DB cascade removes ResourcePropertyDefinitions\\n await _dbContext.ResourceTypes\\n .IgnoreQueryFilters()\\n .Where(x => x.GroupId == @event.GroupId)\\n .ExecuteDeleteAsync(cancellationToken);\"; ResourceTypeConfiguration.cs:19-22 \".HasMany(x => x.PropertyDefinitions)...OnDelete(DeleteBehavior.Cascade)\"",
+      "suggested_fix": "Open a follow-up story: make the GroupDeleted path soft-delete resource_types (ExecuteUpdateAsync setting DeletedAt/UpdatedAt with 'DeletedAt == null'), in the same way instances are handled at lines 25-31."
+    },
+    {
+      "id": "review-security-authz-1-2",
+      "reviewer": "review-security-authz",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs",
+      "line": 44,
+      "severity": "OPINION",
+      "type": "DATA_SAFETY",
+      "message": "The schema delete is written in two separate commits. SoftDeleteInstancesAsync uses ExecuteUpdateAsync, which commits at once when no transaction is open. resourceType.Delete(now) is persisted later by SaveChangesAsync. TransactionalCommandHandlerDecorator is not in effect for this handler: AddTransactionalDecorators() runs inside AddModularInfrastructure (Shared Infrastructure Extensions.cs:122) before module.Register (Program.cs:17-20). The explicit AddScoped registration in AddResourcesCore (Resources Core Extensions.cs:46) is therefore the last descriptor, and CommandDispatcher resolves that one with GetRequiredService. If SaveChangesAsync fails, the instances stay soft-deleted while the schema stays active and no event is published. No row is lost (it is recoverable through DeletedAt), and the ordering existed before this diff. Publication after commit is correct (FR-005). Side note: if the decorator is ever wired in, PublishAsync at line 51 would run inside the open transaction before PostgresUnitOfWork commits.",
+      "evidence": "DeleteResourceTypeCommandHandler.cs:44 \"await _dataProvider.SoftDeleteInstancesAsync(command.TypeId, now, cancellationToken);\" then :47-48 \"resourceType.Delete(now);\\n await _dataProvider.SaveChangesAsync(cancellationToken);\"; DeleteResourceTypeCommandDataProvider.cs:25-31 \".ExecuteUpdateAsync(...)\"; Shared Infrastructure Extensions.cs:122 \"services.AddTransactionalDecorators();\"; Program.cs:15-19 AddModularInfrastructure before module.Register; CommandDispatcher.cs:24 \"GetRequiredService<ICommandHandler<TCommand>>()\"",
+      "suggested_fix": "If atomicity is wanted, wrap both writes in one explicit transaction in the data provider (or fix the decorator registration order). Keep PublishAsync after the commit."
+    },
+    {
+      "id": "review-security-authz-1-3",
+      "reviewer": "review-security-authz",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs",
+      "line": 35,
+      "severity": "OPINION",
+      "type": "DATA_SAFETY",
+      "message": "The Up migration only swaps the unique index for a partial one and drops no data. Down recreates a non-partial unique index on (GroupId, Name). Once AC-9 has been used, a soft-deleted row and an active row share the same name, and the rollback fails. The only way to make it pass would be to delete historical rows. This is a rollback hazard, not a data-loss path in normal operation.",
+      "evidence": "Down(): \"migrationBuilder.CreateIndex(name: \\\"IX_resource_types_GroupId_Name\\\", schema: \\\"resources\\\", table: \\\"resource_types\\\", columns: new[] { \\\"GroupId\\\", \\\"Name\\\" }, unique: true);\"",
+      "suggested_fix": "Document in the migration or runbook that Down needs duplicate names among soft-deleted schemas to be resolved by hand first (for example by renaming them). Do not delete them."
+    }
+  ],
+  "summary": {
+    "blockers": 0,
+    "majors": 0,
+    "minors": 0,
+    "opinions": 3
+  }
+}

@@ -1,0 +1,1384 @@
+diff --git a/backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj b/backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj
+index 71b3fb7..347dc94 100644
+--- a/backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj
++++ b/backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ThingsBooksy.Modules.ManagementGroups.IntegrationTests.csproj
+@@ -15,6 +15,10 @@
+       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+     </PackageReference>
+     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
++    <PackageReference Include="coverlet.collector" Version="6.0.4">
++      <PrivateAssets>all</PrivateAssets>
++      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
++    </PackageReference>
+   </ItemGroup>
+ 
+   <ItemGroup>
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs
+index ba0a143..469655c 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceTypeConfiguration.cs
+@@ -14,7 +14,7 @@ internal class ResourceTypeConfiguration : IEntityTypeConfiguration<ResourceType
+         builder.Property(x => x.Description).HasMaxLength(2000);
+         builder.HasQueryFilter(x => x.DeletedAt == null);
+ 
+-        builder.HasIndex(t => new { t.GroupId, t.Name }).IsUnique();
++        builder.HasIndex(t => new { t.GroupId, t.Name }).IsUnique().HasFilter("\"DeletedAt\" IS NULL");
+ 
+         builder.HasMany(x => x.PropertyDefinitions)
+             .WithOne()
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs
+index d5963f4..298f1bd 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs
+@@ -4,6 +4,8 @@ using System.Threading.Tasks;
+ using ThingsBooksy.Modules.Resources.Core.Domain;
+ using ThingsBooksy.Modules.Resources.Core.Exceptions;
+ using ThingsBooksy.Shared.Abstractions.Commands;
++using ThingsBooksy.Shared.Abstractions.Events.Resources;
++using ThingsBooksy.Shared.Abstractions.Messaging;
+ using ThingsBooksy.Shared.Abstractions.Time;
+ 
+ namespace ThingsBooksy.Modules.Resources.Core.Features.CreateResourceInstance;
+@@ -12,11 +14,16 @@ internal sealed class CreateResourceInstanceCommandHandler : ICommandHandler<Cre
+ {
+     private readonly ICreateResourceInstanceCommandDataProvider _dataProvider;
+     private readonly IClock _clock;
++    private readonly IMessageBroker _messageBroker;
+ 
+-    public CreateResourceInstanceCommandHandler(ICreateResourceInstanceCommandDataProvider dataProvider, IClock clock)
++    public CreateResourceInstanceCommandHandler(
++        ICreateResourceInstanceCommandDataProvider dataProvider,
++        IClock clock,
++        IMessageBroker messageBroker)
+     {
+         _dataProvider = dataProvider;
+         _clock = clock;
++        _messageBroker = messageBroker;
+     }
+ 
+     public async Task<Guid> HandleAsync(CreateResourceInstanceCommand command, CancellationToken cancellationToken = default)
+@@ -76,6 +83,7 @@ internal sealed class CreateResourceInstanceCommandHandler : ICommandHandler<Cre
+ 
+         await _dataProvider.AddResourceInstanceAsync(instance, cancellationToken);
+         await _dataProvider.SaveChangesAsync(cancellationToken);
++        await _messageBroker.PublishAsync(new ResourceInstanceCreatedEvent(instance.Id, instance.ResourceTypeId), cancellationToken);
+ 
+         return instance.Id;
+     }
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs
+index 8e23a8a..ac33145 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceType/CreateResourceTypeCommandHandler.cs
+@@ -4,6 +4,8 @@ using System.Threading.Tasks;
+ using ThingsBooksy.Modules.Resources.Core.Domain;
+ using ThingsBooksy.Modules.Resources.Core.Exceptions;
+ using ThingsBooksy.Shared.Abstractions.Commands;
++using ThingsBooksy.Shared.Abstractions.Events.Resources;
++using ThingsBooksy.Shared.Abstractions.Messaging;
+ using ThingsBooksy.Shared.Abstractions.Time;
+ 
+ namespace ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
+@@ -12,11 +14,16 @@ internal sealed class CreateResourceTypeCommandHandler : ICommandHandler<CreateR
+ {
+     private readonly ICreateResourceTypeCommandDataProvider _dataProvider;
+     private readonly IClock _clock;
++    private readonly IMessageBroker _messageBroker;
+ 
+-    public CreateResourceTypeCommandHandler(ICreateResourceTypeCommandDataProvider dataProvider, IClock clock)
++    public CreateResourceTypeCommandHandler(
++        ICreateResourceTypeCommandDataProvider dataProvider,
++        IClock clock,
++        IMessageBroker messageBroker)
+     {
+         _dataProvider = dataProvider;
+         _clock = clock;
++        _messageBroker = messageBroker;
+     }
+ 
+     public async Task<Guid> HandleAsync(CreateResourceTypeCommand command, CancellationToken cancellationToken = default)
+@@ -48,6 +55,7 @@ internal sealed class CreateResourceTypeCommandHandler : ICommandHandler<CreateR
+ 
+         await _dataProvider.AddResourceTypeAsync(resourceType, cancellationToken);
+         await _dataProvider.SaveChangesAsync(cancellationToken);
++        await _messageBroker.PublishAsync(new ResourceSchemaCreatedEvent(resourceType.Id, resourceType.GroupId), cancellationToken);
+ 
+         return resourceType.Id;
+     }
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs
+index 158bcca..dec2c83 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceInstance/DeleteResourceInstanceCommandHandler.cs
+@@ -2,6 +2,8 @@ using System.Threading;
+ using System.Threading.Tasks;
+ using ThingsBooksy.Modules.Resources.Core.Exceptions;
+ using ThingsBooksy.Shared.Abstractions.Commands;
++using ThingsBooksy.Shared.Abstractions.Events.Resources;
++using ThingsBooksy.Shared.Abstractions.Messaging;
+ using ThingsBooksy.Shared.Abstractions.Time;
+ 
+ namespace ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceInstance;
+@@ -10,11 +12,16 @@ internal sealed class DeleteResourceInstanceCommandHandler : ICommandHandler<Del
+ {
+     private readonly IDeleteResourceInstanceCommandDataProvider _dataProvider;
+     private readonly IClock _clock;
++    private readonly IMessageBroker _messageBroker;
+ 
+-    public DeleteResourceInstanceCommandHandler(IDeleteResourceInstanceCommandDataProvider dataProvider, IClock clock)
++    public DeleteResourceInstanceCommandHandler(
++        IDeleteResourceInstanceCommandDataProvider dataProvider,
++        IClock clock,
++        IMessageBroker messageBroker)
+     {
+         _dataProvider = dataProvider;
+         _clock = clock;
++        _messageBroker = messageBroker;
+     }
+ 
+     public async Task HandleAsync(DeleteResourceInstanceCommand command, CancellationToken cancellationToken = default)
+@@ -32,5 +39,6 @@ internal sealed class DeleteResourceInstanceCommandHandler : ICommandHandler<Del
+         instance.Delete(_clock.CurrentDate());
+ 
+         await _dataProvider.SaveChangesAsync(cancellationToken);
++        await _messageBroker.PublishAsync(new ResourceInstanceDeletedEvent(instance.Id, instance.ResourceTypeId), cancellationToken);
+     }
+ }
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs
+index c1d0c10..d89966d 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/DeleteResourceTypeCommandDataProvider.cs
+@@ -30,9 +30,6 @@ internal sealed class DeleteResourceTypeCommandDataProvider : IDeleteResourceTyp
+                 .SetProperty(x => x.UpdatedAt, now),
+                 ct);
+ 
+-    public void RemoveResourceType(ResourceType resourceType)
+-        => _dbContext.ResourceTypes.Remove(resourceType);
+-
+     public Task SaveChangesAsync(CancellationToken ct)
+         => _dbContext.SaveChangesAsync(ct);
+ }
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs
+index a5c2021..c98eb53 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DataProviders/IDeleteResourceTypeCommandDataProvider.cs
+@@ -12,6 +12,5 @@ internal interface IDeleteResourceTypeCommandDataProvider : IDataProvider
+     Task<ResourceType?> GetResourceTypeAsync(Guid typeId, CancellationToken ct);
+     Task<GroupReadModel?> GetGroupAsync(Guid groupId, CancellationToken ct);
+     Task SoftDeleteInstancesAsync(Guid typeId, DateTime now, CancellationToken ct);
+-    void RemoveResourceType(ResourceType resourceType);
+     Task SaveChangesAsync(CancellationToken ct);
+ }
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs
+index 91f0f9f..79c32f3 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceType/DeleteResourceTypeCommandHandler.cs
+@@ -3,6 +3,8 @@ using System.Threading;
+ using System.Threading.Tasks;
+ using ThingsBooksy.Modules.Resources.Core.Exceptions;
+ using ThingsBooksy.Shared.Abstractions.Commands;
++using ThingsBooksy.Shared.Abstractions.Events.Resources;
++using ThingsBooksy.Shared.Abstractions.Messaging;
+ using ThingsBooksy.Shared.Abstractions.Time;
+ 
+ namespace ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceType;
+@@ -11,11 +13,16 @@ internal sealed class DeleteResourceTypeCommandHandler : ICommandHandler<DeleteR
+ {
+     private readonly IDeleteResourceTypeCommandDataProvider _dataProvider;
+     private readonly IClock _clock;
++    private readonly IMessageBroker _messageBroker;
+ 
+-    public DeleteResourceTypeCommandHandler(IDeleteResourceTypeCommandDataProvider dataProvider, IClock clock)
++    public DeleteResourceTypeCommandHandler(
++        IDeleteResourceTypeCommandDataProvider dataProvider,
++        IClock clock,
++        IMessageBroker messageBroker)
+     {
+         _dataProvider = dataProvider;
+         _clock = clock;
++        _messageBroker = messageBroker;
+     }
+ 
+     public async Task HandleAsync(DeleteResourceTypeCommand command, CancellationToken cancellationToken = default)
+@@ -30,12 +37,17 @@ internal sealed class DeleteResourceTypeCommandHandler : ICommandHandler<DeleteR
+         if (group is null || group.OwnerId != command.RequesterId)
+             throw new ResourcesForbiddenException("Only the group owner may delete a resource type.");
+ 
+-        // Cascade soft-delete all instances of this type before hard-deleting the type.
++        var now = _clock.CurrentDate();
++
++        // Cascade soft-delete all instances of this type.
+         // ExecuteUpdateAsync is a bulk operation; zero rows affected is a no-op (idempotent).
+-        await _dataProvider.SoftDeleteInstancesAsync(command.TypeId, _clock.CurrentDate(), cancellationToken);
++        await _dataProvider.SoftDeleteInstancesAsync(command.TypeId, now, cancellationToken);
+ 
+-        // Hard-delete the resource type. EF cascade removes ResourcePropertyDefinitions.
+-        _dataProvider.RemoveResourceType(resourceType);
++        // Soft-delete the resource type; its property definitions stay and are hidden with it.
++        resourceType.Delete(now);
+         await _dataProvider.SaveChangesAsync(cancellationToken);
++
++        // Only the schema event is published; consumers cascade to instances by SchemaId.
++        await _messageBroker.PublishAsync(new ResourceSchemaDeletedEvent(resourceType.Id, resourceType.GroupId), cancellationToken);
+     }
+ }
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs
+new file mode 100644
+index 0000000..4482b15
+--- /dev/null
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs
+@@ -0,0 +1,45 @@
++using System;
++using System.Threading.Tasks;
++using Microsoft.Extensions.DependencyInjection;
++using ThingsBooksy.Modules.Resources.Core.DAL;
++using ThingsBooksy.Modules.Resources.Core.Domain;
++using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceInstance;
++using ThingsBooksy.Shared.IntegrationTests;
++
++namespace ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
++
++/// <summary>
++/// Inserts ResourceInstance rows directly into the resources schema through
++/// <see cref="ResourceInstance.Create"/> and EF Core — Arrange-phase preconditions that must not
++/// depend on POST /resources/instances.
++/// </summary>
++public sealed class ResourcesResourceInstanceFactory
++{
++    private readonly ThingsBooksyWebAppFactory _factory;
++
++    public ResourcesResourceInstanceFactory(ThingsBooksyWebAppFactory factory)
++        => _factory = factory;
++
++    internal async Task<ResourceInstance> CreateResourceInstanceAsync(
++        ResourceType resourceType,
++        Guid ownerId,
++        string name,
++        string? description = null)
++    {
++        var command = new CreateResourceInstanceCommand(
++            resourceType.Id,
++            ownerId,
++            name,
++            description,
++            Array.Empty<PropertyValueInput>());
++
++        var instance = ResourceInstance.Create(command, resourceType.GroupId, DateTime.UtcNow);
++
++        using var scope = _factory.Services.CreateScope();
++        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
++        db.ResourceInstances.Add(instance);
++        await db.SaveChangesAsync();
++
++        return instance;
++    }
++}
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs
+new file mode 100644
+index 0000000..68c774e
+--- /dev/null
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceTypeFactory.cs
+@@ -0,0 +1,45 @@
++using System;
++using System.Threading.Tasks;
++using Microsoft.Extensions.DependencyInjection;
++using ThingsBooksy.Modules.Resources.Core.DAL;
++using ThingsBooksy.Modules.Resources.Core.Domain;
++using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
++using ThingsBooksy.Shared.IntegrationTests;
++
++namespace ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
++
++/// <summary>
++/// Inserts ResourceType rows directly into the resources schema through
++/// <see cref="ResourceType.Create"/> and EF Core — Arrange-phase preconditions that must not
++/// depend on POST /resources/types.
++/// </summary>
++public sealed class ResourcesResourceTypeFactory
++{
++    private readonly ThingsBooksyWebAppFactory _factory;
++
++    public ResourcesResourceTypeFactory(ThingsBooksyWebAppFactory factory)
++        => _factory = factory;
++
++    internal async Task<ResourceType> CreateResourceTypeAsync(
++        Guid groupId,
++        Guid ownerId,
++        string name,
++        string? description = null)
++    {
++        var command = new CreateResourceTypeCommand(
++            groupId,
++            ownerId,
++            name,
++            description,
++            Array.Empty<PropertyDefinitionInput>());
++
++        var resourceType = ResourceType.Create(command, DateTime.UtcNow);
++
++        using var scope = _factory.Services.CreateScope();
++        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
++        db.ResourceTypes.Add(resourceType);
++        await db.SaveChangesAsync();
++
++        return resourceType;
++    }
++}
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs
+index fce1f91..9fc1b2b 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs
+@@ -167,6 +167,39 @@ public class ResourcesTestClient
+             .FirstOrDefaultAsync(x => x.Id == id);
+     }
+ 
++    /// <summary>
++    /// Unfiltered read (IgnoreQueryFilters): returns the row even when it is soft-deleted, so the
++    /// caller can assert on <c>DeletedAt</c>. Same query as <see cref="GetResourceTypeFromDbAsync"/>,
++    /// named explicitly for soft-delete assertions.
++    /// </summary>
++    internal Task<ResourceType?> GetResourceTypeFromDbIgnoringFiltersAsync(Guid id)
++        => GetResourceTypeFromDbAsync(id);
++
++    /// <summary>
++    /// Filtered read — deliberately WITHOUT IgnoreQueryFilters. Returns null for a soft-deleted row.
++    /// Used only to prove that a soft-deleted schema is visible exclusively through IgnoreQueryFilters.
++    /// </summary>
++    internal async Task<ResourceType?> GetResourceTypeFromDbRespectingQueryFiltersAsync(Guid id)
++    {
++        using var scope = _factory.Services.CreateScope();
++        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
++        return await db.ResourceTypes
++            .FirstOrDefaultAsync(x => x.Id == id);
++    }
++
++    /// <summary>
++    /// Unfiltered read of all ResourceType rows of a group with the given name (active and soft-deleted).
++    /// </summary>
++    internal async Task<List<ResourceType>> GetResourceTypesByGroupAndNameFromDbIgnoringFiltersAsync(Guid groupId, string name)
++    {
++        using var scope = _factory.Services.CreateScope();
++        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
++        return await db.ResourceTypes
++            .IgnoreQueryFilters()
++            .Where(x => x.GroupId == groupId && x.Name == name)
++            .ToListAsync();
++    }
++
+     internal async Task<List<ResourcePropertyDefinition>> GetResourcePropertyDefinitionsFromDbAsync(Guid resourceTypeId)
+     {
+         using var scope = _factory.Services.CreateScope();
+@@ -297,6 +330,12 @@ public class ResourcesTestClient
+             .ToListAsync();
+     }
+ 
++    /// <summary>
++    /// Unfiltered read of all instances of a resource type, including soft-deleted ones.
++    /// </summary>
++    internal Task<List<ResourceInstance>> GetInstancesFromDbIgnoringFiltersAsync(Guid resourceTypeId)
++        => GetResourceInstancesByTypeFromDbAsync(resourceTypeId);
++
+     internal async Task<List<ResourceInstance>> GetResourceInstancesByGroupFromDbAsync(Guid groupId)
+     {
+         using var scope = _factory.Services.CreateScope();
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs
+new file mode 100644
+index 0000000..48a2aca
+--- /dev/null
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs
+@@ -0,0 +1,168 @@
++using System;
++using System.Linq;
++using System.Net;
++using System.Threading.Tasks;
++using Microsoft.EntityFrameworkCore;
++using Microsoft.Extensions.DependencyInjection;
++using ThingsBooksy.Modules.Resources.Core.DAL;
++using ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
++using ThingsBooksy.Shared.Abstractions.Events.Resources;
++using ThingsBooksy.Shared.IntegrationTests;
++using Xunit;
++
++namespace ThingsBooksy.Modules.Resources.IntegrationTests.Events;
++
++/// <summary>
++/// Second-pass (sighted) tests for story 015: deleting an already soft-deleted schema or instance
++/// goes through the global query filter, returns the existing "not found" domain error (HTTP 400)
++/// and publishes no lifecycle event (spec edge case, ASM-19). Not covered by an AC — tagged
++/// UNSPECIFIED for the owner's decision at the gate.
++///
++/// Arrange = EF seeding (factories + soft delete through the domain method), Act = HTTP,
++/// Assert = DB re-read (IgnoreQueryFilters) plus the recorded messages.
++/// </summary>
++[Collection("IntegrationTestCollection")]
++public class ResourceLifecycleEventNoPublishTests : IntegrationTestBase
++{
++    private readonly ResourcesUserFactory _users;
++    private readonly ResourcesGroupReadModelFactory _groups;
++    private readonly ResourcesResourceTypeFactory _types;
++    private readonly ResourcesResourceInstanceFactory _instances;
++
++    public ResourceLifecycleEventNoPublishTests(ThingsBooksyWebAppFactory factory) : base(factory)
++    {
++        _users = new ResourcesUserFactory(factory);
++        _groups = new ResourcesGroupReadModelFactory(factory);
++        _types = new ResourcesResourceTypeFactory(factory);
++        _instances = new ResourcesResourceInstanceFactory(factory);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // UNSPECIFIED (ASM-19) — DELETE /resources/types/{id} on an already soft-deleted schema
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "UNSPECIFIED")]
++    public async Task DeleteResourceType_AlreadyDeleted_Returns400AndPublishesNothing()
++    {
++        // Arrange — schema with one instance, both already soft-deleted in the DB
++        var owner = await _users.CreateUserAsync("evt_nopub_deletert_deleted_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Canoe");
++        var instance = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Canoe 1");
++        await SoftDeleteResourceTypeAndInstancesInDbAsync(resourceType.Id);
++
++        var client = new ResourcesTestClient(Factory, owner);
++        var typeBefore = await client.GetResourceTypeFromDbAsync(resourceType.Id);
++        var instanceBefore = await client.GetResourceInstanceFromDbAsync(instance.Id);
++        Assert.NotNull(typeBefore?.DeletedAt);
++        Assert.NotNull(instanceBefore?.DeletedAt);
++        Factory.PublishedMessages.Clear();
++
++        // Act
++        var response = await client.DeleteResourceTypeAsync(resourceType.Id);
++
++        // Assert — the query filter hides the row → existing "not found" domain error → 400
++        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
++
++        // Assert — the rows are untouched: DeletedAt / UpdatedAt keep the first deletion's values
++        var typeAfter = await client.GetResourceTypeFromDbAsync(resourceType.Id);
++        Assert.NotNull(typeAfter);
++        Assert.Equal(typeBefore!.DeletedAt, typeAfter.DeletedAt);
++        Assert.Equal(typeBefore.UpdatedAt, typeAfter.UpdatedAt);
++
++        var instanceAfter = await client.GetResourceInstanceFromDbAsync(instance.Id);
++        Assert.NotNull(instanceAfter);
++        Assert.Equal(instanceBefore!.DeletedAt, instanceAfter.DeletedAt);
++        Assert.Equal(instanceBefore.UpdatedAt, instanceAfter.UpdatedAt);
++
++        // Assert — no lifecycle event is published for the schema or its instance
++        Assert.Empty(Factory.PublishedMessages.OfType<ResourceSchemaDeletedEvent>());
++        Assert.Empty(Factory.PublishedMessages.OfType<ResourceInstanceDeletedEvent>());
++        Assert.DoesNotContain(
++            Factory.PublishedMessages.Published,
++            m => m.GetType().Namespace == typeof(ResourceSchemaDeletedEvent).Namespace);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // UNSPECIFIED (ASM-19) — DELETE /resources/instances/{id} on an already soft-deleted instance
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "UNSPECIFIED")]
++    public async Task DeleteResourceInstance_AlreadyDeleted_Returns400AndPublishesNothing()
++    {
++        // Arrange — active schema, instance already soft-deleted in the DB
++        var owner = await _users.CreateUserAsync("evt_nopub_deleteri_deleted_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Scooter");
++        var instance = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Scooter 1");
++        await SoftDeleteResourceInstanceInDbAsync(instance.Id);
++
++        var client = new ResourcesTestClient(Factory, owner);
++        var instanceBefore = await client.GetResourceInstanceFromDbAsync(instance.Id);
++        Assert.NotNull(instanceBefore?.DeletedAt);
++        Factory.PublishedMessages.Clear();
++
++        // Act
++        var response = await client.DeleteResourceInstanceAsync(instance.Id);
++
++        // Assert — the query filter hides the row → existing "not found" domain error → 400
++        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
++
++        // Assert — the row is untouched: DeletedAt / UpdatedAt keep the first deletion's values
++        var instanceAfter = await client.GetResourceInstanceFromDbAsync(instance.Id);
++        Assert.NotNull(instanceAfter);
++        Assert.Equal(instanceBefore!.DeletedAt, instanceAfter.DeletedAt);
++        Assert.Equal(instanceBefore.UpdatedAt, instanceAfter.UpdatedAt);
++
++        // Assert — the schema stays active
++        var typeAfter = await client.GetResourceTypeFromDbAsync(resourceType.Id);
++        Assert.NotNull(typeAfter);
++        Assert.Null(typeAfter.DeletedAt);
++
++        // Assert — no lifecycle event is published
++        Assert.Empty(Factory.PublishedMessages.OfType<ResourceInstanceDeletedEvent>());
++        Assert.Empty(Factory.PublishedMessages.OfType<ResourceSchemaDeletedEvent>());
++        Assert.DoesNotContain(
++            Factory.PublishedMessages.Published,
++            m => m.GetType().Namespace == typeof(ResourceInstanceDeletedEvent).Namespace);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // Arrange helpers — EF seeding of the soft-deleted state through the domain Delete(now) methods
++    // -----------------------------------------------------------------------------------------
++
++    private async Task SoftDeleteResourceTypeAndInstancesInDbAsync(Guid typeId)
++    {
++        var now = DateTime.UtcNow.AddMinutes(-5);
++
++        using var scope = Factory.Services.CreateScope();
++        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
++
++        var resourceType = await db.ResourceTypes.IgnoreQueryFilters().SingleAsync(t => t.Id == typeId);
++        resourceType.Delete(now);
++
++        var instances = await db.ResourceInstances
++            .IgnoreQueryFilters()
++            .Where(i => i.ResourceTypeId == typeId)
++            .ToListAsync();
++        foreach (var instance in instances)
++            instance.Delete(now);
++
++        await db.SaveChangesAsync();
++    }
++
++    private async Task SoftDeleteResourceInstanceInDbAsync(Guid instanceId)
++    {
++        var now = DateTime.UtcNow.AddMinutes(-5);
++
++        using var scope = Factory.Services.CreateScope();
++        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
++
++        var instance = await db.ResourceInstances.IgnoreQueryFilters().SingleAsync(i => i.Id == instanceId);
++        instance.Delete(now);
++
++        await db.SaveChangesAsync();
++    }
++}
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs
+new file mode 100644
+index 0000000..a0f5b93
+--- /dev/null
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs
+@@ -0,0 +1,283 @@
++using System;
++using System.Linq;
++using System.Net;
++using System.Net.Http.Json;
++using System.Reflection;
++using System.Text.Json;
++using System.Threading.Tasks;
++using ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
++using ThingsBooksy.Shared.Abstractions.Events;
++using ThingsBooksy.Shared.Abstractions.Events.Resources;
++using ThingsBooksy.Shared.IntegrationTests;
++using Xunit;
++
++namespace ThingsBooksy.Modules.Resources.IntegrationTests.Events;
++
++/// <summary>
++/// Acceptance tests for the Resources lifecycle events (story 015, User Story 1: AC-3..AC-7).
++///
++/// Arrange = EF seeding through factories, Act = HTTP, Assert = DB re-read (IgnoreQueryFilters)
++/// plus the messages recorded by the test-side <c>RecordingMessageBroker</c>
++/// (<see cref="ThingsBooksyWebAppFactory.PublishedMessages"/>).
++/// </summary>
++[Collection("IntegrationTestCollection")]
++public class ResourceLifecycleEventTests : IntegrationTestBase
++{
++    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
++
++    private readonly ResourcesUserFactory _users;
++    private readonly ResourcesGroupReadModelFactory _groups;
++    private readonly ResourcesResourceTypeFactory _types;
++    private readonly ResourcesResourceInstanceFactory _instances;
++
++    public ResourceLifecycleEventTests(ThingsBooksyWebAppFactory factory) : base(factory)
++    {
++        _users = new ResourcesUserFactory(factory);
++        _groups = new ResourcesGroupReadModelFactory(factory);
++        _types = new ResourcesResourceTypeFactory(factory);
++        _instances = new ResourcesResourceInstanceFactory(factory);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // AC-3 — POST /resources/types publishes ResourceSchemaCreatedEvent(SchemaId, GroupId)
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "AC-3")]
++    public async Task CreateResourceType_WithValidData_PublishesResourceSchemaCreatedEvent()
++    {
++        // Arrange
++        var owner = await _users.CreateUserAsync("evt_creatert_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var client = new ResourcesTestClient(Factory, owner);
++        Factory.PublishedMessages.Clear();
++
++        // Act
++        var response = await client.CreateResourceTypeAsync(group.Id, "Meeting Room", "Schema with an event");
++
++        // Assert — 201 with the new id
++        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
++        var body = await response.Content.ReadFromJsonAsync<CreateResourceTypeResponse>(JsonOptions);
++        Assert.NotNull(body);
++        Assert.NotEqual(Guid.Empty, body.Id);
++
++        // Assert — the row is persisted
++        var resourceType = await client.GetResourceTypeFromDbIgnoringFiltersAsync(body.Id);
++        Assert.NotNull(resourceType);
++        Assert.Equal(group.Id, resourceType.GroupId);
++        Assert.Null(resourceType.DeletedAt);
++
++        // Assert — exactly one ResourceSchemaCreatedEvent carrying the new schema id and its group id
++        var created = Factory.PublishedMessages.OfType<ResourceSchemaCreatedEvent>();
++        var evt = Assert.Single(created);
++        Assert.Equal(resourceType.Id, evt.SchemaId);
++        Assert.Equal(resourceType.GroupId, evt.GroupId);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // AC-4 — POST /resources/instances publishes ResourceInstanceCreatedEvent(ResourceId, SchemaId)
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "AC-4")]
++    public async Task CreateResourceInstance_WithValidData_PublishesResourceInstanceCreatedEvent()
++    {
++        // Arrange
++        var owner = await _users.CreateUserAsync("evt_createri_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Desk");
++        var client = new ResourcesTestClient(Factory, owner);
++        Factory.PublishedMessages.Clear();
++
++        // Act
++        var response = await client.CreateResourceInstanceAsync(resourceType.Id, "Desk 1");
++
++        // Assert — 201 with the new id
++        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
++        var body = await response.Content.ReadFromJsonAsync<CreateResourceInstanceResponse>(JsonOptions);
++        Assert.NotNull(body);
++        Assert.NotEqual(Guid.Empty, body.Id);
++
++        // Assert — the row is persisted under the seeded schema
++        var instance = await client.GetResourceInstanceFromDbAsync(body.Id);
++        Assert.NotNull(instance);
++        Assert.Equal(resourceType.Id, instance.ResourceTypeId);
++        Assert.Null(instance.DeletedAt);
++
++        // Assert — exactly one ResourceInstanceCreatedEvent carrying the new instance id and its schema id
++        var created = Factory.PublishedMessages.OfType<ResourceInstanceCreatedEvent>();
++        var evt = Assert.Single(created);
++        Assert.Equal(instance.Id, evt.ResourceId);
++        Assert.Equal(instance.ResourceTypeId, evt.SchemaId);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // AC-5 — DELETE /resources/types/{id} with instances: exactly one ResourceSchemaDeletedEvent,
++    //        no ResourceInstanceDeletedEvent for the instances soft-deleted as a side effect
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "AC-5")]
++    public async Task DeleteResourceType_WithInstances_PublishesExactlyOneResourceSchemaDeletedEvent()
++    {
++        // Arrange — schema with 2 instances
++        var owner = await _users.CreateUserAsync("evt_deletert_inst_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Car");
++        var instanceA = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Car A");
++        var instanceB = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Car B");
++        var client = new ResourcesTestClient(Factory, owner);
++        Factory.PublishedMessages.Clear();
++
++        // Act
++        var response = await client.DeleteResourceTypeAsync(resourceType.Id);
++
++        // Assert — 204
++        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
++
++        // Assert — the side effect happened: both instances are soft-deleted in the DB
++        var instancesAfter = await client.GetInstancesFromDbIgnoringFiltersAsync(resourceType.Id);
++        Assert.Equal(2, instancesAfter.Count);
++        Assert.All(instancesAfter, i => Assert.NotNull(i.DeletedAt));
++
++        // Assert — exactly one ResourceSchemaDeletedEvent(SchemaId, GroupId)
++        var schemaDeleted = Factory.PublishedMessages.OfType<ResourceSchemaDeletedEvent>();
++        var evt = Assert.Single(schemaDeleted);
++        Assert.Equal(resourceType.Id, evt.SchemaId);
++        Assert.Equal(group.Id, evt.GroupId);
++
++        // Assert — no per-instance events for the instances deleted as a side effect
++        var instanceDeleted = Factory.PublishedMessages.OfType<ResourceInstanceDeletedEvent>();
++        Assert.DoesNotContain(instanceDeleted, e => e.ResourceId == instanceA.Id);
++        Assert.DoesNotContain(instanceDeleted, e => e.ResourceId == instanceB.Id);
++        Assert.Empty(instanceDeleted);
++    }
++
++    [Fact]
++    [Trait("AC", "AC-5")]
++    public async Task DeleteResourceType_WithoutInstances_PublishesOneResourceSchemaDeletedEvent()
++    {
++        // Arrange — schema with no instances (N = 0)
++        var owner = await _users.CreateUserAsync("evt_deletert_noinst_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Projector");
++        var client = new ResourcesTestClient(Factory, owner);
++        Factory.PublishedMessages.Clear();
++
++        // Act
++        var response = await client.DeleteResourceTypeAsync(resourceType.Id);
++
++        // Assert — 204
++        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
++
++        // Assert — exactly one ResourceSchemaDeletedEvent(SchemaId, GroupId), nothing per instance
++        var evt = Assert.Single(Factory.PublishedMessages.OfType<ResourceSchemaDeletedEvent>());
++        Assert.Equal(resourceType.Id, evt.SchemaId);
++        Assert.Equal(group.Id, evt.GroupId);
++        Assert.Empty(Factory.PublishedMessages.OfType<ResourceInstanceDeletedEvent>());
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // AC-6 — DELETE /resources/instances/{id} publishes ResourceInstanceDeletedEvent(ResourceId, SchemaId)
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "AC-6")]
++    public async Task DeleteResourceInstance_Existing_PublishesResourceInstanceDeletedEvent()
++    {
++        // Arrange
++        var owner = await _users.CreateUserAsync("evt_deleteri_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Bike");
++        var instance = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Bike 1");
++        var client = new ResourcesTestClient(Factory, owner);
++        Factory.PublishedMessages.Clear();
++
++        // Act
++        var response = await client.DeleteResourceInstanceAsync(instance.Id);
++
++        // Assert — 204
++        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
++
++        // Assert — the instance is soft-deleted in the DB
++        var instanceAfter = await client.GetResourceInstanceFromDbAsync(instance.Id);
++        Assert.NotNull(instanceAfter);
++        Assert.NotNull(instanceAfter.DeletedAt);
++
++        // Assert — exactly one ResourceInstanceDeletedEvent carrying the instance id and its schema id
++        var evt = Assert.Single(Factory.PublishedMessages.OfType<ResourceInstanceDeletedEvent>());
++        Assert.Equal(instance.Id, evt.ResourceId);
++        Assert.Equal(resourceType.Id, evt.SchemaId);
++        Assert.Equal(instanceAfter.ResourceTypeId, evt.SchemaId);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // AC-7 — the events that leave Resources are the Shared.Abstractions/Events/Resources contracts
++    //        (public positional records implementing IEvent, Guid-only payloads) and nothing else
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "AC-7")]
++    public async Task PublishResourceEvents_ThroughLifecycleCommands_UseOnlySharedAbstractionsContracts()
++    {
++        // Arrange
++        var owner = await _users.CreateUserAsync("evt_contracts_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var client = new ResourcesTestClient(Factory, owner);
++        Factory.PublishedMessages.Clear();
++
++        // Act — the four lifecycle commands through HTTP
++        var createTypeResponse = await client.CreateResourceTypeAsync(group.Id, "Kayak");
++        Assert.Equal(HttpStatusCode.Created, createTypeResponse.StatusCode);
++        var typeId = (await createTypeResponse.Content.ReadFromJsonAsync<CreateResourceTypeResponse>(JsonOptions))!.Id;
++
++        var createInstanceResponse = await client.CreateResourceInstanceAsync(typeId, "Kayak 1");
++        Assert.Equal(HttpStatusCode.Created, createInstanceResponse.StatusCode);
++        var instanceId = (await createInstanceResponse.Content.ReadFromJsonAsync<CreateResourceInstanceResponse>(JsonOptions))!.Id;
++
++        var deleteInstanceResponse = await client.DeleteResourceInstanceAsync(instanceId);
++        Assert.Equal(HttpStatusCode.NoContent, deleteInstanceResponse.StatusCode);
++
++        var deleteTypeResponse = await client.DeleteResourceTypeAsync(typeId);
++        Assert.Equal(HttpStatusCode.NoContent, deleteTypeResponse.StatusCode);
++
++        // Assert — exactly the four contracts were published, one each
++        var published = Factory.PublishedMessages.Published;
++        var expectedTypes = new[]
++        {
++            typeof(ResourceSchemaCreatedEvent),
++            typeof(ResourceInstanceCreatedEvent),
++            typeof(ResourceInstanceDeletedEvent),
++            typeof(ResourceSchemaDeletedEvent),
++        };
++        Assert.Equal(expectedTypes.Length, published.Count);
++        Assert.Equal(
++            expectedTypes.Select(t => t.FullName).OrderBy(n => n),
++            published.Select(m => m.GetType().FullName).OrderBy(n => n));
++
++        // Assert — every published type is a Shared.Abstractions contract under Events/Resources,
++        //          a public positional record implementing IEvent with Guid-only parameters
++        foreach (var message in published)
++        {
++            var type = message.GetType();
++
++            Assert.Equal("ThingsBooksy.Shared.Abstractions", type.Assembly.GetName().Name);
++            Assert.Equal("ThingsBooksy.Shared.Abstractions.Events.Resources", type.Namespace);
++            Assert.True(type.IsPublic, $"{type.Name} must be public");
++            Assert.True(typeof(IEvent).IsAssignableFrom(type), $"{type.Name} must implement IEvent");
++            Assert.NotNull(type.GetMethod("<Clone>$", BindingFlags.Public | BindingFlags.Instance));
++
++            var ctor = Assert.Single(type.GetConstructors(), c => c.GetParameters().All(p => p.ParameterType != type));
++            var parameters = ctor.GetParameters();
++            Assert.Equal(2, parameters.Length);
++            Assert.All(parameters, p => Assert.Equal(typeof(Guid), p.ParameterType));
++        }
++
++        // Assert — payload values match the persisted rows
++        var schemaCreated = published.OfType<ResourceSchemaCreatedEvent>().Single();
++        Assert.Equal(new ResourceSchemaCreatedEvent(typeId, group.Id), schemaCreated);
++        Assert.Equal(new ResourceInstanceCreatedEvent(instanceId, typeId), published.OfType<ResourceInstanceCreatedEvent>().Single());
++        Assert.Equal(new ResourceInstanceDeletedEvent(instanceId, typeId), published.OfType<ResourceInstanceDeletedEvent>().Single());
++        Assert.Equal(new ResourceSchemaDeletedEvent(typeId, group.Id), published.OfType<ResourceSchemaDeletedEvent>().Single());
++    }
++}
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs
+new file mode 100644
+index 0000000..16b4421
+--- /dev/null
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/SoftDeleteResourceTypeTests.cs
+@@ -0,0 +1,139 @@
++using System;
++using System.Collections.Generic;
++using System.Linq;
++using System.Net;
++using System.Net.Http.Json;
++using System.Text.Json;
++using System.Threading.Tasks;
++using ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
++using ThingsBooksy.Shared.IntegrationTests;
++using Xunit;
++
++namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes;
++
++/// <summary>
++/// Acceptance tests for the schema soft delete (story 015, User Story 2: AC-8, AC-9).
++///
++/// Arrange = EF seeding through factories, Act = HTTP, Assert = DB re-read (with and without
++/// IgnoreQueryFilters) and the read endpoints.
++/// </summary>
++[Collection("IntegrationTestCollection")]
++public class SoftDeleteResourceTypeTests : IntegrationTestBase
++{
++    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
++
++    private record ResourceTypeListItem(Guid Id, Guid GroupId, string Name);
++
++    private readonly ResourcesUserFactory _users;
++    private readonly ResourcesGroupReadModelFactory _groups;
++    private readonly ResourcesResourceTypeFactory _types;
++    private readonly ResourcesResourceInstanceFactory _instances;
++
++    public SoftDeleteResourceTypeTests(ThingsBooksyWebAppFactory factory) : base(factory)
++    {
++        _users = new ResourcesUserFactory(factory);
++        _groups = new ResourcesGroupReadModelFactory(factory);
++        _types = new ResourcesResourceTypeFactory(factory);
++        _instances = new ResourcesResourceInstanceFactory(factory);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // AC-8 — DELETE /resources/types/{id}: 204, row kept with DeletedAt, hidden from every read path,
++    //        instances soft-deleted
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "AC-8")]
++    public async Task DeleteResourceType_AsOwnerWithInstances_SoftDeletesTypeAndHidesIt()
++    {
++        // Arrange — schema with 2 instances plus a second, untouched schema in the same group
++        var owner = await _users.CreateUserAsync("softdelrt_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Boat", "To be soft-deleted");
++        var otherType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Trailer");
++        var instanceA = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Boat A");
++        var instanceB = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Boat B");
++        var client = new ResourcesTestClient(Factory, owner);
++
++        // Act
++        var response = await client.DeleteResourceTypeAsync(resourceType.Id);
++
++        // Assert — 204 No Content
++        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
++
++        // Assert — the row remains in resources.resource_types with DeletedAt set (IgnoreQueryFilters)
++        var rowIgnoringFilters = await client.GetResourceTypeFromDbIgnoringFiltersAsync(resourceType.Id);
++        Assert.NotNull(rowIgnoringFilters);
++        Assert.NotNull(rowIgnoringFilters.DeletedAt);
++        Assert.Equal("Boat", rowIgnoringFilters.Name);
++        Assert.Equal(group.Id, rowIgnoringFilters.GroupId);
++
++        // Assert — the row is visible ONLY with IgnoreQueryFilters
++        var rowRespectingFilters = await client.GetResourceTypeFromDbRespectingQueryFiltersAsync(resourceType.Id);
++        Assert.Null(rowRespectingFilters);
++
++        // Assert — GET /resources/types/{id} returns 404
++        var getResponse = await client.GetResourceTypeAsync(resourceType.Id);
++        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
++
++        // Assert — GET /resources/types?groupId= no longer lists it (the other schema is still listed)
++        var listResponse = await client.GetResourceTypesAsync(group.Id);
++        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
++        var list = await listResponse.Content.ReadFromJsonAsync<List<ResourceTypeListItem>>(JsonOptions);
++        Assert.NotNull(list);
++        Assert.DoesNotContain(list, t => t.Id == resourceType.Id);
++        Assert.Contains(list, t => t.Id == otherType.Id);
++
++        // Assert — its instances are soft-deleted (rows kept, DeletedAt set)
++        var instances = await client.GetInstancesFromDbIgnoringFiltersAsync(resourceType.Id);
++        Assert.Equal(2, instances.Count);
++        Assert.Contains(instances, i => i.Id == instanceA.Id);
++        Assert.Contains(instances, i => i.Id == instanceB.Id);
++        Assert.All(instances, i => Assert.NotNull(i.DeletedAt));
++
++        // Assert — the other schema is untouched
++        var otherRow = await client.GetResourceTypeFromDbIgnoringFiltersAsync(otherType.Id);
++        Assert.NotNull(otherRow);
++        Assert.Null(otherRow.DeletedAt);
++    }
++
++    // -----------------------------------------------------------------------------------------
++    // AC-9 — the name of a soft-deleted schema can be reused in the same group (201 Created)
++    // -----------------------------------------------------------------------------------------
++
++    [Fact]
++    [Trait("AC", "AC-9")]
++    public async Task CreateResourceType_WithNameOfSoftDeletedType_Returns201AndKeepsDeletedRow()
++    {
++        // Arrange — schema "Sauna" in group G, deleted by the owner through the delete command
++        var owner = await _users.CreateUserAsync("softdelrt_reuse_owner@test.com");
++        var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var original = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Sauna");
++        var client = new ResourcesTestClient(Factory, owner);
++
++        var deleteResponse = await client.DeleteResourceTypeAsync(original.Id);
++        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
++
++        // Act — the owner creates a new schema with the same name in the same group
++        var response = await client.CreateResourceTypeAsync(group.Id, "Sauna");
++
++        // Assert — 201 Created with a new id
++        var rawBody = await response.Content.ReadAsStringAsync();
++        Assert.True(response.StatusCode == HttpStatusCode.Created,
++            $"Expected 201 but got {response.StatusCode}. Body: {rawBody}");
++        var body = JsonSerializer.Deserialize<CreateResourceTypeResponse>(rawBody, JsonOptions);
++        Assert.NotNull(body);
++        Assert.NotEqual(original.Id, body.Id);
++
++        // Assert — the DB holds exactly two "Sauna" rows in G: the soft-deleted original and the new active one
++        var rows = await client.GetResourceTypesByGroupAndNameFromDbIgnoringFiltersAsync(group.Id, "Sauna");
++        Assert.Equal(2, rows.Count);
++
++        var deletedRow = Assert.Single(rows, r => r.Id == original.Id);
++        Assert.NotNull(deletedRow.DeletedAt);
++
++        var activeRow = Assert.Single(rows, r => r.Id == body.Id);
++        Assert.Null(activeRow.DeletedAt);
++        Assert.Single(rows, r => r.DeletedAt is null);
++    }
++}
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs
+index 779cf30..140b9d4 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceTypes/UpdateDeleteResourceTypeTests.cs
+@@ -31,11 +31,15 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
+ 
+     private readonly ResourcesUserFactory _users;
+     private readonly ResourcesGroupReadModelFactory _groups;
++    private readonly ResourcesResourceTypeFactory _types;
++    private readonly ResourcesResourceInstanceFactory _instances;
+ 
+     public UpdateDeleteResourceTypeTests(ThingsBooksyWebAppFactory factory) : base(factory)
+     {
+         _users = new ResourcesUserFactory(factory);
+         _groups = new ResourcesGroupReadModelFactory(factory);
++        _types = new ResourcesResourceTypeFactory(factory);
++        _instances = new ResourcesResourceInstanceFactory(factory);
+     }
+ 
+     // -----------------------------------------------------------------------------------------
+@@ -163,32 +167,33 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
+     }
+ 
+     // -----------------------------------------------------------------------------------------
+-    // DELETE /resources/types/{id} — happy path: 204 + hard-delete verified in DB
++    // DELETE /resources/types/{id} — happy path: 204 + soft-delete verified in DB (story 015, AC-8)
+     // -----------------------------------------------------------------------------------------
+ 
+     [Fact]
+-    public async Task DeleteResourceType_AsOwner_Returns204AndRemovesFromDb()
++    [Trait("AC", "AC-8")]
++    public async Task DeleteResourceType_AsOwner_Returns204AndSoftDeletesInDb()
+     {
+-        // Arrange — create a type with no instances
++        // Arrange — a type with no instances, seeded through EF
+         var owner = await _users.CreateUserAsync("delrt_happy_owner@test.com");
+         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
++        var seeded = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Type To Delete", "Will be hidden");
+         var client = new ResourcesTestClient(Factory, owner);
+ 
+-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Type To Delete", "Will be gone");
+-
+         // Act
+-        var response = await client.DeleteResourceTypeAsync(typeId);
++        var response = await client.DeleteResourceTypeAsync(seeded.Id);
+ 
+         // Assert — 204 No Content
+         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+ 
+-        // Assert — hard-deleted: NOT found even with IgnoreQueryFilters()
+-        var resourceType = await client.GetResourceTypeFromDbAsync(typeId);
+-        Assert.Null(resourceType);
++        // Assert — hidden by the global query filter
++        var filtered = await client.GetResourceTypeFromDbRespectingQueryFiltersAsync(seeded.Id);
++        Assert.Null(filtered);
+ 
+-        // Assert — associated property definitions also removed (cascade)
+-        var definitions = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
+-        Assert.Empty(definitions);
++        // Assert — soft-deleted: row still present with IgnoreQueryFilters(), DeletedAt set
++        var resourceType = await client.GetResourceTypeFromDbIgnoringFiltersAsync(seeded.Id);
++        Assert.NotNull(resourceType);
++        Assert.NotNull(resourceType.DeletedAt);
+     }
+ 
+     // -----------------------------------------------------------------------------------------
+@@ -262,17 +267,19 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
+     // -----------------------------------------------------------------------------------------
+ 
+     [Fact]
+-    public async Task DeleteResourceType_CascadesToInstances()
++    [Trait("AC", "AC-8")]
++    public async Task DeleteResourceType_WithInstances_SoftDeletesTypeAndCascadesToInstances()
+     {
+-        // Arrange — create a type with 3 instances
++        // Arrange — a type with 3 instances, seeded through EF
+         var owner = await _users.CreateUserAsync("delrt_cascade_owner@test.com");
+         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
+         var client = new ResourcesTestClient(Factory, owner);
+ 
+-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Type With Instances");
+-        var instanceId1 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance A");
+-        var instanceId2 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance B");
+-        var instanceId3 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance C");
++        var seededType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Type With Instances");
++        var typeId = seededType.Id;
++        var instanceId1 = (await _instances.CreateResourceInstanceAsync(seededType, owner.UserId, "Instance A")).Id;
++        var instanceId2 = (await _instances.CreateResourceInstanceAsync(seededType, owner.UserId, "Instance B")).Id;
++        var instanceId3 = (await _instances.CreateResourceInstanceAsync(seededType, owner.UserId, "Instance C")).Id;
+ 
+         // Act — delete the type; cascade should soft-delete all instances
+         var response = await client.DeleteResourceTypeAsync(typeId);
+@@ -280,9 +287,13 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
+         // Assert — 204 No Content
+         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+ 
+-        // Assert — type is hard-deleted (NOT found even with IgnoreQueryFilters)
+-        var resourceType = await client.GetResourceTypeFromDbAsync(typeId);
+-        Assert.Null(resourceType);
++        // Assert — type is soft-deleted: hidden by the query filter, present with IgnoreQueryFilters and DeletedAt set
++        var filtered = await client.GetResourceTypeFromDbRespectingQueryFiltersAsync(typeId);
++        Assert.Null(filtered);
++
++        var resourceType = await client.GetResourceTypeFromDbIgnoringFiltersAsync(typeId);
++        Assert.NotNull(resourceType);
++        Assert.NotNull(resourceType.DeletedAt);
+ 
+         // Assert — GET /resources/types/{id} returns 404
+         var getTypeResponse = await client.GetResourceTypeAsync(typeId);
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj
+index a6af2fc..ed3cdfc 100644
+--- a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj
+@@ -15,6 +15,10 @@
+       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+     </PackageReference>
+     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
++    <PackageReference Include="coverlet.collector" Version="6.0.4">
++      <PrivateAssets>all</PrivateAssets>
++      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
++    </PackageReference>
+   </ItemGroup>
+ 
+   <ItemGroup>
+diff --git a/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs
+new file mode 100644
+index 0000000..46934bf
+--- /dev/null
++++ b/backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260928111659_SoftDeleteResourceTypeUniqueIndex.cs
+@@ -0,0 +1,43 @@
++﻿using Microsoft.EntityFrameworkCore.Migrations;
++
++#nullable disable
++
++namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
++{
++    /// <inheritdoc />
++    public partial class SoftDeleteResourceTypeUniqueIndex : Migration
++    {
++        /// <inheritdoc />
++        protected override void Up(MigrationBuilder migrationBuilder)
++        {
++            migrationBuilder.DropIndex(
++                name: "IX_resource_types_GroupId_Name",
++                schema: "resources",
++                table: "resource_types");
++
++            migrationBuilder.CreateIndex(
++                name: "IX_resource_types_GroupId_Name",
++                schema: "resources",
++                table: "resource_types",
++                columns: new[] { "GroupId", "Name" },
++                unique: true,
++                filter: "\"DeletedAt\" IS NULL");
++        }
++
++        /// <inheritdoc />
++        protected override void Down(MigrationBuilder migrationBuilder)
++        {
++            migrationBuilder.DropIndex(
++                name: "IX_resource_types_GroupId_Name",
++                schema: "resources",
++                table: "resource_types");
++
++            migrationBuilder.CreateIndex(
++                name: "IX_resource_types_GroupId_Name",
++                schema: "resources",
++                table: "resource_types",
++                columns: new[] { "GroupId", "Name" },
++                unique: true);
++        }
++    }
++}
+diff --git a/backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/ThingsBooksy.Modules.Users.IntegrationTests.csproj b/backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/ThingsBooksy.Modules.Users.IntegrationTests.csproj
+index 6331055..ca10c0d 100644
+--- a/backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/ThingsBooksy.Modules.Users.IntegrationTests.csproj
++++ b/backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/ThingsBooksy.Modules.Users.IntegrationTests.csproj
+@@ -15,6 +15,10 @@
+       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+     </PackageReference>
+     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
++    <PackageReference Include="coverlet.collector" Version="6.0.4">
++      <PrivateAssets>all</PrivateAssets>
++      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
++    </PackageReference>
+   </ItemGroup>
+ 
+   <ItemGroup>
+diff --git a/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs b/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs
+new file mode 100644
+index 0000000..e6c8fdb
+--- /dev/null
++++ b/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceCreatedEvent.cs
+@@ -0,0 +1,3 @@
++namespace ThingsBooksy.Shared.Abstractions.Events.Resources;
++
++public record ResourceInstanceCreatedEvent(Guid ResourceId, Guid SchemaId) : IEvent;
+diff --git a/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs b/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs
+new file mode 100644
+index 0000000..9714543
+--- /dev/null
++++ b/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceInstanceDeletedEvent.cs
+@@ -0,0 +1,3 @@
++namespace ThingsBooksy.Shared.Abstractions.Events.Resources;
++
++public record ResourceInstanceDeletedEvent(Guid ResourceId, Guid SchemaId) : IEvent;
+diff --git a/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs b/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs
+new file mode 100644
+index 0000000..f50c60d
+--- /dev/null
++++ b/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs
+@@ -0,0 +1,3 @@
++namespace ThingsBooksy.Shared.Abstractions.Events.Resources;
++
++public record ResourceSchemaCreatedEvent(Guid SchemaId, Guid GroupId) : IEvent;
+diff --git a/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs b/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs
+new file mode 100644
+index 0000000..d0765b7
+--- /dev/null
++++ b/backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs
+@@ -0,0 +1,3 @@
++namespace ThingsBooksy.Shared.Abstractions.Events.Resources;
++
++public record ResourceSchemaDeletedEvent(Guid SchemaId, Guid GroupId) : IEvent;
+diff --git a/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs b/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs
+new file mode 100644
+index 0000000..7aec82e
+--- /dev/null
++++ b/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/PublishedMessageLog.cs
+@@ -0,0 +1,49 @@
++using System.Collections.Generic;
++using System.Linq;
++using ThingsBooksy.Shared.Abstractions.Messaging;
++
++namespace ThingsBooksy.Shared.IntegrationTests.Messaging;
++
++/// <summary>
++/// Thread-safe, process-wide log of every message published through <see cref="IMessageBroker"/>
++/// while the test host is running. Registered as a singleton by <see cref="ThingsBooksyWebAppFactory"/>
++/// and filled by <see cref="RecordingMessageBroker"/>.
++///
++/// Tests call <see cref="Clear"/> in their Arrange phase and read <see cref="Published"/> /
++/// <see cref="OfType{TMessage}"/> in their Assert phase.
++/// </summary>
++public sealed class PublishedMessageLog
++{
++    private readonly object _lock = new();
++    private readonly List<IMessage> _published = new();
++
++    public IReadOnlyList<IMessage> Published
++    {
++        get
++        {
++            lock (_lock)
++            {
++                return _published.ToList();
++            }
++        }
++    }
++
++    public IReadOnlyList<TMessage> OfType<TMessage>() where TMessage : IMessage
++        => Published.OfType<TMessage>().ToList();
++
++    public void Clear()
++    {
++        lock (_lock)
++        {
++            _published.Clear();
++        }
++    }
++
++    internal void Record(IMessage message)
++    {
++        lock (_lock)
++        {
++            _published.Add(message);
++        }
++    }
++}
+diff --git a/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs b/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs
+new file mode 100644
+index 0000000..ddd2306
+--- /dev/null
++++ b/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/Messaging/RecordingMessageBroker.cs
+@@ -0,0 +1,42 @@
++using System.Threading;
++using System.Threading.Tasks;
++using ThingsBooksy.Shared.Abstractions.Messaging;
++
++namespace ThingsBooksy.Shared.IntegrationTests.Messaging;
++
++/// <summary>
++/// Test-only <see cref="IMessageBroker"/> decorator: records every published message in the
++/// shared <see cref="PublishedMessageLog"/> and then forwards it to the original broker, so the
++/// application keeps its real in-process messaging behaviour.
++/// </summary>
++public sealed class RecordingMessageBroker : IMessageBroker
++{
++    private readonly IMessageBroker _inner;
++    private readonly PublishedMessageLog _log;
++
++    public RecordingMessageBroker(IMessageBroker inner, PublishedMessageLog log)
++    {
++        _inner = inner;
++        _log = log;
++    }
++
++    public Task PublishAsync(IMessage message, CancellationToken cancellationToken = default)
++    {
++        _log.Record(message);
++        return _inner.PublishAsync(message, cancellationToken);
++    }
++
++    public Task PublishAsync(IMessage[] messages, CancellationToken cancellationToken = default)
++    {
++        if (messages is not null)
++        {
++            foreach (var message in messages)
++            {
++                if (message is not null)
++                    _log.Record(message);
++            }
++        }
++
++        return _inner.PublishAsync(messages!, cancellationToken);
++    }
++}
+diff --git a/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs b/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs
+index 28f677c..013f231 100644
+--- a/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs
++++ b/backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/ThingsBooksyWebAppFactory.cs
+@@ -5,13 +5,17 @@ using System.Threading.Tasks;
+ using DotNet.Testcontainers.Builders;
+ using Microsoft.AspNetCore.Hosting;
+ using Microsoft.AspNetCore.Mvc.Testing;
++using Microsoft.AspNetCore.TestHost;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.Configuration;
+ using Microsoft.Extensions.DependencyInjection;
++using Microsoft.Extensions.DependencyInjection.Extensions;
+ using Npgsql;
+ using Respawn;
+ using Respawn.Graph;
+ using Testcontainers.PostgreSql;
++using ThingsBooksy.Shared.Abstractions.Messaging;
++using ThingsBooksy.Shared.IntegrationTests.Messaging;
+ using Xunit;
+ 
+ namespace ThingsBooksy.Shared.IntegrationTests;
+@@ -40,6 +44,45 @@ public class ThingsBooksyWebAppFactory : WebApplicationFactory<Program>, IAsyncL
+                 ["resources:module:enabled"] = "true",
+             });
+         });
++
++        builder.ConfigureTestServices(DecorateMessageBrokerWithRecorder);
++    }
++
++    /// <summary>
++    /// Log of every message published through <see cref="IMessageBroker"/> by the application
++    /// under test (recorded by <see cref="RecordingMessageBroker"/>). Call <c>Clear()</c> in Arrange.
++    /// </summary>
++    public PublishedMessageLog PublishedMessages => Services.GetRequiredService<PublishedMessageLog>();
++
++    /// <summary>
++    /// Replaces every <see cref="IMessageBroker"/> registration with a <see cref="RecordingMessageBroker"/>
++    /// that wraps the originally registered broker (same lifetime), so tests can observe published
++    /// messages without changing the application's messaging behaviour.
++    /// </summary>
++    private static void DecorateMessageBrokerWithRecorder(IServiceCollection services)
++    {
++        services.AddSingleton<PublishedMessageLog>();
++
++        var original = services.LastOrDefault(d => d.ServiceType == typeof(IMessageBroker) && !d.IsKeyedService);
++        if (original is null)
++            return;
++
++        services.RemoveAll<IMessageBroker>();
++        services.Add(new ServiceDescriptor(
++            typeof(IMessageBroker),
++            sp => new RecordingMessageBroker(CreateInnerBroker(sp, original), sp.GetRequiredService<PublishedMessageLog>()),
++            original.Lifetime));
++    }
++
++    private static IMessageBroker CreateInnerBroker(IServiceProvider sp, ServiceDescriptor original)
++    {
++        if (original.ImplementationInstance is IMessageBroker instance)
++            return instance;
++
++        if (original.ImplementationFactory is not null)
++            return (IMessageBroker)original.ImplementationFactory(sp);
++
++        return (IMessageBroker)ActivatorUtilities.CreateInstance(sp, original.ImplementationType!);
+     }
+ 
+     async Task IAsyncLifetime.InitializeAsync()

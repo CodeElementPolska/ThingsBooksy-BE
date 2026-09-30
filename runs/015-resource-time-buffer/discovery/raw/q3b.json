@@ -1,0 +1,37 @@
+{
+  "id": "F-1",
+  "question": "How does the ManagementGroups module publish integration events?",
+  "claim": "ManagementGroups command handlers publish domain events through IMessageBroker.PublishAsync (called after SaveChangesAsync), using event records defined in ThingsBooksy.Shared.Abstractions/Events/**. The concrete broker (InMemoryMessageBroker) either routes to an outbox (if IOutboxBroker.Enabled) or to an in-process async dispatcher (AsyncDispatcherJob reading from a Channel) or directly to IModuleClient.PublishAsync. Event handlers (IEventHandler<T>) are registered via assembly scanning in ThingsBooksy.Shared.Infrastructure.Events.Extensions.AddEvents, and Resources module implements four such handlers reacting to ManagementGroups events. There is no Availability module under backend/src/Modules (only ManagementGroups, Resources, Users). Resources module currently references IMessageBroker only indirectly via a comment/doc-string in an integration test file, not in production code; no direct usage of IMessageBroker was found in Resources.Core or Resources API/production code. ManagementGroups has a dedicated EventPublishingTests.cs integration test file that asserts event publication indirectly (by polling for the Resources module's read-model side effects), and Resources also has its own GroupReadModelEventHandlerTests.cs asserting the same.",
+  "evidence": [
+    {"file": "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Messaging/IMessageBroker.cs", "line": 6, "excerpt": "public interface IMessageBroker\n{\n    Task PublishAsync(IMessage message, CancellationToken cancellationToken = default);\n    Task PublishAsync(IMessage[] messages, CancellationToken cancellationToken = default);\n}"},
+    {"file": "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.Core/Features/CreateManagementGroup/CreateManagementGroupCommandHandler.cs", "line": 46, "excerpt": "await _provider.AddAsync(group, cancellationToken);\n await _provider.SaveChangesAsync(cancellationToken);\n _httpContextAccessor.HttpContext?.Items.TryAdd(CreatedGroupIdKey, group.Id);\n await _messageBroker.PublishAsync(new GroupCreated(group.Id, group.OwnerId), cancellationToken);"},
+    {"generated": "found via Glob: backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/ManagementGroups/GroupCreated.cs, GroupDeleted.cs, GroupMemberAdded.cs, GroupMemberRemoved.cs; backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Users/UserSignedUp.cs; plus IEvent.cs, IEventDispatcher.cs, IEventHandler.cs at backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/"},
+    {"file": "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/ManagementGroups/GroupCreated.cs", "line": 3, "excerpt": "public record GroupCreated(Guid GroupId, Guid OwnerId) : IEvent;"},
+    {"file": "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Events/Extensions.cs", "line": 10, "excerpt": "public static IServiceCollection AddEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies)\n{\n    services.AddSingleton<IEventDispatcher, EventDispatcher>();\n    services.Scan(s => s.FromAssemblies(assemblies)\n        .AddClasses(c => c.AssignableTo(typeof(IEventHandler<>))..."},
+    {"file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Events/Handlers/GroupCreatedHandler.cs", "line": 11, "excerpt": "internal sealed class GroupCreatedHandler : IEventHandler<GroupCreated>"},
+    {"file": "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Messaging/Brokers/InMemoryMessageBroker.cs", "line": 17, "excerpt": "public sealed class InMemoryMessageBroker : IMessageBroker { ... if (_outboxBroker.Enabled) { await _outboxBroker.SendAsync(messages); return; } var tasks = _useAsyncDispatcher ? messages.Select(m => _asyncMessageDispatcher.PublishAsync(...)) : messages.Select(m => _moduleClient.PublishAsync(...));"},
+    {"file": "backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Messaging/Dispatchers/AsyncDispatcherJob.cs", "line": 11, "excerpt": "public sealed class AsyncDispatcherJob : BackgroundService { ... await foreach (var envelope in _messageChannel.Reader.ReadAllAsync(stoppingToken)) { ... await _moduleClient.PublishAsync(envelope.Message, stoppingToken); }"},
+    {"file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/GroupReadModelEventHandlerTests.cs", "line": 16, "excerpt": "IMessageBroker.PublishAsync -> AsyncDispatcherJob (in-process background Channel) -> Resources event handlers -> ResourcesDbContext."},
+    {"file": "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/EventPublishingTests.cs", "line": 35, "excerpt": "public async Task CreateGroup_WithValidData_PublishesGroupCreatedEvent() { ... var populated = await WaitUntilAsync(() => client.ResourcesGroupReadModelExistsAsync(groupId)); Assert.True(populated, \"Resources.GroupReadModel was not populated after CreateManagementGroup...\");"},
+    {"generated": "Glob result for backend/src/Modules/* (only real module directories present, filtered through nested bin/obj noise): ManagementGroups, Resources, Users. No Availability directory entry found under backend/src/Modules."}
+  ],
+  "confidence": "certain",
+  "by": "code-researcher-015-resource-time-buffer-code-researcher-3b-mufkv07p",
+  "provenance": {
+    "author_agent": "code-researcher",
+    "run_id": "015-resource-time-buffer-code-researcher-3b-mufkv07p",
+    "story": "015-resource-time-buffer",
+    "phase": "B",
+    "inputs": [
+      {"path": "runs/015-resource-time-buffer/discovery/questions/3b.md", "sha256": "b18f1090c1beeb581386609465d9dff64784c821aba4cbe05c0cc38a9bffc6c1"},
+      {"path": "generated/capability-map.json", "sha256": "ef9341f9bd76df83af914e1bda2ba6c4d20f4cad1698fe971aae1bccb854048c"},
+      {"path": "generated/core-surface.json", "sha256": "1c5ca522929db7f829ba60c35cb9066077118eff86bbd968b36798f8631f2945"}
+    ],
+    "schema_version": "1"
+  },
+  "notes": [
+    "Question sub-part 7 (Resources referencing IMessageBroker): grep for the exact token 'IMessageBroker' across backend/src/Modules/Resources (*.cs) found exactly one match, a comment/doc-string in backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/GroupReadModelEventHandlerTests.cs:16 describing the cross-module event flow. No usage of IMessageBroker as an injected dependency or call site was found in Resources.Core, Resources API, or any non-test Resources project.",
+    "Question sub-part 6 (Availability module): Glob of backend/src/Modules/* (after filtering bin/obj build artifacts) shows only ManagementGroups, Resources, and Users as top-level module directories. No Availability module directory was found.",
+    "Question sub-part 8: Two ManagementGroups integration test files reference event-related behavior — DeleteManagementGroupTests.cs and EventPublishingTests.cs (backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/EventPublishingTests.cs). These tests assert event publication indirectly by polling the Resources module's read-model tables via HTTP client helper methods (e.g. ResourcesGroupReadModelExistsAsync) rather than mocking/spying on IMessageBroker directly. No direct broker-mock assertion (e.g. Moq Verify on IMessageBroker.PublishAsync) was found in the files inspected."
+  ]
+}

@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using ThingsBooksy.Modules.Resources.Core.Domain;
 using ThingsBooksy.Modules.Resources.Core.Exceptions;
 using ThingsBooksy.Shared.Abstractions.Commands;
+using ThingsBooksy.Shared.Abstractions.Events.Resources;
+using ThingsBooksy.Shared.Abstractions.Messaging;
 using ThingsBooksy.Shared.Abstractions.Time;
 
 namespace ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
@@ -12,11 +14,16 @@ internal sealed class CreateResourceTypeCommandHandler : ICommandHandler<CreateR
 {
     private readonly ICreateResourceTypeCommandDataProvider _dataProvider;
     private readonly IClock _clock;
+    private readonly IMessageBroker _messageBroker;
 
-    public CreateResourceTypeCommandHandler(ICreateResourceTypeCommandDataProvider dataProvider, IClock clock)
+    public CreateResourceTypeCommandHandler(
+        ICreateResourceTypeCommandDataProvider dataProvider,
+        IClock clock,
+        IMessageBroker messageBroker)
     {
         _dataProvider = dataProvider;
         _clock = clock;
+        _messageBroker = messageBroker;
     }
 
     public async Task<Guid> HandleAsync(CreateResourceTypeCommand command, CancellationToken cancellationToken = default)
@@ -48,6 +55,7 @@ internal sealed class CreateResourceTypeCommandHandler : ICommandHandler<CreateR
 
         await _dataProvider.AddResourceTypeAsync(resourceType, cancellationToken);
         await _dataProvider.SaveChangesAsync(cancellationToken);
+        await _messageBroker.PublishAsync(new ResourceSchemaCreatedEvent(resourceType.Id, resourceType.GroupId), cancellationToken);
 
         return resourceType.Id;
     }

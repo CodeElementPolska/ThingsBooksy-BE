@@ -87,7 +87,7 @@ blast_radius:
   touches_ui: true
 depends_on:
   - "015-resource-time-buffer"
-capability_map_version: "461ba2aa78c0c9a87c1770a052ad83697165a8f78b8421d2cab7675ddfc9d6d4"
+capability_map_version: "01040357aff3a256ea13ee13ac2d7dc16e6e41b283ac5a2827c136803735e18d"
 critique_refs:
   - "runs/016-rename-resource-schema/critique/scope-critic.json"
   - "runs/016-rename-resource-schema/critique/premortem-critic.json"
@@ -143,7 +143,7 @@ AC ids are stable. AC-3, AC-4 and AC-5 of the proposal were merged into AC-1 aft
 
 ## Notes for discovery (owner wishes and context, not acceptance criteria)
 
-- Base branch is `015-resource-time-buffer` (not merged to `main`). Regenerate this story's migration after the final rebase onto main (AC-14).
+- Story 015 is merged to `main` (PR #59, 2026-09-30) and this branch was rebased onto `main` before discovery, so AC-14 holds by construction; keep it as the guard for any later rebase.
 - Full depth: entity, commands, queries, handlers, requests, DTOs, endpoints, operation names, EF configuration, table/column/constraint/index names,
   tests, frontend API client and services. Development data may be wiped instead of migrated (journaled owner decision).
 - Before renaming, record today's responses for the non-owner member, the other-group user and the foreign-schema filter (AC-10..AC-12).

@@ -55,7 +55,7 @@ reserving resources and showing members which dates are free and which are block
 | 4 | Polish public holidays (Calendar module) | — |
 | 5 | Day/hour availability calculation and calendar view with holidays | 3, 4 |
 
-Base branch: `015-resource-time-buffer` (not merged to `main` yet; it delivered the Resources lifecycle events the epic builds on).
+Base branch: `main` (story 015, which delivered the Resources lifecycle events the epic builds on, was merged to `main` on 2026-09-30 via PR #59).
 
 ## Out of scope for the whole epic
 

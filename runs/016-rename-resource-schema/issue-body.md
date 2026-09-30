@@ -46,4 +46,4 @@ Modules: Resources; contract: true, authz: true, schema: true, UI: true
 
 Depends on: 015-resource-time-buffer
 
-<sub>Shaped by the fleet (session A) against capability map `461ba2aa78c0…`; story id `016-rename-resource-schema`; critiques: runs/016-rename-resource-schema/critique/scope-critic.json, runs/016-rename-resource-schema/critique/premortem-critic.json. Tasks live in `specs/016-rename-resource-schema/tasks.md` (D-6).</sub>
+<sub>Shaped by the fleet (session A) against capability map `01040357aff3…`; story id `016-rename-resource-schema`; critiques: runs/016-rename-resource-schema/critique/scope-critic.json, runs/016-rename-resource-schema/critique/premortem-critic.json. Tasks live in `specs/016-rename-resource-schema/tasks.md` (D-6).</sub>

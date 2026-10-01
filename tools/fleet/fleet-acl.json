@@ -60,7 +60,8 @@
         "generated",
         "runs/*/discovery/questions",
         ".specify/memory",
-        ".claude/conventions"
+        ".claude/conventions",
+        "runs/*/prompts"
       ],
       "write_allow": []
     },
@@ -73,7 +74,8 @@
         "runs/*/story.md",
         "runs/*/discovery",
         ".specify/memory",
-        ".claude/conventions"
+        ".claude/conventions",
+        "runs/*/prompts"
       ],
       "write_allow": []
     },

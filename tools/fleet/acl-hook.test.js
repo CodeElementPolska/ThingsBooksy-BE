@@ -1,6 +1,7 @@
 // Standalone tests for acl-hook.js: feeds synthetic hook JSON through the script and checks exit codes.
 // Run: node tools/fleet/acl-hook.test.js   (no dependencies)
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -90,6 +91,22 @@ const cases = [
   ['garbage input (deny)', 'not json', 2],
 ];
 
+// Every template names the agent it is written for (front matter `agent:`). That agent (a) must have an ACL entry — an
+// agent without one runs UNRESTRICTED under this hook (D-13), which for a blind worker is a silent loss of isolation —
+// and (b) must be able to read its own prompt runs/<story>/prompts/<template>[.<instance>].md, because prompt-builder
+// refuses to build a prompt the agent could not read (015 C5 reviewers, 016 impact-analyst + code-researcher).
+const TEMPLATES = path.join(HERE, 'templates');
+const ACL = JSON.parse(fs.readFileSync(path.join(HERE, 'fleet-acl.json'), 'utf8'));
+let staticFail = 0;
+for (const f of fs.readdirSync(TEMPLATES).filter(n => n.endsWith('.md') && n !== 'README.md').sort()) {
+  const fm = fs.readFileSync(path.join(TEMPLATES, f), 'utf8').replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---/);
+  const agent = fm && (fm[1].match(/^agent:\s*(\S+)/m) || [])[1];
+  if (!agent) { console.log(`FAIL static :: template ${f} has no agent: in its front matter`); staticFail++; continue; }
+  if (!ACL.agents?.[agent]) { console.log(`FAIL static :: template ${f}: agent "${agent}" has no entry in fleet-acl.json (it would run unrestricted)`); staticFail++; continue; }
+  cases.push([`${agent} reads its own prompt (template ${f})`, ev(agent, 'Read', { file_path: path.join(REPO, 'runs', '015-x', 'prompts', f) }), 0]);
+  cases.push([`${agent} reads its own prompt, instance r2 (template ${f})`, ev(agent, 'Read', { file_path: path.join(REPO, 'runs', '015-x', 'prompts', f.replace(/\.md$/, '.r2.md')) }), 0]);
+}
+
 let bad = 0;
 for (const [name, input, expect] of cases) {
   const r = spawnSync(process.execPath, [HOOK], { input: typeof input === 'string' ? input : JSON.stringify(input), encoding: 'utf8' });
@@ -97,5 +114,5 @@ for (const [name, input, expect] of cases) {
   if (!ok) bad++;
   console.log(`${ok ? 'OK  ' : 'FAIL'} exit=${r.status} expect=${expect} :: ${name}${r.stderr ? ' :: ' + r.stderr.trim().slice(0, 80) : ''}`);
 }
-console.log(`\n${cases.length - bad}/${cases.length} passed`);
-process.exit(bad ? 1 : 0);
+console.log(`\n${cases.length - bad}/${cases.length} hook cases passed, ${staticFail} static template→ACL check(s) failed`);
+process.exit(bad || staticFail ? 1 : 0);

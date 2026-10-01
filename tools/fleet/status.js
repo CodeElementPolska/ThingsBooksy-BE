@@ -15,18 +15,19 @@ const args = Object.fromEntries(process.argv.slice(2).map((a, i, arr) => a.start
 const story = args.story; if (!story) { console.error('usage: status --story NNN-slug [--print]'); process.exit(1); }
 if (!/^\d{3}-[a-z0-9-]+$/.test(story)) { console.error(`status: "${story}" is not NNN-slug`); process.exit(1); }
 const runDir = path.join(REPO, 'runs', story);
-// SpecKit trap: .specify/feature.json overrides the branch for every /speckit-* script. If it points
-// elsewhere, /speckit-plan would silently overwrite ANOTHER story's plan (happened on 015 → 010).
+const branch = (spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout || '').trim();
+if (branch !== story && !args['skip-branch-check']) { console.error(`status: current branch "${branch}" ≠ story "${story}" — SpecKit scripts would silently target another spec dir`); process.exit(1); }
+// SpecKit trap: .specify/feature.json takes precedence over the branch name for every /speckit-* script. The fleet
+// does not use that file — story id = branch = specs/NNN-slug — and since 2026-10-01 it is removed from the repo and
+// git-ignored (a committed pointer went stale after every merge: 015 → 010, 016 → 015). A stray local copy (only
+// /speckit-specify writes one) must be deleted, never "fixed": the branch is the single source of truth.
 const featureJson = path.join(REPO, '.specify', 'feature.json');
 if (fs.existsSync(featureJson)) {
   let fd = null; try { fd = JSON.parse(fs.readFileSync(featureJson, 'utf8')).feature_directory; } catch { /* unreadable → treat as mismatch */ }
-  if (String(fd || '').replace(/\\/g, '/').replace(/\/$/, '') !== `specs/${story}`) {
-    console.error(`status: .specify/feature.json points to "${fd}" but the story is "${story}" — fix it before any /speckit-* skill: {"feature_directory":"specs/${story}"} (or delete the file to fall back to the branch name)`);
-    process.exit(1);
-  }
+  const same = String(fd || '').replace(/\\/g, '/').replace(/\/$/, '') === `specs/${story}`;
+  if (!same) { console.error(`status: .specify/feature.json exists and points to "${fd}" (story "${story}") — delete the file; SpecKit must resolve the spec dir from the branch name (tools/fleet/README.md, journal 2026-10-01)`); process.exit(1); }
+  console.error(`status: WARNING .specify/feature.json exists (ignored by git) — delete it; the branch name is the only source of truth for SpecKit`);
 }
-const branch = (spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout || '').trim();
-if (branch !== story && !args['skip-branch-check']) { console.error(`status: current branch "${branch}" ≠ story "${story}" — SpecKit scripts would silently target another spec dir`); process.exit(1); }
 
 const sha = f => sha256File(f); // CRLF-normalised like every other fleet script (hash.js)
 const exists = rel => fs.existsSync(path.join(runDir, rel));

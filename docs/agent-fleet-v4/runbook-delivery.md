@@ -15,7 +15,7 @@ Stan: 2026-09-28, pierwszy przebieg na story `015-resource-time-buffer`. Dyrygen
 
 | Faza | Polecenia | Warunek przejścia |
 |---|---|---|
-| 0 start | `node tools/fleet/status.js --story <s>` (gałąź = story, `feature.json` zgodny) | exit 0, faza C1 |
+| 0 start | `node tools/fleet/status.js --story <s>` (gałąź = story, `.specify/feature.json` nieobecny) | exit 0, faza C1 |
 | C1 brama planu | (plan-guard nie istnieje — pomijane); `node tools/fleet/contract-compose.js --story <s>` gdy jest overlay | compose OK |
 | baseline | `node tools/fleet/baseline.js --story <s>` — zapisuje commit startu kodu story (`runs/<s>/baseline.json`); `skeleton-check` i `coverage-gaps` liczą diff od niego, nie od merge-base z `main` | plik istnieje, drzewo `backend/` czyste |
 | C3a szkielet | `node tools/fleet/prompt-builder.js --story <s> --agent be-writer --template be-writer-skeleton --var module=<M>` → Agent `be-writer` → zapis result → `node tools/fleet/skeleton-check.js --story <s>` | `status: DONE`, skeleton-check OK, build zielony |

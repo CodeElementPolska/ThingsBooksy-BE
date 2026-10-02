@@ -18,6 +18,7 @@
     "status": { "type": "string" },
     "artifact": { "type": "string", "description": "path" },
     "sha256": { "type": "string" },
+    "migration_sha": { "type": "string", "description": "GATE_OPEN / GATE_ANSWER for G2b: content hash of the story's migrations (migration-check.js); an answer counts only for the report with the same hash" },
     "reason": { "type": "string" },
     "tokens": { "type": "integer" },
     "duration_ms": { "type": "integer" },

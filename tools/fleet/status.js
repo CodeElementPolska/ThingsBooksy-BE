@@ -55,7 +55,8 @@ const gateOpen = g => last(e => e.event === 'GATE_OPEN' && e.phase === g);
 const gates = {};
 for (const g of ['G1', 'G2', 'G2b', 'G3']) {
   const a = gateAnswered(g), o = gateOpen(g);
-  gates[g] = a ? { status: a.status === 'REJECTED' ? 'REJECTED' : 'PASSED', answer_ref: a.owner_answer?.tool_use_id || a.owner_answer?.prompt_id, at: a.at }
+  // an answer counts only if nothing reopened the gate after it (migration-check reopens G2b for a regenerated migration)
+  gates[g] = a && (!o || String(a.at) >= String(o.at)) ? { status: a.status === 'REJECTED' ? 'REJECTED' : 'PASSED', answer_ref: a.owner_answer?.tool_use_id || a.owner_answer?.prompt_id, at: a.at }
     : o ? { status: 'WAITING_OWNER', at: o.at } : { status: 'PENDING' };
 }
 
@@ -95,6 +96,12 @@ const disputes = readJsonl('impl/disputes.jsonl').filter(d => !d.verdict).map(d 
 const tokens = journal.filter(e => e.tokens).reduce((s, e) => s + e.tokens, 0);
 const budgetEv = last(e => e.event === 'BUDGET_STOP' || e.budget_tokens);
 
+// G2b (D-1): a migration flagged by migration-check (S9b) needs an owner answer FOR THIS migration content; the answer
+// carries migration_sha, so a regenerated migration reopens the question. The blocker is a constant id (blockers are ids).
+const migrationCheck = readJson('migration-check.json');
+const g2bAnswer = gateAnswered('G2b');
+const g2bPending = !!migrationCheck?.g2b_required && !(g2bAnswer?.status === 'PASSED' && g2bAnswer.migration_sha === migrationCheck.migration_sha);
+
 const state = {
   story, branch, computed_at: new Date().toISOString(),
   track: readJson('story.meta.json')?.track,
@@ -105,7 +112,7 @@ const state = {
   open_items: {
     decisions_open: decisionsOpen,
     hard_list_assumptions_without_decision: hardListWithoutDecision,
-    blockers: findings.filter(f => f.severity === 'BLOCKER').map(f => f.id),
+    blockers: [...findings.filter(f => f.severity === 'BLOCKER').map(f => f.id), ...(g2bPending ? ['G2B-MIGRATION'] : [])],
     disputes,
     unspecified_behaviour: findings.filter(f => f.type === 'UNSPECIFIED_BEHAVIOR').map(f => f.id),
   },

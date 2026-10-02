@@ -18,9 +18,9 @@ Dla nowej sesji przejmującej pracę. Czytać razem z `workflow.md`, `decisions.
 3. **Zapis plików przez subagenta** działa w trybie uprawnień `auto` sesji dyrygenta; w trybie headless (`claude -p`) Write jest blokowany, bo nie ma komu udzielić zgody.
 4. **`claude --agent <persona>`** testuje się w PowerShell/cmd, nie z wnętrza działającej sesji Claude (użytkownik raz to pomylił — persona nie została wstrzyknięta). Persona nie zaczyna sama bez `initialPrompt`.
 5. **`dotnet`**: nie uruchamiaj równolegle dwóch buildów/testów na tym samym drzewie (blokady `obj/`). Testy integracyjne wymagają Docker Desktop (Testcontainers) — sprawdzaj `docker ps` z PowerShell, nie `wsl docker`. `pwsh` nie ma w Git Bash — `powershell.exe -File`.
-6. **Kolejność w dostawie:** `status.js` → `baseline.js` (przed C3a!) → C3a → migracja (użytkownik) → C2 → `red-first-prover` → C3b → `gate` → `coverage-gaps` → C4b. `gate`/`dod`/`closer` nigdy w discovery.
+6. **Kolejność w dostawie:** `status.js` → `baseline.js` (przed C3a!) → C3a → migracja (użytkownik) → `migration-check.js` (REVIEW/DESTRUCTIVE → AskUserQuestion nazywające migrację + `decide.js --gate G2b`) → C2 → `red-first-prover` → C3b → `gate` → `coverage-gaps` → C4b. `gate`/`dod`/`closer` nigdy w discovery.
 7. **Wynik agenta** zapisuj do `runs/<story>/impl/<agent>.<faza>/result.json`, waliduj `validate.js --schema result`, porównaj `files_changed` z `git status -- backend`.
-8. **Decyzje właściciela**: tylko `decide.js` (z `--answer-ref latest` po AskUserQuestion). Bramki: `decide.js --gate G2 --status PASSED`.
+8. **Decyzje właściciela**: tylko `decide.js` (z `--answer-ref latest` po AskUserQuestion). Bramki: `decide.js --gate G2|G2b|G3 --status PASSED|REJECTED`; G2b wymaga odpowiedzi nowszej niż `migration-check.json`, nazywającej migrację (sha8) i zgodnej ze statusem — gate i status porównują `migration_sha`.
 9. **Commity tylko po wyraźnym „tak"**; użytkownik chce widzieć, co wchodzi. Wiadomości commitów po angielsku, rozmowa po polsku.
 10. **Heredoc w Bash tool** z backtickami/apostrofami potrafi się wywrócić — pisz skrypty plikiem (Write) i uruchamiaj `node plik.js`.
 

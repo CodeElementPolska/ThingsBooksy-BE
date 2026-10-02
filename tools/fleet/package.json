@@ -9,6 +9,7 @@
   },
   "scripts": {
     "acl:test": "node acl-hook.test.js",
+    "migration:test": "node migration-check.test.js",
     "capability-map": "node capability-map.js",
     "contract:compose": "node contract-compose.js",
     "contract:diff": "node contract-diff.js",

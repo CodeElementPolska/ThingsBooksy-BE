@@ -10,7 +10,7 @@ Decyzje właściciela: `decisions.md` (D-1…D-8). Odłożone: `../backlog/defer
 
 1. **Źródło prawdy poza LLM.** O poprawności rozstrzyga skrypt lub test, nie drugi model. LLM ocenia tylko to, czego nie da się wyrazić maszynowo.
 2. **Rama = mechanizm, nie prompt.** Izolację i limity egzekwują: allowlista narzędzi, hook `PreToolUse` per agent (ACL ścieżek), `omitClaudeMd`, brak powłoki u agentów ślepych, schemat wyniku, `maxTurns`, prompty składane przez skrypt.
-3. **Bramka właściciela = granica fazy.** Subagent i skrypt workflow nie potrafią zapytać człowieka. Docelowo 3 bramki na story (G1, G2, G3) + wyjątkowa G2b przy migracji destrukcyjnej.
+3. **Bramka właściciela = granica fazy.** Subagent i skrypt workflow nie potrafią zapytać człowieka. Docelowo 3 bramki na story (G1, G2, G3) + wyjątkowa G2b przy migracji wymagającej oceny (REVIEW/DESTRUCTIVE z `migration-check`, S9b).
 4. **Jeden autor na artefakt; artefakt ma schemat i provenance** (autor, run id, hashe wejść). Nikt nie „przepisuje" cudzego dokumentu.
 5. **Trzy koszyki decyzji (D-2) ze sztywną listą (D-1).** Wszystko, czego agent nie zapytał, jest w logu z punktacją.
 6. **Hooki egzekwują, nigdy nie sterują przepływem.** Przepływ jest w skrypcie workflow z dziennikiem i wznawianiem.
@@ -72,10 +72,11 @@ Dyrygent = skill w sesji głównej, który: wylicza stan skryptem `status`, uruc
 C1 BRAMA PLANU      arch-tests [skrypt] → plan-guard [sub, RO] → contract-validate [skrypt]
                     → limit rozmiaru story [skrypt]
 C3a SZKIELET        scaffold [skrypt, gdy nowy moduł]
-                    be-writer ×moduł [sub]: encje (właściwości + Create), konfiguracja EF, DbSet, migracja
+                    be-writer ×moduł [sub]: encje (właściwości + Create), konfiguracja EF, DbSet
                     BEZ handlerów, endpointów i metod domenowych (sprawdzane skryptem: brak nowych plików
                     w katalogach handlerów/endpointów)
-                    → migracja generowana [skrypt] → migration-reviewer [sub] (destrukcyjna → G2b)
+                    → migracja generowana [właściciel: dotnet ef migrations add] → migration-check [skrypt, S9b]
+                      (REVIEW/DESTRUCTIVE → G2b; odpowiedź związana z migration_sha)
                     → core-surface [skrypt]: dump powierzchni typów → generated/core-surface.json
 C2  TESTY (przebieg 1, ślepy)
                     test-designer BE + FE [sub, ACL deny src/**, `dotnet build` tylko projekty testowe]
@@ -109,7 +110,7 @@ C6 ZAMKNIĘCIE       architecture-guard [sub, tylko reguły niewyrażalne maszyn
 G3                  eskalacje + raport + zgoda na commit (właściciel)
 ```
 
-**G2b:** gdy `migration-reviewer` oznaczy migrację jako destrukcyjną — faza C3 kończy się, dyrygent pyta właściciela.
+**G2b:** gdy `migration-check` (skrypt uruchamiany zaraz po `dotnet ef migrations add`, przed C2) da werdykt REVIEW lub DESTRUCTIVE, albo gdy be-writer zgłosi `schema_changes: DESTRUCTIVE` w C3a — dyrygent pyta właściciela przez AskUserQuestion i zamyka bramkę `decide.js --gate G2b` (odpowiedź niesie `migration_sha`; regeneracja migracji = nowe pytanie). Skrypt zamiast planowanego agenta `migration-reviewer` (2026-10-01): kontrola musi stać przed C2, nie w gate, a sama nazwa operacji nie rozstrzyga ryzyka — skrypt dzieli instrukcje na SAFE/REVIEW/DESTRUCTIVE z kontekstem (tabela nowa w tym Up, Down z pełnym unikalnym indeksem jak w 015) i pokazuje właścicielowi wycinki, nie werdykt „bezpieczna”.
 
 **Implementacja sesji C (2026-09-28, w toku):** `.claude/agents/be-writer.md` (C3a/C3b przez `--template be-writer-skeleton|be-writer-behaviour`), `test-designer.md` (C2, ślepy — osobny `agent_type`, bo ACL jest per typ) i `test-designer-sighted.md` (C4b). Migrację generuje deweloper między C3a a C2 (konstytucja VI). Dyrygentem jest na razie sesja główna; pierwszy przebieg: story 015.
 
@@ -215,10 +216,11 @@ Każdy artefakt agenta ma nagłówek provenance: `{author_agent, run_id, story, 
 | S4b | `coverage-gaps` | nietrafione gałęzie NOWEGO kodu po zielonym gate → wejście dla przebiegu 2 testera | 6 |
 | S4c | `skeleton-check` | w C3a brak nowych plików w katalogach handlerów/endpointów | — |
 | S5 | `ac-matrix` | AC-id ↔ testy z metadanych testów | 6 |
-| S6 | `gate` (C4) | build, format, analizatory, arch-tests, testy, contract-diff, ac-matrix, hash testów | 1, 3, 5 |
+| S6 | `gate` (C4) | migration (raport S9b aktualny + G2b odpowiedziane), build, format, analizatory, arch-tests, testy, contract-diff, ac-matrix, hash testów | 1, 3, 5 |
 | S7 | `dod` + `closer` + `status` | bramka DoD, checklista na issue, `state.json`, metryki | 3 |
 | S8 | `prompt-builder` | składa prompty agentów z szablonów i list ścieżek; provenance | 1, 2 |
 | S9 | `dedup-findings`, `authz-matrix`, `gen-api-client`, `gen-migration`, `scaffold-module` | mechaniczne kroki C3/C5 | — |
+| S9b | `migration-check` | klasyfikuje instrukcje nowych migracji od `baseline` (SAFE/REVIEW/DESTRUCTIVE, fail-safe), otwiera G2b w journalu; `gate` odmawia bez aktualnego raportu i odpowiedzi dla tej migracji | 1 (D-1 egzekwowane skryptem, nie prozą) |
 | S10 | `fleet-smoke` | zabawkowa story: każdy agent produkuje swój artefakt swoimi narzędziami | 4 |
 
 Reguły kodu (analizatory, NetArchTest, SonarQube) — odłożony epik; `gate` (S6) ma na nie miejsce, wchodzą, gdy powstaną.

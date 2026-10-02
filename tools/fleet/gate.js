@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // S6 — gate (phase C4): the deterministic bar every implementation must clear before any LLM review.
 // Steps (each recorded, first hard failure stops unless --all):
+//   migration    migration-check.json is present, fresh (file hashes) and, when g2b_required, answered for THIS
+//                migration (GATE_ANSWER G2b PASSED with the same migration_sha) — D-1; SKIPPED only when no migration
 //   build        dotnet build backend/ThingsBooksy.slnx (analyzers run here)
 //   format       dotnet format --verify-no-changes
 //   arch-tests   dotnet test --filter Category=Architecture   (SKIPPED until the deferred analyzers epic lands)
@@ -17,7 +19,8 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readAcIds } from './ac-ids.js';
-import { sha256Files } from './hash.js';
+import { sha256File, sha256Files } from './hash.js';
+import { collectMigrationChanges, currentMigrationSha } from './migration-check.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -43,6 +46,32 @@ function step(name, fn) {
 const tail = (r, n = 15) => (r.stdout + '\n' + r.stderr).split('\n').filter(l => /error|fail|warn/i.test(l)).slice(0, n).join('\n');
 
 let go = true;
+go = go && step('migration', () => {
+  const bl = path.join(runDir, 'baseline.json');
+  if (!fs.existsSync(bl)) return { status: 'FAILED', detail: 'no baseline.json — run baseline.js before C3a (migration-check diffs from the story start commit)' };
+  const baseline = JSON.parse(fs.readFileSync(bl, 'utf8'));
+  const { migrations, snapshots } = collectMigrationChanges(REPO, baseline.commit);
+  const mcPath = path.join(runDir, 'migration-check.json');
+  const mc = fs.existsSync(mcPath) ? JSON.parse(fs.readFileSync(mcPath, 'utf8')) : null;
+  if (!migrations.length) {
+    if (snapshots.length) return { status: 'FAILED', detail: 'model snapshot changed but there is no migration — run dotnet ef migrations add, then migration-check.js' };
+    if (!mc?.g2b_required) return { status: 'SKIPPED', detail: 'no migration since baseline' };
+    // be-writer forecast DESTRUCTIVE and no migration exists: the owner must confirm that (the answer binds to the empty set's sha)
+  }
+  if (!mc) return { status: 'FAILED', detail: `migration present (${migrations.map(m => path.basename(m.path)).join(', ')}) but no migration-check.json — run migration-check.js` };
+  if (mc.commit !== baseline.commit) return { status: 'FAILED', detail: `migration-check.json was computed from ${String(mc.commit).slice(0, 8)}, baseline is ${String(baseline.commit).slice(0, 8)} — rerun migration-check.js` };
+  const nowSha = currentMigrationSha(REPO, migrations);
+  if (nowSha !== mc.migration_sha) return { status: 'FAILED', detail: 'migration-check.json is stale (migration files added, edited or deleted since the report) — rerun migration-check.js (and G2b if it is required)' };
+  if (mc.g2b_required) {
+    const jp = path.join(runDir, 'journal.jsonl');
+    const journal = fs.existsSync(jp) ? fs.readFileSync(jp, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
+    const a = [...journal].reverse().find(e => e.event === 'GATE_ANSWER' && e.phase === 'G2b');
+    if (!a) return { status: 'FAILED', detail: `migration-check ${mc.verdict}: G2b not answered — AskUserQuestion, then decide.js --gate G2b` };
+    if (a.status !== 'PASSED') return { status: 'FAILED', detail: 'G2b REJECTED — regenerate the migration and rerun migration-check' };
+    if (a.migration_sha !== mc.migration_sha) return { status: 'FAILED', detail: 'G2b answer is for another migration (migration_sha mismatch) — ask again for this one' };
+  }
+  return { status: 'PASSED', detail: `migration-check ${mc.verdict}${mc.g2b_required ? ' (G2b PASSED for this migration)' : ''}` };
+});
 go = go && step('build', () => { const r = run('dotnet', ['build', 'backend/ThingsBooksy.slnx', '--nologo', '-v', 'q']); return r.status === 0 ? { status: 'PASSED' } : { status: 'FAILED', detail: tail(r) }; });
 go = go && step('format', () => { const r = run('dotnet', ['format', 'backend/ThingsBooksy.slnx', '--verify-no-changes', '--no-restore']); return r.status === 0 ? { status: 'PASSED' } : { status: 'FAILED', detail: tail(r) || 'formatting differences' }; });
 go = go && step('arch-tests', () => ({ status: 'SKIPPED', detail: 'deferred epic: docs/backlog/deferred-static-analysis-sonarqube.md' }));

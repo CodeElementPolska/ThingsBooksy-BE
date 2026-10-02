@@ -1,0 +1,55 @@
+# Round 1 — consolidated findings and alternatives (4 independent reviewers)
+
+Context package (read first): package.md in this folder. Repo: D:\Projects\AI\ThingsBooksy-BE, branch 016-rename-resource-schema, fixes uncommitted.
+
+## Consensus findings on the CURRENT fix
+
+### Defect 2 (ACL / runs/*/prompts test)
+- G2-1 (MAJOR, 3 reviewers): an agent whose template names an `agent:` that has NO entry in fleet-acl.json passes the test green — acl-hook.js:32-33 `if (!acl) process.exit(0)` (unknown agent = unrestricted). prompt-builder.js:52 `!acl || …` same. Verified: `agent_type:"brand-new-agent"` reading backend/src/x.cs → exit 0. Schema docs/agent-fleet-v4/schemas/fleet-acl.schema.json:9 says `defaults … fail-closed` but hook does not implement `defaults`. A blind agent becomes sighted silently. Planned new agents (docs-delta, rule-harvester, plan-guard, migration-reviewer, fe-writer) make this likely.
+- G2-2 (MAJOR, 2 reviewers): the test exercises the HOOK matcher (rootMatches, case-insensitive, trailing-slash tolerant), but occurrence 016 was raised by PROMPT-BUILDER's matcher (globToRe, case-sensitive, no trailing slash). E.g. entry `"runs/*/prompts/"` → test 81/81 but prompt-builder exit 3. Two implementations of ACL matching.
+- G2-3 (MAJOR, 3 reviewers): nothing runs the test automatically. .github/workflows empty; .husky/task-runner.json only backend/**/*.cs; AND Husky is not installed in this clone (no core.hooksPath, no .husky/_). status.js/gate.js/prompt-builder don't call it. First detector in practice is still prompt-builder:72 at session start.
+- G2-4 (MINOR): prompt-builder takes ACL from `--agent` and template from `--template`, never compares with template's `agent:` front matter. Test checks the (front-matter agent, template) pair; production may build a different pair.
+- G2-5 (MINOR): test covers only own prompt, not the template's `inputs`/`conventions` against read_allow; `conventions:` are never ACL-checked by prompt-builder (only existsSync).
+- G2-6 (MINOR, protocol): in session B, dev-analyst.md:22 hands workers the prompt TEXT (from .json `prompt` field), not a path; sessions A/C hand a PATH. So 016 was really prompt-builder's invariant firing, not an agent blocked on turn 1. Package narrative and README row 118 imprecise. Protocol inconsistency not documented.
+- G2-7 (MINOR): test counter: template without `agent:` sets exitCode but is not in `cases`, so summary prints "80/81" style numbers oddly; `templates/README.md` in future would break the loop; front-matter regex slightly looser than prompt-builder's.
+- G2-8 (MINOR): `runs/*/prompts` copied by hand into 11 ACL entries; grants reading all stories'/agents' prompts (isolation impact unverified).
+
+### Defect 1 (feature.json)
+- G1-1 (MAJOR, 3 reviewers): the fix is prose to an LLM persona with NO enforcement in session A. scrum.md doesn't call status.js; backlog-writer.js and decide.js --gate G1 don't check feature.json. First check remains status.js in session B — same detection point as both occurrences. Evidence persona ignores prose scope: G1 commit 18565b5 included generated/capability-map.json despite "runs/<story>/ only".
+- G1-2 (MAJOR, 3 reviewers): committed, branch-tracked file recreates the trigger: after every PR merge, `main` points at the last merged story (git show main:.specify/feature.json = 015 today). Any branch created from main outside scrum inherits a foreign pointer. Two parallel stories → merge/rebase conflict on the same line (rebase 016 onto main after PR #59 already happened: bc4d863).
+- G1-3 (MAJOR): abandoned story before G1: step 6 writes the file, step 7 commits it after G1; abandon instruction says only delete folder+branch → uncommitted change follows `git checkout <base>`, base branch dirty with pointer to non-existent spec.
+- G1-4 (MINOR): status.js checks feature.json BEFORE checking branch (status.js:21-26 vs 28-29) and its hint suggests setting the pointer to `--story`, which on a wrong branch creates the very mismatch.
+- G1-5 (MINOR): format drift (one-line JSON in scrum.md vs canonical 2-space LF+newline file); BOM from PowerShell Out-File would make status.js JSON.parse fail (unverified).
+- G1-6 (doc): docs/agent-fleet-v4/decisions.md:41 and workflow.md:256 attribute the 010 overwrite to "branch-name fallback for a non-conforming branch"; the code (common.ps1:181-183) returns specs/<branch> for non-numeric branches — only feature.json (priority 2) could target a foreign dir. This misdiagnosis is the only recorded argument AGAINST deleting the file.
+- Branch-name fallback verified by 2 reviewers: common.ps1:168-198 Find-FeatureDirByPrefix — prefix NNN, exactly one match → that dir; none → specs/<branch>; two → hard error. Prefixes in specs/ are unique today. Only writer of the file is /speckit-specify (SKILL.md:98-104), which the fleet does not use (D-5). status.js:24 itself hints "or delete the file to fall back to the branch name".
+
+### Journal / docs
+- README row 116 closure ("hashe wejść provenance"): closure is correct in substance, but justification cites wrong scripts: red-first-prover and gate use hash.js for acceptance_tests_hash; the provenance INPUT hash pair is prompt-builder.js:15,61 (producer) + dedup-findings.js:20,35,45 (verifier). Also: prompt-builder provenance has no hash_version; contract-compose.js:82-83 and capability-map.js:29 still raw-hash (dormant, nothing verifies them).
+- README rows 117/118 placed under the row 115 "domknięcie … wiersze poniżej zostają jako historia" → reader may take them as closed history. README:7 says "31 testów" (now 81). Row 118 doesn't say the 2nd occurrence was CAUGHT by the 1st fix's guard (prompt-builder:72).
+- Doc drift list: HANDOFF.md:1,10,11,12 (stale: "nie istnieje jeszcze" sessions A/C5/C6; known risks lack feature.json); workflow.md:45-46 (session A impl lacks feature.json), :187 (hook "in agent frontmatter" — actually .claude/settings.json), :254-256 (trap table lacks scrum fix, misattributed cause), :270 (abandon lacks file restore); dev-analyst.md:15 (should say scrum should have done it → fleet defect) and :53 (still says defects go to runs/<story>/discovery/fleet-defects.md — contradicts deletion); README:7, :125 Konwencje; owner-answer-hook.js:2-3 header; CLAUDE.md workflow step 1 and Husky sentence.
+- Deleting runs/016-.../discovery/fleet-defects.md: untracked, referenced only by dev-analyst.md:53; state.json/status.js unaffected. Risk: if session B is still running, the persona may recreate it (instruction :53).
+
+### Other places in the same defect CLASS (systemic reviewer)
+- A5 max_turns drift template vs agent (code-researcher 15 vs 20, be-writer 60 vs 80, test-designer-fix 40 vs 60) — nothing consumes yet.
+- B2 generated/capability-map.json hash vs story.capability_map_version — nothing compares; scrum.md:20 computes raw sha (works only because LF).
+- B3 runs/<story>/baseline.json SHA — no `is-ancestor` check after rebase (skeleton-check, coverage-gaps).
+- B4 runs/_unassigned/journal.jsonl — orphan owner answer from 09-24 never re-filed.
+- B5 NNN allocation sees only current branch.
+
+## ALTERNATIVES proposed (to be evaluated in round 2)
+
+### For defect 2
+- ALT2-A "base_read_allow / defaults + fail-closed": one `base_read_allow: ["runs/*/prompts"]` in fleet-acl.json applied by hook AND prompt-builder to every agent; unknown agent that has a file in .claude/agents/ and is not a persona → fail-closed (empty lists) per schema; personas listed explicitly (scrum, dev-analyst). Removes the defect class constructively, fixes G2-1, resolves schema/hook contradiction. Risk: D-13 semantics change (owner decision); fail-closed could block general-purpose/Explore in main session unless exception list; hook must stay dependency-free & fast (~50 ms).
+- ALT2-B "single matcher module + fleet-lint + auto-trigger": extract canon/rootMatches from acl-hook.js into a shared dependency-free module used by hook and prompt-builder (drop globToRe); add `fleet-check.js` that validates fleet-acl.json against schema (ajv already a dep), every template's `agent:` exists in ACL and in .claude/agents/, read_allow covers `runs/<story>/prompts/<tpl>.<inst>.md` + all `inputs` + `conventions`, `meta.agent` == `--agent`; called from status.js (start of sessions B/C) and prompt-builder.js (every prompt, covers session A too), and from acl-hook.test.js. Fixes G2-1..5, moves detection to session start. Cost: refactor of the security-critical hook → re-run 64 cases; ~80 lines.
+- ALT2-C "harden the current test cheaply": in the template loop assert `cfg.agents[agent]` exists (FAIL otherwise); add an `.r2` instance case; exercise prompt-builder in a `--dry-run` for each template (tests the matcher that actually refuses); wire `npm run acl:test` into Husky for tools/fleet/** and .claude/agents/**. Fixes G2-1,2,3 minimally; leaves duplication (11 entries) and two matchers. Needs `--dry-run` flag and distinct exit code for missing inputs vs ACL denial. Husky is not installed in this clone.
+- ALT2-D "Husky pre-commit only" (S4): install Husky (`dotnet tool restore && dotnet husky install`), task for tools/fleet/** + .claude/agents/** running acl-hook.test.js. Works only in clones with hooks; `--no-verify` bypasses; doesn't catch class B state files.
+
+### For defect 1
+- ALT1-A "delete .specify/feature.json, rely on branch name" (2 reviewers recommend): `git rm`, add to .gitignore, status.js: if file exists and ≠ story → exit 1 with hint "delete it"; revert scrum step 6/7 change; fix decisions.md:41 / workflow.md:256 misattribution. Fixes G1-1..5 and the merge-to-main trigger; branch = single source of truth (matches D-11/"story id = branch" convention). Residual: someone running /speckit-specify recreates it locally (ignored, harmless); on `main` speckit resolves specs/main (harmless error, not silent foreign work).
+- ALT1-B "story-branch.js open/abandon script + G1 check": script does checkout -b, mkdir runs/, writes feature.json canonically; `abandon` restores the file, deletes branch+folder; backlog-writer.js (or decide.js --gate G1) refuses when branch ≠ story or feature.json ≠ specs/<story>. Fixes G1-1,3,4,5 (deterministic, checked in session A). Leaves G1-2 (file still travels with merges, conflicts).
+- ALT1-C "gitignore + status.js --fix / auto-write when branch matches NNN-slug": fixes merge/conflict class, format; but ignored file survives checkout → stale locally and invisible in git status; auto-fix must check branch first (G1-4). Judged worse than A.
+- ALT1-D "SPECIFY_FEATURE_DIRECTORY env var": shell state doesn't persist across tool calls; would need setting at `claude --agent` launch by the owner. Reject.
+- ALT1-E "keep fix + CI/merge guard that main has no feature.json": partial prosthesis of A, costlier.
+
+### Systemic (cross-cutting)
+- S2 "fleet-check.js self-check" called by status.js + prompt-builder: class A (ACL/template consistency, max_turns) + class B (feature.json vs branch, capability-map hash & ancestor, baseline ancestor, non-empty _unassigned). ~80 lines. Exposes at session start, not at commit.

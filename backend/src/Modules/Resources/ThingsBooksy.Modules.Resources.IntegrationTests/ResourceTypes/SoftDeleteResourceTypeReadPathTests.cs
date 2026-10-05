@@ -54,7 +54,7 @@ public class SoftDeleteResourceTypeReadPathTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-10")]
+    [Trait("AC", "015/AC-10")]
     public async Task GetResourceInstances_IncludeDeletedForSoftDeletedType_ReturnsPropertyValuesWithDefinitionNames()
     {
         // Arrange — schema with two property definitions and one instance carrying a value for each

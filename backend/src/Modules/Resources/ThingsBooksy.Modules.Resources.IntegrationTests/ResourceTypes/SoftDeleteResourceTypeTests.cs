@@ -43,7 +43,7 @@ public class SoftDeleteResourceTypeTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-8")]
+    [Trait("AC", "015/AC-8")]
     public async Task DeleteResourceType_AsOwnerWithInstances_SoftDeletesTypeAndHidesIt()
     {
         // Arrange — schema with 2 instances plus a second, untouched schema in the same group
@@ -102,7 +102,7 @@ public class SoftDeleteResourceTypeTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-9")]
+    [Trait("AC", "015/AC-9")]
     public async Task CreateResourceType_WithNameOfSoftDeletedType_Returns201AndKeepsDeletedRow()
     {
         // Arrange — schema "Sauna" in group G, deleted by the owner through the delete command

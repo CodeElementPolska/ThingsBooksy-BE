@@ -43,7 +43,7 @@ public class ResourceLifecycleEventTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-3")]
+    [Trait("AC", "015/AC-3")]
     public async Task CreateResourceType_WithValidData_PublishesResourceSchemaCreatedEvent()
     {
         // Arrange
@@ -79,7 +79,7 @@ public class ResourceLifecycleEventTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-4")]
+    [Trait("AC", "015/AC-4")]
     public async Task CreateResourceInstance_WithValidData_PublishesResourceInstanceCreatedEvent()
     {
         // Arrange
@@ -117,7 +117,7 @@ public class ResourceLifecycleEventTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-5")]
+    [Trait("AC", "015/AC-5")]
     public async Task DeleteResourceType_WithInstances_PublishesExactlyOneResourceSchemaDeletedEvent()
     {
         // Arrange — schema with 2 instances
@@ -154,7 +154,7 @@ public class ResourceLifecycleEventTests : IntegrationTestBase
     }
 
     [Fact]
-    [Trait("AC", "AC-5")]
+    [Trait("AC", "015/AC-5")]
     public async Task DeleteResourceType_WithoutInstances_PublishesOneResourceSchemaDeletedEvent()
     {
         // Arrange — schema with no instances (N = 0)
@@ -182,7 +182,7 @@ public class ResourceLifecycleEventTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-6")]
+    [Trait("AC", "015/AC-6")]
     public async Task DeleteResourceInstance_Existing_PublishesResourceInstanceDeletedEvent()
     {
         // Arrange
@@ -217,7 +217,7 @@ public class ResourceLifecycleEventTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-7")]
+    [Trait("AC", "015/AC-7")]
     public async Task PublishResourceEvents_ThroughLifecycleCommands_UseOnlySharedAbstractionsContracts()
     {
         // Arrange

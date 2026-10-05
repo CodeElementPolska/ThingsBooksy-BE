@@ -171,7 +171,7 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-8")]
+    [Trait("AC", "015/AC-8")]
     public async Task DeleteResourceType_AsOwner_Returns204AndSoftDeletesInDb()
     {
         // Arrange — a type with no instances, seeded through EF
@@ -267,7 +267,7 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-8")]
+    [Trait("AC", "015/AC-8")]
     public async Task DeleteResourceType_WithInstances_SoftDeletesTypeAndCascadesToInstances()
     {
         // Arrange — a type with 3 instances, seeded through EF

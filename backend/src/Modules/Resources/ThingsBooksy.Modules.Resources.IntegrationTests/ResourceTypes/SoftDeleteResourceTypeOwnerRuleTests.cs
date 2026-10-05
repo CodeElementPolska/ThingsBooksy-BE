@@ -40,7 +40,7 @@ public class SoftDeleteResourceTypeOwnerRuleTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-8")]
+    [Trait("AC", "015/AC-8")]
     public async Task DeleteResourceType_AsNonOwnerMemberWithInstances_Returns403AndKeepsTypeAndInstancesActive()
     {
         // Arrange — schema with 2 instances in G; a member of G who is not the owner
@@ -91,7 +91,7 @@ public class SoftDeleteResourceTypeOwnerRuleTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-9")]
+    [Trait("AC", "015/AC-9")]
     public async Task CreateResourceType_AsNonOwnerMemberWithNameOfSoftDeletedType_Returns403AndPersistsNothing()
     {
         // Arrange — schema "Sauna" in G, already soft-deleted; a member of G who is not the owner
@@ -126,7 +126,7 @@ public class SoftDeleteResourceTypeOwnerRuleTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    [Trait("AC", "AC-9")]
+    [Trait("AC", "015/AC-9")]
     public async Task CreateResourceType_WithNameOfActiveTypeAfterSoftDeletedPredecessor_Returns409AndKeepsOneActiveRow()
     {
         // Arrange — "Sauna" in G soft-deleted, then a new active "Sauna" in G

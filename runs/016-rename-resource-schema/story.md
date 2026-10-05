@@ -6,7 +6,7 @@ acceptance_criteria:
   - id: AC-1
     given: "a signed-in user with the access they have today"
     when: "they use the schema operations at /resources/schemas (create, list by group, read, update, delete) and the instance operations that name a schema (create with resourceSchemaId, list whose rows carry resourceSchemaId, list filtered by resourceSchemaId)"
-    then: "every operation gives the same result as the matching operation under the old names (/resources/types, resourceTypeId) gave before this story"
+    then: "every operation gives the same result as the matching operation under the old names (/resources/types, resourceTypeId) gave before this story, apart from the message wording of AC-7 and one error code: a taken schema name answers 409 with code RESOURCE_SCHEMA_NAME_TAKEN instead of RESOURCE_TYPE_NAME_TAKEN (DEC-2)"
   - id: AC-2
     given: "the application after this story"
     when: "anyone calls an old /resources/types address"
@@ -23,7 +23,7 @@ acceptance_criteria:
     role: owner
     given: "the frontend after this story"
     when: "the group owner opens a group's schema list, creates a schema, opens and edits it, and creates an instance of it"
-    then: "every step works as before this story, now talking to the /resources/schemas addresses"
+    then: "every step works as before this story, now talking to the /resources/schemas addresses; three texts on the group screen say 'schema' instead of 'type' (DEC-4): the resources table column header 'Schema', the empty-state sentence 'Create the first schema to describe your resources.' and the add-button label 'Add resource to schema <name>'"
   - id: AC-9
     given: "a development database created before this story"
     when: "the new version of the application starts"
@@ -32,17 +32,17 @@ acceptance_criteria:
     role: member
     given: "the responses that a group member who is not the owner receives today from each /resources/types operation and each instance operation that names a schema, recorded by discovery before the rename"
     when: "the same member makes the same calls through /resources/schemas and resourceSchemaId"
-    then: "every response (status and body) is the same as recorded"
+    then: "every response (status and body) is the same as recorded, apart from the message wording of AC-7; this includes a member listing resources with includeDeleted=true and receiving the deleted ones (declared intended, DEC-3)"
   - id: AC-11
     role: user from another group
     given: "the responses that a signed-in user from another group receives today from each /resources/types operation and each instance operation that names a schema, recorded by discovery before the rename"
     when: "the same user makes the same calls through /resources/schemas and resourceSchemaId"
-    then: "every response (status and body) is the same as recorded"
+    then: "every response (status and body) is the same as recorded, apart from the message wording of AC-7; an existing schema of another group answers 403 and a missing one answers 404 (read) or 400 (other operations) (declared intended, DEC-3)"
   - id: AC-12
     role: owner
     given: "the response a group owner receives today when the instance list filter names a schema of another group, recorded by discovery before the rename"
     when: "the owner lists instances filtered by resourceSchemaId of another group's schema"
-    then: "the response is the same as recorded"
+    then: "the response is the same as recorded for both call shapes: own groupId plus the foreign schema id gives 200 with an empty list; the foreign schema id alone gives 403 (ASM-6)"
   - id: AC-13
     given: "the Resources area of the database after the migrations of this story"
     when: "the names of its tables, columns, constraints, indexes and sequences are listed"
@@ -151,3 +151,15 @@ AC ids are stable. AC-3, AC-4 and AC-5 of the proposal were merged into AC-1 aft
 - Compile the list of user-visible messages mentioning "resource type" into the spec before G2 (AC-7).
 - Story 015 already introduced `ResourceSchemaCreatedEvent` / `ResourceSchemaDeletedEvent` / `ResourceInstance*Event` — keep them.
 - `PropertyDataType` / `dataType` are a property's data kind, not the resource type — they are NOT renamed.
+
+## Discovery decisions (owner, 2026-10-02, journaled)
+
+| Decision | Chosen | Effect on this story |
+|---|---|---|
+| DEC-1 migration shape | Rename in place | one migration of rename operations (table, two columns, two indexes) plus re-created primary and foreign key; development data survives; AC-9 wording unchanged |
+| DEC-2 error code | Rename to RESOURCE_SCHEMA_NAME_TAKEN | the single named exception to "same result" in AC-1 |
+| DEC-3 access observations | Both intended, no follow-up | members may list deleted resources (includeDeleted=true); the 403-vs-404/400 difference for foreign vs missing ids is accepted; AC-10 and AC-11 record both as expected behaviour |
+| DEC-4 on-screen texts | Change 3 group-screen texts | AC-8 lists them; the sign-in slogan "One platform for every resource type." stays |
+| DEC-5 delivery route | Two steps in one story | step 0 = behaviour-neutral internal rename before the delivery baseline; then the standard phases carry the visible change and the migration |
+
+The baseline responses for AC-10..AC-12 and the message list for AC-7 are in `specs/016-rename-resource-schema/spec.md`.

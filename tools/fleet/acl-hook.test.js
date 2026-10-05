@@ -65,6 +65,19 @@ const cases = [
   ["test-designer writes Core (deny)", ev("test-designer", "Write", { file_path: CORE }), 2],
   ["sighted reads Core", ev("test-designer-sighted", "Read", { file_path: CORE }), 0],
   ["sighted writes Core (deny)", ev("test-designer-sighted", "Write", { file_path: CORE }), 2],
+  // fe-writer (v0): frontend production code only — never backend, specs or the generated client in app/api.
+  // No write_deny yet: a *.spec.ts under features/ is writable for the hook; the gate's test-hash step guards edits.
+  ["fe-writer reads frontend", ev("fe-writer", "Read", { file_path: path.join(REPO, "frontend", "package.json") }), 0],
+  ["fe-writer reads its own prompt", ev("fe-writer", "Read", { file_path: path.join(REPO, "runs", "015-x", "prompts", "fe-writer-behaviour.md") }), 0],
+  ["fe-writer writes features/", ev("fe-writer", "Write", { file_path: path.join(REPO, "frontend", "src", "app", "features", "x", "x.component.ts") }), 0],
+  ["fe-writer writes backend (deny)", ev("fe-writer", "Write", { file_path: CORE }), 2],
+  ["fe-writer writes specs (deny)", ev("fe-writer", "Write", { file_path: path.join(REPO, "specs", "015-x", "spec.md") }), 2],
+  ["fe-writer writes generated client app/api (deny)", ev("fe-writer", "Edit", { file_path: path.join(REPO, "frontend", "src", "app", "api", "data-contracts.ts") }), 2],
+  ["fe-writer dotnet (deny)", ev("fe-writer", "Bash", { command: "dotnet build backend/ThingsBooksy.slnx" }), 2],
+  ["fe-writer reads backend (deny)", ev("fe-writer", "Read", { file_path: CORE }), 2],
+  ["fe-writer npm build via --prefix", ev("fe-writer", "Bash", { command: "npm --prefix frontend run build" }), 0],
+  ["fe-writer npm test via --prefix", ev("fe-writer", "Bash", { command: "npm --prefix frontend test" }), 0],
+  ["fe-writer cd frontend && npm test (deny: cd is not an allowed prefix)", ev("fe-writer", "Bash", { command: "cd frontend && npm test" }), 2],
   // shell: a `|` inside quotes is not a pipe (xunit trait filter), a bare `|` still is
   ["tester runs the AC filter with | in quotes", ev("test-designer", "Bash", { command: 'dotnet test backend/src/Modules/Resources/X.csproj --filter "AC=AC-3|AC=AC-4"' }), 0],
   ["tester pipes to an unallowed command (deny)", ev("test-designer", "Bash", { command: "dotnet test backend/src/Modules/Resources/X.csproj | tee out.txt" }), 2],

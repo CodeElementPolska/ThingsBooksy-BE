@@ -7,6 +7,8 @@
 //   format       dotnet format --verify-no-changes
 //   arch-tests   dotnet test --filter Category=Architecture   (SKIPPED until the deferred analyzers epic lands)
 //   tests        dotnet test (story tests by AC filter, or everything with --full)
+//   fe-build     npm --prefix frontend run build   } run when story.md says touches_ui: true OR frontend/ changed since
+//   fe-test      npm --prefix frontend test -- --watch=false  } baseline (or either cannot be established); otherwise SKIPPED
 //   swagger      re-export generated/swagger.base.json (Tooling test)   [--no-swagger to skip]
 //   contract     contract-diff (contract-next vs re-exported swagger)   [needs runs/<story>/contract-next.json]
 //   ac-matrix    every AC has ≥1 test
@@ -84,6 +86,52 @@ go = go && step('tests', () => {
   const failedAny = r.status !== 0 || /Failed!/.test(r.stdout);
   return failedAny ? { status: 'FAILED', detail: tail(r, 25) || `exit ${r.status}` } : { status: 'PASSED', detail: `${m.passed} passed` };
 });
+// Frontend steps run when the story declares UI work (story.md front matter `touches_ui: true`, nested under
+// blast_radius) OR anything under frontend/ changed since the baseline. "Changed files only" would be fail-open for a
+// story that should have changed the UI and did not. What cannot be established (no story.md / front matter, no
+// baseline, git error) counts as "run": SKIPPED must be a proven statement, never a default.
+const feScope = (() => {
+  const reasons = [];
+  const storyMd = path.join(runDir, 'story.md');
+  const fm = fs.existsSync(storyMd) ? fs.readFileSync(storyMd, 'utf8').replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---/) : null;
+  if (!fm) reasons.push('story.md front matter unreadable');
+  else {
+    // absent key or a plain `false` = the story does not declare UI work; anything else than a plain true/false
+    // (quotes, `True`, a trailing comment) cannot be read as "no UI" → run
+    const v = (fm[1].match(/^\s*touches_ui:[ \t]*(.*?)[ \t]*$/m) || [])[1];
+    if (v === 'true') reasons.push('touches_ui: true');
+    else if (v !== undefined && v !== 'false') reasons.push(`touches_ui has an unrecognised value "${v}"`);
+  }
+  const bl = path.join(runDir, 'baseline.json');
+  let commit = null;
+  try { commit = JSON.parse(fs.readFileSync(bl, 'utf8')).commit; } catch { /* no baseline */ }
+  if (!commit) reasons.push('no baseline.json');
+  else {
+    const diff = run('git', ['diff', '--name-only', commit, '--', 'frontend']);
+    const untracked = run('git', ['ls-files', '--others', '--exclude-standard', '--', 'frontend']);
+    if (diff.status !== 0 || untracked.status !== 0) reasons.push('git could not list frontend changes');
+    else {
+      const n = `${diff.stdout}\n${untracked.stdout}`.split('\n').filter(l => l.trim()).length;
+      if (n) reasons.push(`${n} file(s) changed under frontend/ since baseline`);
+    }
+  }
+  return { run: reasons.length > 0, why: reasons.join('; ') };
+})();
+// a hung or runaway frontend process must not block the gate forever; a kill / buffer overflow leaves status null → FAILED
+const FE_SPAWN = { timeout: 10 * 60 * 1000, maxBuffer: 64 * 1024 * 1024 };
+const feStep = (npmArgs, okDetail) => () => {
+  if (!feScope.run) return { status: 'SKIPPED', detail: 'story does not touch UI and no frontend changes since baseline' };
+  const r = run('npm', ['--prefix', 'frontend', ...npmArgs], FE_SPAWN);
+  if (r.status === 0) return { status: 'PASSED', detail: okDetail(r) };
+  // the detail goes back to fe-writer: no colour codes, errors only (ng prints budget/deprecation warnings first)
+  const errors = `${r.stdout || ''}\n${r.stderr || ''}`.replace(/\x1b\[[0-9;]*m/g, '').split('\n').filter(l => /error|fail/i.test(l)).slice(0, 25).join('\n');
+  // on Windows a timeout kills the shell only — the node child of npm may survive and keep files locked
+  if (r.error) return { status: 'FAILED', detail: `${r.error.message}${r.error.code === 'ETIMEDOUT' ? ' — timed out; check for leftover node processes before the next run' : ''}` };
+  return { status: 'FAILED', detail: errors || `exit ${r.status}` };
+};
+go = go && step('fe-build', feStep(['run', 'build'], () => feScope.why));
+// --watch=false: `ng test` watches by default on a TTY; the gate must always be a single run
+go = go && step('fe-test', feStep(['test', '--', '--watch=false'], r => ((r.stdout || '').match(/Tests\s+.*\d+ passed[^\n]*/) || [feScope.why])[0].replace(/\x1b\[[0-9;]*m/g, '').trim()));
 go = go && step('swagger', () => {
   if (args['no-swagger']) return { status: 'SKIPPED' };
   const r = run('dotnet', ['test', 'backend/src/Shared/ThingsBooksy.Shared.IntegrationTests', '--no-build', '--filter', 'Category=Tooling', '--nologo', '-v', 'q']);

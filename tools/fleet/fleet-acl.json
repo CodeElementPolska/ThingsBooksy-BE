@@ -191,6 +191,28 @@
         "git status"
       ]
     },
+    "fe-writer": {
+      "read_allow": [
+        "frontend",
+        "specs",
+        "runs",
+        "generated",
+        ".claude/conventions"
+      ],
+      "write_allow": [
+        "frontend/src/app/features",
+        "frontend/src/app/shared",
+        "frontend/src/app/core",
+        "runs/*/impl"
+      ],
+      "shell": [
+        "npm --prefix frontend run build",
+        "npm --prefix frontend test",
+        "node tools/fleet/validate.js",
+        "git diff",
+        "git status"
+      ]
+    },
     "test-designer-sighted": {
       "read_allow": [
         "backend",

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { DashboardAdminPanelComponent } from './dashboard-admin-panel.component';
 import { GroupListItemDto } from '../../groups/services/groups-api.service';
 
@@ -20,6 +21,7 @@ describe('DashboardAdminPanelComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DashboardAdminPanelComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardAdminPanelComponent);

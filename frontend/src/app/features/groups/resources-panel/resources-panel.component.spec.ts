@@ -20,8 +20,8 @@ const mockResources: ResourceRowDto[] = [
 ];
 
 const mockSchemas: SchemaSummary[] = [
-  { id: 'schema-a', name: 'Laptops', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [] },
-  { id: 'schema-b', name: 'Rooms', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [] },
+  { id: 'schema-a', name: 'Laptops', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [], resourceCount: 0 },
+  { id: 'schema-b', name: 'Rooms', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [], resourceCount: 0 },
 ];
 
 describe('ResourcesPanelComponent', () => {
@@ -32,11 +32,9 @@ describe('ResourcesPanelComponent', () => {
   beforeEach(async () => {
     originalIntersectionObserver = window.IntersectionObserver;
 
-    const mockObserver = vi.fn().mockImplementation(() => ({
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
-    }));
+    const mockObserver = vi.fn().mockImplementation(function () {
+      return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() };
+    });
     (window as any).IntersectionObserver = mockObserver;
 
     await TestBed.configureTestingModule({
@@ -134,7 +132,7 @@ describe('ResourcesPanelComponent', () => {
       fixture.detectChanges();
 
       const emitted: void[] = [];
-      component.addResource.subscribe(() => emitted.push());
+      component.addResource.subscribe(() => emitted.push(undefined));
 
       const btn = fixture.nativeElement.querySelector('.resources-panel__add-btn');
       btn.click();
@@ -145,9 +143,9 @@ describe('ResourcesPanelComponent', () => {
 
   describe('infinite scroll', () => {
     it('emits loadMore when IntersectionObserver fires for the sentinel', () => {
-      let intersectCallback: IntersectionObserverCallback | null = null;
+      let intersectCallback = null as IntersectionObserverCallback | null;
 
-      const mockObserver = vi.fn().mockImplementation((cb: IntersectionObserverCallback) => {
+      const mockObserver = vi.fn().mockImplementation(function (cb: IntersectionObserverCallback) {
         intersectCallback = cb;
         return {
           observe: vi.fn(),
@@ -164,7 +162,7 @@ describe('ResourcesPanelComponent', () => {
       fixture.detectChanges();
 
       const emitted: void[] = [];
-      component.loadMore.subscribe(() => emitted.push());
+      component.loadMore.subscribe(() => emitted.push(undefined));
 
       if (intersectCallback) {
         const fakeEntry = [{ isIntersecting: true }] as unknown as IntersectionObserverEntry[];

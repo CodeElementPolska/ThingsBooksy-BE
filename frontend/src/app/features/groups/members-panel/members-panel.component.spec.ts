@@ -28,11 +28,9 @@ describe('MembersPanelComponent', () => {
 
   beforeEach(async () => {
     // IntersectionObserver is not available in jsdom — provide a no-op mock
-    const mockIntersectionObserver = vi.fn().mockImplementation(() => ({
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
-    }));
+    const mockIntersectionObserver = vi.fn().mockImplementation(function () {
+      return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() };
+    });
     vi.stubGlobal('IntersectionObserver', mockIntersectionObserver);
 
     await TestBed.configureTestingModule({

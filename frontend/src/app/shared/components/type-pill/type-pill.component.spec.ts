@@ -26,19 +26,19 @@ describe('TypePillComponent', () => {
   it('renders label "Text" for value "text"', () => {
     create('text');
     const label = fixture.debugElement.query(By.css('.type-pill__label'));
-    expect(label.nativeElement.textContent.trim()).toBe('text');
+    expect(label.nativeElement.textContent.trim()).toBe('Text');
   });
 
   it('renders label "Number" for value "number"', () => {
     create('number');
     const label = fixture.debugElement.query(By.css('.type-pill__label'));
-    expect(label.nativeElement.textContent.trim()).toBe('number');
+    expect(label.nativeElement.textContent.trim()).toBe('Number');
   });
 
   it('renders label "Yes / No" for value "boolean"', () => {
     create('boolean');
     const label = fixture.debugElement.query(By.css('.type-pill__label'));
-    expect(label.nativeElement.textContent.trim()).toBe('yes / no');
+    expect(label.nativeElement.textContent.trim()).toBe('Yes / No');
   });
 
   it('applies the correct modifier class for "text"', () => {

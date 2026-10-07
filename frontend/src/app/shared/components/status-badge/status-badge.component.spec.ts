@@ -2,16 +2,16 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StatusBadgeComponent } from './status-badge.component';
 import { By } from '@angular/platform-browser';
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 @Component({
   standalone: true,
   imports: [StatusBadgeComponent],
-  template: `<tb-status-badge [status]="status" [label]="label" />`,
+  template: `<tb-status-badge [status]="status()" [label]="label()" />`,
 })
 class TestHostComponent {
-  status: 'confirmed' | 'cancelled' = 'confirmed';
-  label = '';
+  readonly status = signal<'confirmed' | 'cancelled'>('confirmed');
+  readonly label = signal('');
 }
 
 describe('StatusBadgeComponent', () => {
@@ -34,21 +34,21 @@ describe('StatusBadgeComponent', () => {
   });
 
   it('should render "Confirmed" default label for confirmed status', () => {
-    host.status = 'confirmed';
+    host.status.set('confirmed');
     fixture.detectChanges();
     const span: HTMLElement = fixture.debugElement.query(By.css('.badge')).nativeElement;
     expect(span.textContent?.trim()).toBe('Confirmed');
   });
 
   it('should render "Cancelled" default label for cancelled status', () => {
-    host.status = 'cancelled';
+    host.status.set('cancelled');
     fixture.detectChanges();
     const span: HTMLElement = fixture.debugElement.query(By.css('.badge')).nativeElement;
     expect(span.textContent?.trim()).toBe('Cancelled');
   });
 
   it('should apply the confirmed CSS class for confirmed status', () => {
-    host.status = 'confirmed';
+    host.status.set('confirmed');
     fixture.detectChanges();
     const span: HTMLElement = fixture.debugElement.query(By.css('.badge')).nativeElement;
     expect(span.classList).toContain('confirmed');
@@ -56,7 +56,7 @@ describe('StatusBadgeComponent', () => {
   });
 
   it('should apply the cancelled CSS class for cancelled status', () => {
-    host.status = 'cancelled';
+    host.status.set('cancelled');
     fixture.detectChanges();
     const span: HTMLElement = fixture.debugElement.query(By.css('.badge')).nativeElement;
     expect(span.classList).toContain('cancelled');
@@ -64,16 +64,16 @@ describe('StatusBadgeComponent', () => {
   });
 
   it('should render the override label when label input is provided', () => {
-    host.status = 'confirmed';
-    host.label = 'Active';
+    host.status.set('confirmed');
+    host.label.set('Active');
     fixture.detectChanges();
     const span: HTMLElement = fixture.debugElement.query(By.css('.badge')).nativeElement;
     expect(span.textContent?.trim()).toBe('Active');
   });
 
   it('should render override label for cancelled status when label is provided', () => {
-    host.status = 'cancelled';
-    host.label = 'Rejected';
+    host.status.set('cancelled');
+    host.label.set('Rejected');
     fixture.detectChanges();
     const span: HTMLElement = fixture.debugElement.query(By.css('.badge')).nativeElement;
     expect(span.textContent?.trim()).toBe('Rejected');

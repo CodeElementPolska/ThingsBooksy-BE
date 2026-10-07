@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { Component } from '@angular/core';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Component, signal } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ModalComponent } from './modal.component';
 
@@ -9,18 +9,24 @@ import { ModalComponent } from './modal.component';
   standalone: true,
   imports: [ModalComponent],
   template: `
-    <tb-modal [open]="isOpen" [title]="modalTitle" (close)="onClose()">
+    <tb-modal [open]="isOpen()" [title]="modalTitle()" (close)="onClose()">
       <p>Modal content</p>
     </tb-modal>
   `,
 })
 class TestHostComponent {
-  isOpen = false;
-  modalTitle = 'Test Title';
+  readonly isOpen = signal(false);
+  readonly modalTitle = signal('Test Title');
   closeCalled = false;
   onClose(): void {
     this.closeCalled = true;
   }
+}
+
+// jsdom does not implement the <dialog> methods the modal calls
+function stubDialogMethods(): void {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) { this.open = true; };
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) { this.open = false; };
 }
 
 describe('ModalComponent', () => {
@@ -28,6 +34,7 @@ describe('ModalComponent', () => {
   let host: TestHostComponent;
 
   beforeEach(async () => {
+    stubDialogMethods();
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, NoopAnimationsModule],
     }).compileComponents();
@@ -42,15 +49,15 @@ describe('ModalComponent', () => {
   });
 
   it('should render the modal title when title input is set', () => {
-    host.isOpen = true;
+    host.isOpen.set(true);
     hostFixture.detectChanges();
     const title = hostFixture.nativeElement.querySelector('.modal__title');
     expect(title?.textContent?.trim()).toBe('Test Title');
   });
 
   it('should not render header when title is empty', async () => {
-    host.modalTitle = '';
-    host.isOpen = true;
+    host.modalTitle.set('');
+    host.isOpen.set(true);
     hostFixture.detectChanges();
     const header = hostFixture.nativeElement.querySelector('.modal__header');
     expect(header).toBeNull();

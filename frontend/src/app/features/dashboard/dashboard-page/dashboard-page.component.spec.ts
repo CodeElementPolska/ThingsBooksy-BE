@@ -1,12 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DashboardPageComponent } from './dashboard-page.component';
 import { AuthService } from '../../auth/auth.service';
+import { GroupsApiService } from '../../groups/services/groups-api.service';
 
 describe('DashboardPageComponent', () => {
   let component: DashboardPageComponent;
@@ -18,21 +19,21 @@ describe('DashboardPageComponent', () => {
     authServiceMock = {
       displayName: signal('Alice Smith'),
       initials: signal('AS'),
+      currentUser: signal({ id: 'me', email: 'alice@example.com' }),
       signOut: vi.fn(() => of(undefined)),
     } as unknown as Partial<AuthService>;
-
-    routerMock = {
-      navigate: vi.fn().mockResolvedValue(true),
-    };
 
     await TestBed.configureTestingModule({
       imports: [DashboardPageComponent],
       providers: [
         provideAnimations(),
         { provide: AuthService, useValue: authServiceMock },
-        { provide: Router, useValue: routerMock },
+        provideRouter([]),
+        { provide: GroupsApiService, useValue: { getMyGroups: vi.fn(() => of([])) } },
       ],
     }).compileComponents();
+
+    routerMock = { navigate: vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true) };
 
     fixture = TestBed.createComponent(DashboardPageComponent);
     component = fixture.componentInstance;
@@ -101,7 +102,7 @@ describe('DashboardPageComponent', () => {
 
   it('should pass memberGroups and adminGroups to tb-dashboard-admin-panel', () => {
     const panel = fixture.debugElement.query(By.css('tb-dashboard-admin-panel'));
-    expect(panel.componentInstance.memberGroups()).toBe(component.memberGroups);
-    expect(panel.componentInstance.adminGroups()).toBe(component.adminGroups);
+    expect(panel.componentInstance.memberGroups()).toBe(component.memberGroups());
+    expect(panel.componentInstance.adminGroups()).toBe(component.ownedGroups());
   });
 });

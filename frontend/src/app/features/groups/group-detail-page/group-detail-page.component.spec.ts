@@ -33,6 +33,7 @@ describe('GroupDetailPageComponent', () => {
       initialError: signal<string | null>(null),
       group: signal(null),
       schemas: signal([]),
+      schemasWithCounts: signal([]),
       resources: signal({ items: [], nextCursor: null, loading: false }),
       members: signal({ items: [], nextCursor: null, loading: false }),
       isOwner: signal(false),
@@ -75,7 +76,16 @@ describe('GroupDetailPageComponent', () => {
         { provide: ActivatedRoute, useValue: activatedRouteMock },
       ],
       schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    })
+      // The component declares its own GroupContextStore provider, which would shadow the mock above.
+      .overrideComponent(GroupDetailPageComponent, {
+        set: {
+          imports: [],
+          schemas: [NO_ERRORS_SCHEMA],
+          providers: [{ provide: GroupContextStore, useValue: storeMock }],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(GroupDetailPageComponent);
     component = fixture.componentInstance;

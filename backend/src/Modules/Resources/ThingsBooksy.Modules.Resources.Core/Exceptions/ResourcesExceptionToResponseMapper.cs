@@ -9,7 +9,7 @@ internal sealed class ResourcesExceptionToResponseMapper : IExceptionToResponseM
     public ExceptionResponse Map(Exception exception)
         => exception switch
         {
-            ResourceTypeNameAlreadyExistsException => new ExceptionResponse(
+            ResourceSchemaNameAlreadyExistsException => new ExceptionResponse(
                 new { code = "RESOURCE_TYPE_NAME_TAKEN", message = "A schema with this name already exists in the group." },
                 HttpStatusCode.Conflict),
             _ => null!

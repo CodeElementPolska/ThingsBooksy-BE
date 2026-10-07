@@ -23,8 +23,8 @@ internal sealed class UpdateResourceInstanceCommandDataProvider : IUpdateResourc
     public Task<bool> IsOwnerAsync(Guid groupId, Guid userId, CancellationToken ct)
         => _dbContext.GroupReadModels.AnyAsync(g => g.Id == groupId && g.OwnerId == userId, ct);
 
-    public Task<List<ResourcePropertyDefinition>> GetPropertyDefinitionsAsync(Guid resourceTypeId, CancellationToken ct)
-        => _dbContext.ResourcePropertyDefinitions.Where(d => d.ResourceTypeId == resourceTypeId).ToListAsync(ct);
+    public Task<List<ResourcePropertyDefinition>> GetPropertyDefinitionsAsync(Guid resourceSchemaId, CancellationToken ct)
+        => _dbContext.ResourcePropertyDefinitions.Where(d => d.ResourceSchemaId == resourceSchemaId).ToListAsync(ct);
 
     public void RemovePropertyValues(IEnumerable<ResourcePropertyValue> values)
         => _dbContext.ResourcePropertyValues.RemoveRange(values);

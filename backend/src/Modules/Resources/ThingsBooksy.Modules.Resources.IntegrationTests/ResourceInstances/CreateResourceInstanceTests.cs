@@ -20,7 +20,7 @@ namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceInstances;
 ///
 /// GroupReadModel rows are inserted directly into the resources schema via
 /// ResourcesGroupReadModelFactory, bypassing the ManagementGroups event pipeline.
-/// ResourceType rows are created via HTTP to exercise the full creation flow as a precondition.
+/// ResourceSchema rows are created via HTTP to exercise the full creation flow as a precondition.
 /// </summary>
 [Collection("IntegrationTestCollection")]
 public class CreateResourceInstanceTests : IntegrationTestBase
@@ -46,7 +46,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Desk");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Desk");
 
         // Act
         var response = await client.CreateResourceInstanceAsync(typeId, "Desk A", "First desk");
@@ -66,7 +66,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         Assert.NotNull(instance);
         Assert.Equal("Desk A", instance.Name);
         Assert.Equal("First desk", instance.Description);
-        Assert.Equal(typeId, instance.ResourceTypeId);
+        Assert.Equal(typeId, instance.ResourceSchemaId);
         Assert.Equal(group.Id, instance.GroupId);
         Assert.Equal(owner.UserId, instance.OwnerId);
 
@@ -93,7 +93,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
             new PropertyDefinitionRequest("Seats", (int)PropertyDataType.Number, false),
         };
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Car", null, definitions);
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Car", null, definitions);
         var storedDefs = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
 
         var colorDef = storedDefs.First(d => d.Name == "Color");
@@ -165,7 +165,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
 
         var ownerClient = new ResourcesTestClient(Factory, owner);
-        var typeId = await ownerClient.CreateResourceTypeAndGetIdAsync(group.Id, "Chair");
+        var typeId = await ownerClient.CreateResourceSchemaAndGetIdAsync(group.Id, "Chair");
 
         var nonOwnerClient = new ResourcesTestClient(Factory, nonOwner);
 
@@ -180,17 +180,17 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == typeId)
+            .Where(x => x.ResourceSchemaId == typeId)
             .ToListAsync();
         Assert.Empty(rows);
     }
 
     // -----------------------------------------------------------------------------------------
-    // Not found — 400 Unknown ResourceTypeId
+    // Not found — 400 Unknown ResourceSchemaId
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task CreateResourceInstance_WithUnknownResourceTypeId_Returns400()
+    public async Task CreateResourceInstance_WithUnknownResourceSchemaId_Returns400()
     {
         // Arrange
         var user = await _users.CreateUserAsync("createri_unknowntype@test.com");
@@ -201,7 +201,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         // Act
         var response = await client.CreateResourceInstanceAsync(unknownTypeId, "Ghost Instance");
 
-        // Assert — ResourceType not found → 400
+        // Assert — ResourceSchema not found → 400
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         // Assert — no instance persisted
@@ -209,7 +209,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == unknownTypeId)
+            .Where(x => x.ResourceSchemaId == unknownTypeId)
             .ToListAsync();
         Assert.Empty(rows);
     }
@@ -226,7 +226,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Table");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Table");
 
         // Act
         var response = await client.CreateResourceInstanceAsync(typeId, "");
@@ -239,13 +239,13 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == typeId)
+            .Where(x => x.ResourceSchemaId == typeId)
             .ToListAsync();
         Assert.Empty(rows);
     }
 
     // -----------------------------------------------------------------------------------------
-    // Business rule — 400 Duplicate name within same ResourceType
+    // Business rule — 400 Duplicate name within same ResourceSchema
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -256,7 +256,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Monitor");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Monitor");
 
         // First creation succeeds
         var firstResponse = await client.CreateResourceInstanceAsync(typeId, "Monitor A");
@@ -273,25 +273,25 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == typeId)
+            .Where(x => x.ResourceSchemaId == typeId)
             .ToListAsync();
         Assert.Single(rows);
     }
 
     // -----------------------------------------------------------------------------------------
-    // Business rule — name scope is per-ResourceType (same name in different type → 201)
+    // Business rule — name scope is per-ResourceSchema (same name in different type → 201)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task CreateResourceInstance_SameNameInDifferentResourceType_Returns201()
+    public async Task CreateResourceInstance_SameNameInDifferentResourceSchema_Returns201()
     {
         // Arrange — two types in the same group owned by the same user
         var owner = await _users.CreateUserAsync("createri_scopedname@test.com");
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId1 = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Keyboard");
-        var typeId2 = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Mouse");
+        var typeId1 = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Keyboard");
+        var typeId2 = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Mouse");
 
         // First type — create "Item A"
         var firstResponse = await client.CreateResourceInstanceAsync(typeId1, "Item A");
@@ -321,7 +321,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
             new PropertyDefinitionRequest("SerialNumber", (int)PropertyDataType.Text, true),
         };
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Printer", null, definitions);
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Printer", null, definitions);
 
         // Act — submit no property values at all
         var response = await client.CreateResourceInstanceAsync(typeId, "Printer One");
@@ -334,7 +334,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == typeId)
+            .Where(x => x.ResourceSchemaId == typeId)
             .ToListAsync();
         Assert.Empty(rows);
     }
@@ -356,7 +356,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
             new PropertyDefinitionRequest("Capacity", (int)PropertyDataType.Number, false),
         };
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Room", null, definitions);
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Room", null, definitions);
         var storedDefs = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
         var capacityDef = storedDefs.First(d => d.Name == "Capacity");
 
@@ -372,7 +372,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == typeId)
+            .Where(x => x.ResourceSchemaId == typeId)
             .ToListAsync();
         Assert.Empty(rows);
     }
@@ -394,7 +394,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
             new PropertyDefinitionRequest("HasProjector", (int)PropertyDataType.Boolean, false),
         };
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "MeetingRoom", null, definitions);
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "MeetingRoom", null, definitions);
         var storedDefs = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
         var projectorDef = storedDefs.First(d => d.Name == "HasProjector");
 
@@ -410,13 +410,13 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == typeId)
+            .Where(x => x.ResourceSchemaId == typeId)
             .ToListAsync();
         Assert.Empty(rows);
     }
 
     // -----------------------------------------------------------------------------------------
-    // Business rule — 400 Unknown PropertyDefinitionId (def from a different ResourceType)
+    // Business rule — 400 Unknown PropertyDefinitionId (def from a different ResourceSchema)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -430,8 +430,8 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var type1Defs = new[] { new PropertyDefinitionRequest("Color", (int)PropertyDataType.Text, false) };
         var type2Defs = new[] { new PropertyDefinitionRequest("Weight", (int)PropertyDataType.Number, false) };
 
-        var typeId1 = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Lamp", null, type1Defs);
-        var typeId2 = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Stand", null, type2Defs);
+        var typeId1 = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Lamp", null, type1Defs);
+        var typeId2 = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Stand", null, type2Defs);
 
         // Retrieve the def that belongs to type2
         var type2StoredDefs = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId2);
@@ -449,7 +449,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == typeId1)
+            .Where(x => x.ResourceSchemaId == typeId1)
             .ToListAsync();
         Assert.Empty(rows);
     }

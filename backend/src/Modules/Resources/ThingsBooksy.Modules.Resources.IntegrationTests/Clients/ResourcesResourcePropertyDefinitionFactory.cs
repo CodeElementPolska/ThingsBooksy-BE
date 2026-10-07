@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Resources.Core.DAL;
 using ThingsBooksy.Modules.Resources.Core.Domain;
-using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
+using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceSchema;
 using ThingsBooksy.Shared.IntegrationTests;
 
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
@@ -21,13 +21,13 @@ public sealed class ResourcesResourcePropertyDefinitionFactory
         => _factory = factory;
 
     internal async Task<ResourcePropertyDefinition> CreateResourcePropertyDefinitionAsync(
-        Guid resourceTypeId,
+        Guid resourceSchemaId,
         string name,
         PropertyDataType dataType,
         bool isRequired = false)
     {
         var definition = ResourcePropertyDefinition.Create(
-            new PropertyDefinitionInput(name, dataType, isRequired), resourceTypeId);
+            new PropertyDefinitionInput(name, dataType, isRequired), resourceSchemaId);
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();

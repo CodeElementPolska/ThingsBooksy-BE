@@ -1,0 +1,44 @@
+{
+  "story": "016-rename-resource-schema",
+  "expected_ac": [
+    "AC-1",
+    "AC-2",
+    "AC-6",
+    "AC-7",
+    "AC-8",
+    "AC-9",
+    "AC-10",
+    "AC-11",
+    "AC-12",
+    "AC-13",
+    "AC-14"
+  ],
+  "uncovered_ac": [
+    "AC-1",
+    "AC-2",
+    "AC-6",
+    "AC-7",
+    "AC-8",
+    "AC-9",
+    "AC-10",
+    "AC-11",
+    "AC-12",
+    "AC-13",
+    "AC-14"
+  ],
+  "tests_without_known_ac": [],
+  "coverage": 0,
+  "matrix": {
+    "AC-1": [],
+    "AC-2": [],
+    "AC-6": [],
+    "AC-7": [],
+    "AC-8": [],
+    "AC-9": [],
+    "AC-10": [],
+    "AC-11": [],
+    "AC-12": [],
+    "AC-13": [],
+    "AC-14": []
+  }
+}

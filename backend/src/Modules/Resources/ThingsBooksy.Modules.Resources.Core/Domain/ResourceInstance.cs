@@ -8,7 +8,7 @@ namespace ThingsBooksy.Modules.Resources.Core.Domain;
 internal class ResourceInstance
 {
     public Guid Id { get; private set; }
-    public Guid ResourceTypeId { get; private set; }
+    public Guid ResourceSchemaId { get; private set; }
     public Guid GroupId { get; private set; }
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
@@ -25,7 +25,7 @@ internal class ResourceInstance
         => new()
         {
             Id = Guid.CreateVersion7(),
-            ResourceTypeId = command.ResourceTypeId,
+            ResourceSchemaId = command.ResourceSchemaId,
             GroupId = groupId,
             Name = command.Name,
             Description = command.Description,

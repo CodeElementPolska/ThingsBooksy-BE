@@ -16,17 +16,17 @@ internal sealed class CreateResourceInstanceCommandDataProvider : ICreateResourc
     public CreateResourceInstanceCommandDataProvider(ResourcesDbContext dbContext)
         => _dbContext = dbContext;
 
-    public Task<ResourceType?> GetResourceTypeAsync(Guid resourceTypeId, CancellationToken ct)
-        => _dbContext.ResourceTypes.FirstOrDefaultAsync(t => t.Id == resourceTypeId, ct);
+    public Task<ResourceSchema?> GetResourceSchemaAsync(Guid resourceSchemaId, CancellationToken ct)
+        => _dbContext.ResourceSchemas.FirstOrDefaultAsync(t => t.Id == resourceSchemaId, ct);
 
     public Task<GroupReadModel?> GetGroupAsync(Guid groupId, CancellationToken ct)
         => _dbContext.GroupReadModels.FirstOrDefaultAsync(g => g.Id == groupId, ct);
 
-    public Task<bool> NameExistsAsync(Guid resourceTypeId, string name, CancellationToken ct)
-        => _dbContext.ResourceInstances.AnyAsync(x => x.ResourceTypeId == resourceTypeId && x.Name == name, ct);
+    public Task<bool> NameExistsAsync(Guid resourceSchemaId, string name, CancellationToken ct)
+        => _dbContext.ResourceInstances.AnyAsync(x => x.ResourceSchemaId == resourceSchemaId && x.Name == name, ct);
 
-    public Task<List<ResourcePropertyDefinition>> GetPropertyDefinitionsAsync(Guid resourceTypeId, CancellationToken ct)
-        => _dbContext.ResourcePropertyDefinitions.Where(d => d.ResourceTypeId == resourceTypeId).ToListAsync(ct);
+    public Task<List<ResourcePropertyDefinition>> GetPropertyDefinitionsAsync(Guid resourceSchemaId, CancellationToken ct)
+        => _dbContext.ResourcePropertyDefinitions.Where(d => d.ResourceSchemaId == resourceSchemaId).ToListAsync(ct);
 
     public Task AddResourceInstanceAsync(ResourceInstance instance, CancellationToken ct)
         => _dbContext.ResourceInstances.AddAsync(instance, ct).AsTask();

@@ -7,7 +7,7 @@ namespace ThingsBooksy.Modules.Resources.Core.DAL;
 
 internal class ResourcesDbContext : DbContext
 {
-    public DbSet<ResourceType> ResourceTypes { get; set; } = null!;
+    public DbSet<ResourceSchema> ResourceSchemas { get; set; } = null!;
     public DbSet<ResourcePropertyDefinition> ResourcePropertyDefinitions { get; set; } = null!;
     public DbSet<ResourceInstance> ResourceInstances { get; set; } = null!;
     public DbSet<ResourcePropertyValue> ResourcePropertyValues { get; set; } = null!;

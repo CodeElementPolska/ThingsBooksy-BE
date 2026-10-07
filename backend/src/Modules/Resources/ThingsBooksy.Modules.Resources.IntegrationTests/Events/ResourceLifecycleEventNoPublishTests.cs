@@ -26,14 +26,14 @@ public class ResourceLifecycleEventNoPublishTests : IntegrationTestBase
 {
     private readonly ResourcesUserFactory _users;
     private readonly ResourcesGroupReadModelFactory _groups;
-    private readonly ResourcesResourceTypeFactory _types;
+    private readonly ResourcesResourceSchemaFactory _types;
     private readonly ResourcesResourceInstanceFactory _instances;
 
     public ResourceLifecycleEventNoPublishTests(ThingsBooksyWebAppFactory factory) : base(factory)
     {
         _users = new ResourcesUserFactory(factory);
         _groups = new ResourcesGroupReadModelFactory(factory);
-        _types = new ResourcesResourceTypeFactory(factory);
+        _types = new ResourcesResourceSchemaFactory(factory);
         _instances = new ResourcesResourceInstanceFactory(factory);
     }
 
@@ -43,30 +43,30 @@ public class ResourceLifecycleEventNoPublishTests : IntegrationTestBase
 
     [Fact]
     [Trait("AC", "UNSPECIFIED")]
-    public async Task DeleteResourceType_AlreadyDeleted_Returns400AndPublishesNothing()
+    public async Task DeleteResourceSchema_AlreadyDeleted_Returns400AndPublishesNothing()
     {
         // Arrange — schema with one instance, both already soft-deleted in the DB
         var owner = await _users.CreateUserAsync("evt_nopub_deletert_deleted_owner@test.com");
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
-        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Canoe");
-        var instance = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Canoe 1");
-        await SoftDeleteResourceTypeAndInstancesInDbAsync(resourceType.Id);
+        var resourceSchema = await _types.CreateResourceSchemaAsync(group.Id, owner.UserId, "Canoe");
+        var instance = await _instances.CreateResourceInstanceAsync(resourceSchema, owner.UserId, "Canoe 1");
+        await SoftDeleteResourceSchemaAndInstancesInDbAsync(resourceSchema.Id);
 
         var client = new ResourcesTestClient(Factory, owner);
-        var typeBefore = await client.GetResourceTypeFromDbAsync(resourceType.Id);
+        var typeBefore = await client.GetResourceSchemaFromDbAsync(resourceSchema.Id);
         var instanceBefore = await client.GetResourceInstanceFromDbAsync(instance.Id);
         Assert.NotNull(typeBefore?.DeletedAt);
         Assert.NotNull(instanceBefore?.DeletedAt);
         Factory.PublishedMessages.Clear();
 
         // Act
-        var response = await client.DeleteResourceTypeAsync(resourceType.Id);
+        var response = await client.DeleteResourceSchemaAsync(resourceSchema.Id);
 
         // Assert — the query filter hides the row → existing "not found" domain error → 400
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         // Assert — the rows are untouched: DeletedAt / UpdatedAt keep the first deletion's values
-        var typeAfter = await client.GetResourceTypeFromDbAsync(resourceType.Id);
+        var typeAfter = await client.GetResourceSchemaFromDbAsync(resourceSchema.Id);
         Assert.NotNull(typeAfter);
         Assert.Equal(typeBefore!.DeletedAt, typeAfter.DeletedAt);
         Assert.Equal(typeBefore.UpdatedAt, typeAfter.UpdatedAt);
@@ -95,8 +95,8 @@ public class ResourceLifecycleEventNoPublishTests : IntegrationTestBase
         // Arrange — active schema, instance already soft-deleted in the DB
         var owner = await _users.CreateUserAsync("evt_nopub_deleteri_deleted_owner@test.com");
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
-        var resourceType = await _types.CreateResourceTypeAsync(group.Id, owner.UserId, "Scooter");
-        var instance = await _instances.CreateResourceInstanceAsync(resourceType, owner.UserId, "Scooter 1");
+        var resourceSchema = await _types.CreateResourceSchemaAsync(group.Id, owner.UserId, "Scooter");
+        var instance = await _instances.CreateResourceInstanceAsync(resourceSchema, owner.UserId, "Scooter 1");
         await SoftDeleteResourceInstanceInDbAsync(instance.Id);
 
         var client = new ResourcesTestClient(Factory, owner);
@@ -117,7 +117,7 @@ public class ResourceLifecycleEventNoPublishTests : IntegrationTestBase
         Assert.Equal(instanceBefore.UpdatedAt, instanceAfter.UpdatedAt);
 
         // Assert — the schema stays active
-        var typeAfter = await client.GetResourceTypeFromDbAsync(resourceType.Id);
+        var typeAfter = await client.GetResourceSchemaFromDbAsync(resourceSchema.Id);
         Assert.NotNull(typeAfter);
         Assert.Null(typeAfter.DeletedAt);
 
@@ -133,19 +133,19 @@ public class ResourceLifecycleEventNoPublishTests : IntegrationTestBase
     // Arrange helpers — EF seeding of the soft-deleted state through the domain Delete(now) methods
     // -----------------------------------------------------------------------------------------
 
-    private async Task SoftDeleteResourceTypeAndInstancesInDbAsync(Guid typeId)
+    private async Task SoftDeleteResourceSchemaAndInstancesInDbAsync(Guid typeId)
     {
         var now = DateTime.UtcNow.AddMinutes(-5);
 
         using var scope = Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
 
-        var resourceType = await db.ResourceTypes.IgnoreQueryFilters().SingleAsync(t => t.Id == typeId);
-        resourceType.Delete(now);
+        var resourceSchema = await db.ResourceSchemas.IgnoreQueryFilters().SingleAsync(t => t.Id == typeId);
+        resourceSchema.Delete(now);
 
         var instances = await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(i => i.ResourceTypeId == typeId)
+            .Where(i => i.ResourceSchemaId == typeId)
             .ToListAsync();
         foreach (var instance in instances)
             instance.Delete(now);

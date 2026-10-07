@@ -46,7 +46,7 @@ public class GetResourceInstancesEndpointTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, $"{emailPrefix}_Type");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, $"{emailPrefix}_Type");
 
         for (var i = 1; i <= count; i++)
         {
@@ -68,7 +68,7 @@ public class GetResourceInstancesEndpointTests : IntegrationTestBase
         var (client, typeId) = await SeedInstancesAsync("t058", count: 25);
 
         // Act — request first page with take=20
-        var response = await client.GetResourceInstancesAsync(resourceTypeId: typeId, take: 20);
+        var response = await client.GetResourceInstancesAsync(resourceSchemaId: typeId, take: 20);
 
         // Assert — 200 OK
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -100,7 +100,7 @@ public class GetResourceInstancesEndpointTests : IntegrationTestBase
         do
         {
             var response = await client.GetResourceInstancesAsync(
-                resourceTypeId: typeId, take: 20, afterId: cursor);
+                resourceSchemaId: typeId, take: 20, afterId: cursor);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -130,7 +130,7 @@ public class GetResourceInstancesEndpointTests : IntegrationTestBase
         var (client, typeId) = await SeedInstancesAsync("t060", count: 25);
 
         // First page: take=20, cursor=null → Items[20], NextCursor = ID of item 20
-        var firstResponse = await client.GetResourceInstancesAsync(resourceTypeId: typeId, take: 20);
+        var firstResponse = await client.GetResourceInstancesAsync(resourceSchemaId: typeId, take: 20);
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
         var firstPage = await firstResponse.Content.ReadFromJsonAsync<PagedResponse>(JsonOptions);
         Assert.NotNull(firstPage);
@@ -140,7 +140,7 @@ public class GetResourceInstancesEndpointTests : IntegrationTestBase
 
         // Second page: take=20, cursor=ID of item 20 → Items[5], NextCursor=null
         var secondResponse = await client.GetResourceInstancesAsync(
-            resourceTypeId: typeId, take: 20, afterId: cursorAfterFirst);
+            resourceSchemaId: typeId, take: 20, afterId: cursorAfterFirst);
         Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
         var secondPage = await secondResponse.Content.ReadFromJsonAsync<PagedResponse>(JsonOptions);
         Assert.NotNull(secondPage);
@@ -151,7 +151,7 @@ public class GetResourceInstancesEndpointTests : IntegrationTestBase
         // Act — request a third page using the last item's ID from the second page as cursor
         var lastItemId = secondPage.Items[^1].Id;
         var thirdResponse = await client.GetResourceInstancesAsync(
-            resourceTypeId: typeId, take: 20, afterId: lastItemId);
+            resourceSchemaId: typeId, take: 20, afterId: lastItemId);
         Assert.Equal(HttpStatusCode.OK, thirdResponse.StatusCode);
         var thirdPage = await thirdResponse.Content.ReadFromJsonAsync<PagedResponse>(JsonOptions);
         Assert.NotNull(thirdPage);

@@ -21,19 +21,19 @@ public sealed class ResourcesResourceInstanceFactory
         => _factory = factory;
 
     internal async Task<ResourceInstance> CreateResourceInstanceAsync(
-        ResourceType resourceType,
+        ResourceSchema resourceSchema,
         Guid ownerId,
         string name,
         string? description = null)
     {
         var command = new CreateResourceInstanceCommand(
-            resourceType.Id,
+            resourceSchema.Id,
             ownerId,
             name,
             description,
             Array.Empty<PropertyValueInput>());
 
-        var instance = ResourceInstance.Create(command, resourceType.GroupId, DateTime.UtcNow);
+        var instance = ResourceInstance.Create(command, resourceSchema.GroupId, DateTime.UtcNow);
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();

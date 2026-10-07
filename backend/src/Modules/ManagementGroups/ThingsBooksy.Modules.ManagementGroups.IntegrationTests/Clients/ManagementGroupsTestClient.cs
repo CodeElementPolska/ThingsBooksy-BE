@@ -120,7 +120,7 @@ public class ManagementGroupsTestClient
     internal async Task<bool> ResourcesGroupReadModelAbsentAsync(Guid groupId)
         => !await ResourcesGroupReadModelExistsAsync(groupId);
 
-    internal async Task<bool> ResourcesAllResourceTypesDeletedAsync(Guid groupId)
+    internal async Task<bool> ResourcesAllResourceSchemasDeletedAsync(Guid groupId)
     {
         await using var connection = new NpgsqlConnection(GetConnectionString());
         await connection.OpenAsync();

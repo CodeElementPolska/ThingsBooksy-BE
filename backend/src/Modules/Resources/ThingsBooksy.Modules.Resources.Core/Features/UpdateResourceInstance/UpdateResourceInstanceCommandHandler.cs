@@ -36,7 +36,7 @@ internal sealed class UpdateResourceInstanceCommandHandler : ICommandHandler<Upd
 
         var propertyValuesList = (command.PropertyValues ?? []).ToList();
 
-        var definitions = await _dataProvider.GetPropertyDefinitionsAsync(instance.ResourceTypeId, cancellationToken);
+        var definitions = await _dataProvider.GetPropertyDefinitionsAsync(instance.ResourceSchemaId, cancellationToken);
 
         var submittedIds = propertyValuesList.Select(pv => pv.PropertyDefinitionId).ToHashSet();
 

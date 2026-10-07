@@ -39,6 +39,6 @@ internal sealed class DeleteResourceInstanceCommandHandler : ICommandHandler<Del
         instance.Delete(_clock.CurrentDate());
 
         await _dataProvider.SaveChangesAsync(cancellationToken);
-        await _messageBroker.PublishAsync(new ResourceInstanceDeletedEvent(instance.Id, instance.ResourceTypeId), cancellationToken);
+        await _messageBroker.PublishAsync(new ResourceInstanceDeletedEvent(instance.Id, instance.ResourceSchemaId), cancellationToken);
     }
 }

@@ -13,32 +13,591 @@
     "AC-13",
     "AC-14"
   ],
-  "uncovered_ac": [
-    "AC-1",
-    "AC-2",
-    "AC-6",
-    "AC-7",
-    "AC-8",
-    "AC-9",
-    "AC-10",
-    "AC-11",
-    "AC-12",
-    "AC-13",
-    "AC-14"
-  ],
+  "uncovered_ac": [],
   "tests_without_known_ac": [],
-  "coverage": 0,
+  "coverage": 100,
   "matrix": {
-    "AC-1": [],
-    "AC-2": [],
-    "AC-6": [],
-    "AC-7": [],
-    "AC-8": [],
-    "AC-9": [],
-    "AC-10": [],
-    "AC-11": [],
-    "AC-12": [],
-    "AC-13": [],
-    "AC-14": []
+    "AC-1": [
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceInstances.GetResourceInstanceTests.GetResourceInstance_AsOwner_Returns200WithCorrectData",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/GetResourceInstanceTests.cs",
+        "line": 46
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.CreateResourceSchemaEndpointTests.CreateResourceSchema_DuplicateNameInGroup_Returns409",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/CreateResourceSchemaEndpointTests.cs",
+        "line": 46
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.CreateResourceSchema_AsOwner_Returns201WithLocationAndPersistsInDb",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 59
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.GetResourceSchemas_AsOwner_Returns200WithEverySchemaOfTheGroup",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 106
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.GetResourceSchema_AsOwner_Returns200WithPropertyDefinitionsFromDb",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 140
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.UpdateResourceSchema_AsOwner_Returns204AndUpdatesDb",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 178
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.DeleteResourceSchema_AsOwner_Returns204SoftDeletesAndPublishesEvent",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 216
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.CreateResourceInstance_WithResourceSchemaId_Returns201AndPersistsInDb",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 253
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.GetResourceInstances_ByGroup_RowsCarryResourceSchemaId",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 302
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.GetResourceInstances_FilteredByResourceSchemaId_Returns200WithOnlyThatSchemasInstances",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 336
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.GetResourceInstances_FilteredByGroupAndResourceSchemaId_Returns200WithOnlyThatSchemasInstances",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 367
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.GetResourceInstance_AsOwner_BodyCarriesResourceSchemaId",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 398
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.CreateResourceSchema_WithTakenName_Returns409WithSchemaNameTakenCode",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 437
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.UpdateResourceSchema_ToTakenName_Returns409WithSchemaNameTakenCode",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 458
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.SoftDeleteResourceSchemaReadPathTests.GetResourceInstances_IncludeDeletedForSoftDeletedType_ReturnsPropertyValuesWithDefinitionNames",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/SoftDeleteResourceSchemaReadPathTests.cs",
+        "line": 59
+      },
+      {
+        "ac": "AC-1",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.UpdateResourceSchemaEndpointTests.UpdateResourceSchema_DuplicateAmongOthers_Returns409",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/UpdateResourceSchemaEndpointTests.cs",
+        "line": 41
+      }
+    ],
+    "AC-2": [
+      {
+        "ac": "AC-2",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.RemovedTypesAddressesTests.CreateResourceSchemaAtRemovedAddress_AsOwner_Returns404AndPersistsNothing",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+        "line": 44
+      },
+      {
+        "ac": "AC-2",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.RemovedTypesAddressesTests.GetResourceSchemasAtRemovedAddress_AsOwner_Returns404",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+        "line": 61
+      },
+      {
+        "ac": "AC-2",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.RemovedTypesAddressesTests.GetResourceSchemaAtRemovedAddress_AsOwnerForExistingSchema_Returns404",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+        "line": 78
+      },
+      {
+        "ac": "AC-2",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.RemovedTypesAddressesTests.UpdateResourceSchemaAtRemovedAddress_AsOwnerForExistingSchema_Returns404AndLeavesSchemaUnchanged",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+        "line": 95
+      },
+      {
+        "ac": "AC-2",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.RemovedTypesAddressesTests.DeleteResourceSchemaAtRemovedAddress_AsOwnerForExistingSchema_Returns404AndKeepsSchemaActive",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+        "line": 115
+      },
+      {
+        "ac": "AC-2",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.RemovedTypesAddressesTests.CallRemovedSchemaAddresses_WithoutToken_Return404",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+        "line": 139
+      }
+    ],
+    "AC-6": [
+      {
+        "ac": "AC-6",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Contract.ResourcesApiDescriptionTests.GetApiDescription_ResourcesPathsAndModels_ContainNoOldName",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs",
+        "line": 68
+      },
+      {
+        "ac": "AC-6",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Contract.ResourcesApiDescriptionTests.GetApiDescription_ResourcesPathsAndModels_UseResourceSchemaNames",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs",
+        "line": 104
+      }
+    ],
+    "AC-7": [
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.CreateResourceSchemaEndpointTests.CreateResourceSchema_DuplicateNameInGroup_Returns409",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/CreateResourceSchemaEndpointTests.cs",
+        "line": 46
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.CreateResourceSchema_WithTakenName_Returns409WithSchemaNameTakenCode",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 437
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaContractTests.UpdateResourceSchema_ToTakenName_Returns409WithSchemaNameTakenCode",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+        "line": 458
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.UpdateResourceSchema_WithMissingId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 52
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.DeleteResourceSchema_WithMissingId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 69
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.CreateResourceInstance_WithMissingSchemaId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 86
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.GetResourceInstances_FilteredByMissingSchemaIdOnly_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 103
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.CreateResourceSchema_AsNonOwner_Returns403OnlyOwnerMayCreateResourceSchema",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 122
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.UpdateResourceSchema_AsNonOwner_Returns403OnlyOwnerMayUpdateResourceSchema",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 141
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.DeleteResourceSchema_AsNonOwner_Returns403OnlyOwnerMayDeleteResourceSchema",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 163
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.CreateResourceSchema_WithEmptyName_Returns400ResourceSchemaNameCannotBeEmpty",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 193
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.ResourceSchemaMessagesTests.GetResourceInstances_WithoutGroupAndSchemaFilter_Returns400GroupOrSchemaRequired",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+        "line": 214
+      },
+      {
+        "ac": "AC-7",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.UpdateResourceSchemaEndpointTests.UpdateResourceSchema_DuplicateAmongOthers_Returns409",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/UpdateResourceSchemaEndpointTests.cs",
+        "line": 41
+      }
+    ],
+    "AC-8": [
+      {
+        "ac": "AC-8",
+        "id": "resources-panel.component.spec.ts::shows the column header",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
+        "line": 62
+      },
+      {
+        "ac": "AC-8",
+        "id": "resources-panel.component.spec.ts::renders a table row for each resource and maps resourceSchemaId to schema name",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
+        "line": 74
+      },
+      {
+        "ac": "AC-8",
+        "id": "resources-panel.component.spec.ts::renders",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
+        "line": 91
+      },
+      {
+        "ac": "AC-8",
+        "id": "schemas-panel.component.spec.ts::empty state reads",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
+        "line": 102
+      },
+      {
+        "ac": "AC-8",
+        "id": "schemas-panel.component.spec.ts::add-resource buttons are labelled",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
+        "line": 116
+      },
+      {
+        "ac": "AC-8",
+        "id": "resources-api.service.spec.ts::getResourceSchemas lists a group\\",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+        "line": 80
+      },
+      {
+        "ac": "AC-8",
+        "id": "resources-api.service.spec.ts::getResourceSchema reads one schema from GET /resources/schemas/{id}",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+        "line": 88
+      },
+      {
+        "ac": "AC-8",
+        "id": "resources-api.service.spec.ts::createResourceSchema posts to POST /resources/schemas",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+        "line": 95
+      },
+      {
+        "ac": "AC-8",
+        "id": "resources-api.service.spec.ts::updateResourceSchema puts to PUT /resources/schemas/{id}",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+        "line": 109
+      },
+      {
+        "ac": "AC-8",
+        "id": "resources-api.service.spec.ts::deleteResourceSchema deletes via DELETE /resources/schemas/{id}",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+        "line": 122
+      },
+      {
+        "ac": "AC-8",
+        "id": "resources-api.service.spec.ts::creating a resource posts resourceSchemaId to POST /resources/instances",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+        "line": 129
+      }
+    ],
+    "AC-9": [
+      {
+        "ac": "AC-9",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Database.ResourcesUpgradeFromMainTests.MigrateResourcesDatabase_FromLastMigrationOfMainWithData_KeepsEveryRow",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+        "line": 68
+      }
+    ],
+    "AC-10": [
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.CreateResourceSchema_AsMember_Returns403AndPersistsNothing",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 74
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.GetResourceSchemas_AsMember_Returns200WithGroupSchemas",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 93
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.GetResourceSchema_AsMember_ExistingReturns200AndMissingReturns404",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 112
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.UpdateResourceSchema_AsMember_Returns403AndLeavesSchemaUnchanged",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 143
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.UpdateResourceSchema_AsMemberWithMissingId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 164
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.DeleteResourceSchema_AsMember_Returns403AndKeepsSchemaAndInstancesActive",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 182
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.DeleteResourceSchema_AsMemberWithMissingId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 205
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.CreateResourceInstance_AsMember_Returns403AndPersistsNothing",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 224
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.CreateResourceInstance_AsMemberWithMissingSchemaId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 244
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.GetResourceInstances_AsMemberFilteredBySchema_Returns200RowsCarryResourceSchemaId",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 262
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.GetResourceInstances_AsMemberFilteredByGroupAndSchema_Returns200WithOnlyThatSchemasInstances",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 285
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.GetResourceInstances_AsMemberFilteredByMissingSchema_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 307
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.GetResourceInstances_AsMemberWithIncludeDeleted_Returns200IncludingSoftDeletedInstances",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 323
+      },
+      {
+        "ac": "AC-10",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.MemberAccessBaselineTests.GetResourceInstance_AsMember_Returns200BodyCarriesResourceSchemaId",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+        "line": 351
+      }
+    ],
+    "AC-11": [
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.CreateResourceSchema_AsOutsider_Returns403AndPersistsNothing",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 96
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.GetResourceSchemas_AsOutsider_Returns403WithoutGroupData",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 115
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.GetResourceSchema_AsOutsider_ExistingReturns403AndMissingReturns404",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 131
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.UpdateResourceSchema_AsOutsider_Returns403AndLeavesSchemaUnchanged",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 155
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.UpdateResourceSchema_AsOutsiderWithMissingId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 176
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.DeleteResourceSchema_AsOutsider_Returns403AndKeepsSchemaAndInstancesActive",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 194
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.DeleteResourceSchema_AsOutsiderWithMissingId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 217
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.CreateResourceInstance_AsOutsider_Returns403AndPersistsNothing",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 233
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.CreateResourceInstance_AsOutsiderWithMissingSchemaId_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 253
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.GetResourceInstances_AsOutsider_EveryInstanceReadReturns403WithoutGroupData",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 271
+      },
+      {
+        "ac": "AC-11",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.OutsiderAccessBaselineTests.GetResourceInstances_AsOutsiderFilteredByMissingSchema_Returns400ResourceSchemaNotFound",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+        "line": 298
+      }
+    ],
+    "AC-12": [
+      {
+        "ac": "AC-12",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.ForeignSchemaFilterTests.GetResourceInstances_AsOwnerWithOwnGroupAndForeignSchema_Returns200WithEmptyList",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/ForeignSchemaFilterTests.cs",
+        "line": 37
+      },
+      {
+        "ac": "AC-12",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Access.ForeignSchemaFilterTests.GetResourceInstances_AsOwnerWithForeignSchemaOnly_Returns403",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/ForeignSchemaFilterTests.cs",
+        "line": 67
+      }
+    ],
+    "AC-13": [
+      {
+        "ac": "AC-13",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Database.ResourcesDatabaseNamesTests.ListResourcesDatabaseNames_AfterMigrations_ContainNoOldName",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesDatabaseNamesTests.cs",
+        "line": 75
+      },
+      {
+        "ac": "AC-13",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Database.ResourcesDatabaseNamesTests.ListResourcesDatabaseNames_AfterMigrations_ContainTheRenamedObjects",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesDatabaseNamesTests.cs",
+        "line": 91
+      },
+      {
+        "ac": "AC-13",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Database.ResourcesDatabaseNamesTests.ListResourcesIndexDefinitions_AfterMigrations_SchemaNameIndexKeepsUniqueSoftDeleteFilter",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesDatabaseNamesTests.cs",
+        "line": 111
+      }
+    ],
+    "AC-14": [
+      {
+        "ac": "AC-14",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Database.ResourcesUpgradeFromMainTests.MigrateResourcesDatabase_AfterAllMigrations_ModelHasNoPendingChanges",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+        "line": 169
+      }
+    ]
   }
 }

@@ -86,7 +86,7 @@ public class DeleteManagementGroupTests : IntegrationTestBase
         // (use factory's HTTP client which carries the owner's JWT)
         var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-        var schemaAResponse = await owner.Client.PostAsJsonAsync("/resources/types", new
+        var schemaAResponse = await owner.Client.PostAsJsonAsync("/resources/schemas", new
         {
             GroupId = groupId,
             Name = "Camera Type",
@@ -97,7 +97,7 @@ public class DeleteManagementGroupTests : IntegrationTestBase
         var schemaAResult = await schemaAResponse.Content.ReadFromJsonAsync<ResourceIdResult>(jsonOptions);
         var schemaAId = schemaAResult!.Id;
 
-        var schemaBResponse = await owner.Client.PostAsJsonAsync("/resources/types", new
+        var schemaBResponse = await owner.Client.PostAsJsonAsync("/resources/schemas", new
         {
             GroupId = groupId,
             Name = "Laptop Type",
@@ -111,7 +111,7 @@ public class DeleteManagementGroupTests : IntegrationTestBase
         {
             var instanceResponse = await owner.Client.PostAsJsonAsync("/resources/instances", new
             {
-                ResourceTypeId = schemaAId,
+                ResourceSchemaId = schemaAId,
                 Name = $"Camera {i}",
                 Description = (string?)null,
                 PropertyValues = Array.Empty<object>()

@@ -39,7 +39,7 @@ public class ResourceLifecycleEventTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // AC-3 — POST /resources/types publishes ResourceSchemaCreatedEvent(SchemaId, GroupId)
+    // AC-3 — POST /resources/schemas publishes ResourceSchemaCreatedEvent(SchemaId, GroupId)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -112,7 +112,7 @@ public class ResourceLifecycleEventTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // AC-5 — DELETE /resources/types/{id} with instances: exactly one ResourceSchemaDeletedEvent,
+    // AC-5 — DELETE /resources/schemas/{id} with instances: exactly one ResourceSchemaDeletedEvent,
     //        no ResourceInstanceDeletedEvent for the instances soft-deleted as a side effect
     // -----------------------------------------------------------------------------------------
 

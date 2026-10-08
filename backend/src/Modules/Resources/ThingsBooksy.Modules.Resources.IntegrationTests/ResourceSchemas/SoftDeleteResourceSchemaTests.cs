@@ -38,7 +38,7 @@ public class SoftDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // AC-8 — DELETE /resources/types/{id}: 204, row kept with DeletedAt, hidden from every read path,
+    // AC-8 — DELETE /resources/schemas/{id}: 204, row kept with DeletedAt, hidden from every read path,
     //        instances soft-deleted
     // -----------------------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ public class SoftDeleteResourceSchemaTests : IntegrationTestBase
         // Assert — 204 No Content
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
-        // Assert — the row remains in resources.resource_types with DeletedAt set (IgnoreQueryFilters)
+        // Assert — the row remains in resources.resource_schemas with DeletedAt set (IgnoreQueryFilters)
         var rowIgnoringFilters = await client.GetResourceSchemaFromDbIgnoringFiltersAsync(resourceSchema.Id);
         Assert.NotNull(rowIgnoringFilters);
         Assert.NotNull(rowIgnoringFilters.DeletedAt);
@@ -72,11 +72,11 @@ public class SoftDeleteResourceSchemaTests : IntegrationTestBase
         var rowRespectingFilters = await client.GetResourceSchemaFromDbRespectingQueryFiltersAsync(resourceSchema.Id);
         Assert.Null(rowRespectingFilters);
 
-        // Assert — GET /resources/types/{id} returns 404
+        // Assert — GET /resources/schemas/{id} returns 404
         var getResponse = await client.GetResourceSchemaAsync(resourceSchema.Id);
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
 
-        // Assert — GET /resources/types?groupId= no longer lists it (the other schema is still listed)
+        // Assert — GET /resources/schemas?groupId= no longer lists it (the other schema is still listed)
         var listResponse = await client.GetResourceSchemasAsync(group.Id);
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
         var list = await listResponse.Content.ReadFromJsonAsync<List<ResourceSchemaListItem>>(JsonOptions);

@@ -28,7 +28,7 @@ public class SoftDeleteResourceSchemaReadPathTests : IntegrationTestBase
 
     // Local response records — test-only, no import of Core DTOs
     private record PropertyValueDto(Guid PropertyDefinitionId, string PropertyName, string DataType, string Value);
-    private record RowDto(Guid Id, Guid ResourceTypeId, Guid GroupId, string Name, DateTime? DeletedAt, List<PropertyValueDto> PropertyValues);
+    private record RowDto(Guid Id, Guid ResourceSchemaId, Guid GroupId, string Name, DateTime? DeletedAt, List<PropertyValueDto> PropertyValues);
     private record PagedResponse(List<RowDto> Items, Guid? NextCursor);
 
     private readonly ResourcesUserFactory _users;
@@ -55,6 +55,7 @@ public class SoftDeleteResourceSchemaReadPathTests : IntegrationTestBase
 
     [Fact]
     [Trait("AC", "015/AC-10")]
+    [Trait("AC", "AC-1")]
     public async Task GetResourceInstances_IncludeDeletedForSoftDeletedType_ReturnsPropertyValuesWithDefinitionNames()
     {
         // Arrange — schema with two property definitions and one instance carrying a value for each
@@ -79,7 +80,7 @@ public class SoftDeleteResourceSchemaReadPathTests : IntegrationTestBase
         var body = await response.Content.ReadFromJsonAsync<PagedResponse>(JsonOptions);
         Assert.NotNull(body);
         var row = Assert.Single(body.Items, i => i.Id == instance.Id);
-        Assert.Equal(resourceSchema.Id, row.ResourceTypeId);
+        Assert.Equal(resourceSchema.Id, row.ResourceSchemaId);
         Assert.NotNull(row.DeletedAt);
 
         // Assert — each property value carries the definition's real Name and DataType

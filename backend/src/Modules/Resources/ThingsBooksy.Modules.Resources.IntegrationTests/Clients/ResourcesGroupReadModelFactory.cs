@@ -11,7 +11,7 @@ namespace ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
 /// <summary>
 /// Inserts GroupReadModel rows directly into the resources schema.
 ///
-/// Use this factory as test precondition for POST /resources/types tests.
+/// Use this factory as test precondition for POST /resources/schemas tests.
 /// Bypasses the ManagementGroups event pipeline so tests do not depend on
 /// async event propagation timing.
 /// </summary>

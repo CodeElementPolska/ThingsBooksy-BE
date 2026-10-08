@@ -16,7 +16,7 @@ using Xunit;
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas;
 
 /// <summary>
-/// Integration tests for PUT /resources/types/{id} and DELETE /resources/types/{id}.
+/// Integration tests for PUT /resources/schemas/{id} and DELETE /resources/schemas/{id}.
 ///
 /// GroupReadModel rows are inserted directly via ResourcesGroupReadModelFactory to avoid
 /// depending on async event propagation from the ManagementGroups pipeline.
@@ -43,7 +43,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // PUT /resources/types/{id} — happy path: name + description updated in DB
+    // PUT /resources/schemas/{id} — happy path: name + description updated in DB
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -91,7 +91,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // PUT /resources/types/{id} — 401 Unauthenticated
+    // PUT /resources/schemas/{id} — 401 Unauthenticated
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -101,7 +101,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
         var anonClient = Factory.CreateClient();
 
         // Act
-        var response = await anonClient.PutAsJsonAsync($"/resources/types/{Guid.CreateVersion7()}", new
+        var response = await anonClient.PutAsJsonAsync($"/resources/schemas/{Guid.CreateVersion7()}", new
         {
             Name = "Attempt",
             Description = (string?)null,
@@ -113,7 +113,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // PUT /resources/types/{id} — 403 Non-owner (authenticated but not the group owner)
+    // PUT /resources/schemas/{id} — 403 Non-owner (authenticated but not the group owner)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -143,7 +143,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // PUT /resources/types/{id} — 400 Unknown resource schema ID
+    // PUT /resources/schemas/{id} — 400 Unknown resource schema ID
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -167,7 +167,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // DELETE /resources/types/{id} — happy path: 204 + soft-delete verified in DB (story 015, AC-8)
+    // DELETE /resources/schemas/{id} — happy path: 204 + soft-delete verified in DB (story 015, AC-8)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -197,7 +197,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // DELETE /resources/types/{id} — 401 Unauthenticated
+    // DELETE /resources/schemas/{id} — 401 Unauthenticated
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -207,14 +207,14 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
         var anonClient = Factory.CreateClient();
 
         // Act
-        var response = await anonClient.DeleteAsync($"/resources/types/{Guid.CreateVersion7()}");
+        var response = await anonClient.DeleteAsync($"/resources/schemas/{Guid.CreateVersion7()}");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     // -----------------------------------------------------------------------------------------
-    // DELETE /resources/types/{id} — 403 Non-owner (authenticated but not the group owner)
+    // DELETE /resources/schemas/{id} — 403 Non-owner (authenticated but not the group owner)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -243,7 +243,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // DELETE /resources/types/{id} — 400 Unknown resource schema ID
+    // DELETE /resources/schemas/{id} — 400 Unknown resource schema ID
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -263,7 +263,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // DELETE /resources/types/{id} — cascade soft-deletes instances (T074)
+    // DELETE /resources/schemas/{id} — cascade soft-deletes instances (T074)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -295,7 +295,7 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
         Assert.NotNull(resourceSchema);
         Assert.NotNull(resourceSchema.DeletedAt);
 
-        // Assert — GET /resources/types/{id} returns 404
+        // Assert — GET /resources/schemas/{id} returns 404
         var getTypeResponse = await client.GetResourceSchemaAsync(typeId);
         Assert.Equal(HttpStatusCode.NotFound, getTypeResponse.StatusCode);
 

@@ -13,7 +13,7 @@ using Xunit;
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas;
 
 /// <summary>
-/// Integration tests for POST /resources/types (T030–T032).
+/// Integration tests for POST /resources/schemas (T030–T032).
 ///
 /// GroupReadModel rows are inserted directly into the resources schema via
 /// ResourcesGroupReadModelFactory, bypassing the ManagementGroups event pipeline.
@@ -52,7 +52,7 @@ public class CreateResourceSchemaTests : IntegrationTestBase
 
         // Act
         var response = await client.CreateResourceSchemaAsync(
-            groupReadModel.Id, "Car", "Vehicle resource type", definitions);
+            groupReadModel.Id, "Car", "Vehicle resource schema", definitions);
 
         // Assert — HTTP 201 with an ID
         var rawBody = await response.Content.ReadAsStringAsync();
@@ -68,7 +68,7 @@ public class CreateResourceSchemaTests : IntegrationTestBase
         var resourceSchema = await client.GetResourceSchemaFromDbAsync(body.Id);
         Assert.NotNull(resourceSchema);
         Assert.Equal("Car", resourceSchema.Name);
-        Assert.Equal("Vehicle resource type", resourceSchema.Description);
+        Assert.Equal("Vehicle resource schema", resourceSchema.Description);
         Assert.Equal(groupReadModel.Id, resourceSchema.GroupId);
     }
 
@@ -120,7 +120,7 @@ public class CreateResourceSchemaTests : IntegrationTestBase
         var anonClient = Factory.CreateClient();
 
         // Act
-        var response = await anonClient.PostAsJsonAsync("/resources/types", new
+        var response = await anonClient.PostAsJsonAsync("/resources/schemas", new
         {
             GroupId = Guid.CreateVersion7(),
             Name = "Should Not Create",

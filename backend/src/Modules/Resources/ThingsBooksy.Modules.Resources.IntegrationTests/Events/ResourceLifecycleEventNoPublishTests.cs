@@ -38,7 +38,7 @@ public class ResourceLifecycleEventNoPublishTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // UNSPECIFIED (ASM-19) — DELETE /resources/types/{id} on an already soft-deleted schema
+    // UNSPECIFIED (ASM-19) — DELETE /resources/schemas/{id} on an already soft-deleted schema
     // -----------------------------------------------------------------------------------------
 
     [Fact]

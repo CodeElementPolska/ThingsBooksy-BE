@@ -14,7 +14,7 @@ using Xunit;
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas;
 
 /// <summary>
-/// Additional integration tests for POST /resources/types covering T044 and T045:
+/// Additional integration tests for POST /resources/schemas covering T044 and T045:
 /// the 409 Conflict response shape when a duplicate name is used within the same group,
 /// and the cross-group name-scoping rule.
 /// </summary>
@@ -37,9 +37,12 @@ public class CreateResourceSchemaEndpointTests : IntegrationTestBase
 
     // -----------------------------------------------------------------------------------------
     // T044 — 409 Conflict + body shape when name already exists in the same group
+    // Story 016 (DEC-2): the code is RESOURCE_SCHEMA_NAME_TAKEN, the message is unchanged.
     // -----------------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("AC", "AC-1")]
+    [Trait("AC", "AC-7")]
     public async Task CreateResourceSchema_DuplicateNameInGroup_Returns409()
     {
         // Arrange
@@ -61,10 +64,10 @@ public class CreateResourceSchemaEndpointTests : IntegrationTestBase
         var rawBody = await secondResponse.Content.ReadAsStringAsync();
         var errorBody = JsonSerializer.Deserialize<ErrorBody>(rawBody, JsonOptions);
         Assert.NotNull(errorBody);
-        Assert.Equal("RESOURCE_TYPE_NAME_TAKEN", errorBody.Code);
-        Assert.False(string.IsNullOrWhiteSpace(errorBody.Message));
+        Assert.Equal("RESOURCE_SCHEMA_NAME_TAKEN", errorBody.Code);
+        Assert.Equal("A schema with this name already exists in the group.", errorBody.Message);
 
-        // Assert — only the first type was persisted in DB
+        // Assert — only the first schema was persisted in DB
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         var rows = await db.ResourceSchemas

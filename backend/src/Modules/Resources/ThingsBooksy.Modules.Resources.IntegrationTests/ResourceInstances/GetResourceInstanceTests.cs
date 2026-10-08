@@ -27,7 +27,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
     private readonly ResourcesGroupReadModelFactory _groups;
 
     // Local response records — do not import from Core to keep test project isolated
-    private record ResourceInstanceDtoResponse(Guid Id, Guid ResourceTypeId, Guid GroupId, string Name, string? Description, Guid OwnerId, DateTime CreatedAt, DateTime? DeletedAt, List<PropertyValueDtoResponse> PropertyValues);
+    private record ResourceInstanceDtoResponse(Guid Id, Guid ResourceSchemaId, Guid GroupId, string Name, string? Description, Guid OwnerId, DateTime CreatedAt, DateTime? DeletedAt, List<PropertyValueDtoResponse> PropertyValues);
     private record PropertyValueDtoResponse(Guid PropertyDefinitionId, string PropertyName, string DataType, string Value);
     private record PagedInstancesResponse(List<ResourceInstanceDtoResponse> Items, Guid? NextCursor);
 
@@ -42,6 +42,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("AC", "AC-1")]
     public async Task GetResourceInstance_AsOwner_Returns200WithCorrectData()
     {
         // Arrange
@@ -80,7 +81,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
         Assert.Equal(instanceId, body.Id);
         Assert.Equal("Car One", body.Name);
         Assert.Equal("First car", body.Description);
-        Assert.Equal(typeId, body.ResourceTypeId);
+        Assert.Equal(typeId, body.ResourceSchemaId);
         Assert.Equal(group.Id, body.GroupId);
         Assert.Equal(owner.UserId, body.OwnerId);
         Assert.Null(body.DeletedAt);
@@ -98,7 +99,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/instances — happy path list by resourceTypeId
+    // GET /resources/instances — happy path list by resourceSchemaId
     // -----------------------------------------------------------------------------------------
 
     [Fact]

@@ -4,16 +4,20 @@ import { ResourcesPanelComponent } from './resources-panel.component';
 import { ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto as ResourceRowDto } from '../../../api/data-contracts';
 import { SchemaSummary } from '../group-context.store';
 
-const mockResources: ResourceRowDto[] = [
+// Story 016: list rows carry the schema reference as `resourceSchemaId`. The intersection keeps the
+// mock valid whether or not the generated contract already declares the field.
+type ResourceRow = ResourceRowDto & { resourceSchemaId?: string };
+
+const mockResources: ResourceRow[] = [
   {
     id: 'res-1',
-    resourceTypeId: 'schema-a',
+    resourceSchemaId: 'schema-a',
     name: 'Laptop Dell',
     createdAt: '2025-01-01T00:00:00Z',
   },
   {
     id: 'res-2',
-    resourceTypeId: 'schema-b',
+    resourceSchemaId: 'schema-b',
     name: 'Conference Room A',
     createdAt: '2025-01-02T00:00:00Z',
   },
@@ -55,7 +59,19 @@ describe('ResourcesPanelComponent', () => {
   });
 
   describe('row rendering with schema name mapping', () => {
-    it('renders a table row for each resource and maps resourceTypeId to schema name', () => {
+    it('[AC-8] shows the column header "Schema" for the schema name column', () => {
+      fixture.componentRef.setInput('resources', mockResources);
+      fixture.componentRef.setInput('schemas', mockSchemas);
+      fixture.detectChanges();
+
+      const headers = Array.from(fixture.nativeElement.querySelectorAll('th') as NodeListOf<HTMLElement>).map((th) =>
+        th.textContent?.trim(),
+      );
+      expect(headers).toContain('Schema');
+      expect(headers).not.toContain('Type');
+    });
+
+    it('[AC-8] renders a table row for each resource and maps resourceSchemaId to schema name', () => {
       fixture.componentRef.setInput('resources', mockResources);
       fixture.componentRef.setInput('schemas', mockSchemas);
       fixture.detectChanges();
@@ -72,9 +88,9 @@ describe('ResourcesPanelComponent', () => {
       expect(secondRowCells[1].textContent?.trim()).toBe('Rooms');
     });
 
-    it('renders "—" for type when resourceTypeId does not match any schema', () => {
-      const resources: ResourceRowDto[] = [
-        { id: 'res-x', resourceTypeId: 'unknown-schema', name: 'Orphan' },
+    it('[AC-8] renders "—" for schema when resourceSchemaId does not match any schema', () => {
+      const resources: ResourceRow[] = [
+        { id: 'res-x', resourceSchemaId: 'unknown-schema', name: 'Orphan' },
       ];
       fixture.componentRef.setInput('resources', resources);
       fixture.componentRef.setInput('schemas', mockSchemas);

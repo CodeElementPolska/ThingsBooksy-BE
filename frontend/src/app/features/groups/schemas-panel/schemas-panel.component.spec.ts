@@ -95,6 +95,37 @@ describe('SchemasPanelComponent', () => {
     });
   });
 
+  describe('schema wording (story 016)', () => {
+    const OLD_EMPTY_STATE = 'Create the first schema to define a resource' + ' type.';
+    const NEW_EMPTY_STATE = 'Create the first schema to describe your resources.';
+
+    it('[AC-8] empty state reads "Create the first schema to describe your resources."', () => {
+      const texts: string[] = [];
+      for (const isOwner of [true, false]) {
+        const f = TestBed.createComponent(SchemasPanelComponent);
+        f.componentRef.setInput('schemas', []);
+        f.componentRef.setInput('isOwner', isOwner);
+        f.detectChanges();
+        texts.push((f.nativeElement as HTMLElement).textContent?.replace(/\s+/g, ' ') ?? '');
+      }
+
+      expect(texts.some((t) => t.includes(NEW_EMPTY_STATE))).toBe(true);
+      expect(texts.some((t) => t.includes(OLD_EMPTY_STATE))).toBe(false);
+    });
+
+    it('[AC-8] add-resource buttons are labelled "Add resource to schema <name>"', () => {
+      fixture.componentRef.setInput('schemas', MOCK_SCHEMAS);
+      fixture.componentRef.setInput('isOwner', true);
+      fixture.detectChanges();
+
+      const labels = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll('[aria-label^="Add resource"]'),
+      ).map((el) => el.getAttribute('aria-label'));
+
+      expect(labels).toEqual(['Add resource to schema Equipment', 'Add resource to schema Room']);
+    });
+  });
+
   describe('owner visibility', () => {
     it('should hide the header Add schema button when isOwner is false', () => {
       fixture.componentRef.setInput('schemas', MOCK_SCHEMAS);

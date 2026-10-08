@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Resources.Core.DAL;
 using ThingsBooksy.Modules.Resources.Core.Domain;
@@ -41,5 +42,20 @@ public sealed class ResourcesResourceInstanceFactory
         await db.SaveChangesAsync();
 
         return instance;
+    }
+
+    /// <summary>
+    /// Soft-deletes an already seeded instance through its domain method <c>Delete(DateTime)</c> —
+    /// Arrange-phase precondition that must not depend on DELETE /resources/instances/{id}.
+    /// </summary>
+    internal async Task SoftDeleteResourceInstanceAsync(Guid instanceId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+        var instance = await db.ResourceInstances
+            .IgnoreQueryFilters()
+            .FirstAsync(x => x.Id == instanceId);
+        instance.Delete(DateTime.UtcNow);
+        await db.SaveChangesAsync();
     }
 }

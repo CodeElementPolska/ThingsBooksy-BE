@@ -12,7 +12,7 @@ using Xunit;
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas;
 
 /// <summary>
-/// Integration tests for GET /resources/types/{id} and GET /resources/types?groupId={id} (T036–T037).
+/// Integration tests for GET /resources/schemas/{id} and GET /resources/schemas?groupId={id} (T036–T037).
 /// </summary>
 [Collection("IntegrationTestCollection")]
 public class GetResourceSchemaTests : IntegrationTestBase
@@ -34,7 +34,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types/{id} — happy path
+    // GET /resources/schemas/{id} — happy path
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -67,7 +67,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types — happy path list (2 types)
+    // GET /resources/schemas — happy path list (2 types)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -97,7 +97,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types/{id} — 404 when type does not exist
+    // GET /resources/schemas/{id} — 404 when type does not exist
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -117,7 +117,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types/{id} — 401 when no JWT
+    // GET /resources/schemas/{id} — 401 when no JWT
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -128,14 +128,14 @@ public class GetResourceSchemaTests : IntegrationTestBase
         var unknownId = Guid.CreateVersion7();
 
         // Act
-        var response = await anonClient.GetAsync($"/resources/types/{unknownId}");
+        var response = await anonClient.GetAsync($"/resources/schemas/{unknownId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types — 401 when no JWT
+    // GET /resources/schemas — 401 when no JWT
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -145,14 +145,14 @@ public class GetResourceSchemaTests : IntegrationTestBase
         var anonClient = Factory.CreateClient();
 
         // Act
-        var response = await anonClient.GetAsync($"/resources/types?groupId={Guid.CreateVersion7()}");
+        var response = await anonClient.GetAsync($"/resources/schemas?groupId={Guid.CreateVersion7()}");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types/{id} — 403 when user is not owner or member
+    // GET /resources/schemas/{id} — 403 when user is not owner or member
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -176,7 +176,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types — 403 when user is not owner or member
+    // GET /resources/schemas — 403 when user is not owner or member
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -197,7 +197,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types/{id} — 200 when requester is a group member (not owner)
+    // GET /resources/schemas/{id} — 200 when requester is a group member (not owner)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -225,7 +225,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/types — 200 when requester is a group member (not owner)
+    // GET /resources/schemas — 200 when requester is a group member (not owner)
     // -----------------------------------------------------------------------------------------
 
     [Fact]

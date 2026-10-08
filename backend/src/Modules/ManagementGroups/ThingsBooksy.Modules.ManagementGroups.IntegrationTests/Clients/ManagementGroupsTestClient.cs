@@ -125,7 +125,7 @@ public class ManagementGroupsTestClient
         await using var connection = new NpgsqlConnection(GetConnectionString());
         await connection.OpenAsync();
         await using var cmd = new NpgsqlCommand(
-            """SELECT COUNT(1) FROM resources.resource_types WHERE "GroupId" = @groupId""",
+            """SELECT COUNT(1) FROM resources.resource_schemas WHERE "GroupId" = @groupId""",
             connection);
         cmd.Parameters.AddWithValue("groupId", groupId);
         var count = (long)(await cmd.ExecuteScalarAsync())!;

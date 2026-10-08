@@ -10,7 +10,7 @@ using Xunit;
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas;
 
 /// <summary>
-/// Additional integration tests for PUT /resources/types/{id} covering T046 and T047:
+/// Additional integration tests for PUT /resources/schemas/{id} covering T046 and T047:
 /// the 409 Conflict when renaming to a name already taken by another type in the group,
 /// and the excludeId self-rename logic (a type may be updated with its own current name).
 /// </summary>
@@ -32,9 +32,12 @@ public class UpdateResourceSchemaEndpointTests : IntegrationTestBase
 
     // -----------------------------------------------------------------------------------------
     // T046 — 409 Conflict when renaming to a name already owned by another type in same group
+    // Story 016 (DEC-2): the code is RESOURCE_SCHEMA_NAME_TAKEN, the message is unchanged.
     // -----------------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("AC", "AC-1")]
+    [Trait("AC", "AC-7")]
     public async Task UpdateResourceSchema_DuplicateAmongOthers_Returns409()
     {
         // Arrange — create two types in the same group
@@ -57,8 +60,8 @@ public class UpdateResourceSchemaEndpointTests : IntegrationTestBase
         var rawBody = await response.Content.ReadAsStringAsync();
         var errorBody = JsonSerializer.Deserialize<ErrorBody>(rawBody, JsonOptions);
         Assert.NotNull(errorBody);
-        Assert.Equal("RESOURCE_TYPE_NAME_TAKEN", errorBody.Code);
-        Assert.False(string.IsNullOrWhiteSpace(errorBody.Message));
+        Assert.Equal("RESOURCE_SCHEMA_NAME_TAKEN", errorBody.Code);
+        Assert.Equal("A schema with this name already exists in the group.", errorBody.Message);
 
         // Assert — "Desk" name is unchanged in DB (no side-effect persisted)
         var deskType = await client.GetResourceSchemaFromDbAsync(deskId);

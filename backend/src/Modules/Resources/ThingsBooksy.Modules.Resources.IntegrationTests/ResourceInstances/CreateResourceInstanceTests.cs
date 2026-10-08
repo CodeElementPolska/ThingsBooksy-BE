@@ -143,7 +143,7 @@ public class CreateResourceInstanceTests : IntegrationTestBase
         // Act
         var response = await anonClient.PostAsJsonAsync("/resources/instances", new
         {
-            ResourceTypeId = Guid.CreateVersion7(),
+            ResourceSchemaId = Guid.CreateVersion7(),
             Name = "Should Not Create",
             PropertyValues = Array.Empty<object>()
         });

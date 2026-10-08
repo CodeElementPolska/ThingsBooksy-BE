@@ -66,7 +66,8 @@ const assumptions = readJsonl('discovery/assumptions.jsonl');
 const redFirst = readJson('tests/red-first.json');
 const gate = readJson('gate.json');
 const skeleton = readJson('skeleton-check.json');
-const reviewRounds = fs.existsSync(path.join(runDir, 'review')) ? fs.readdirSync(path.join(runDir, 'review')).filter(d => /^round-\d+$/.test(d)).length : 0;
+// review rounds = the highest existing round-N directory (round-0 may hold conductor findings before C5; a count would then point at a missing round-1)
+const reviewRounds = fs.existsSync(path.join(runDir, 'review')) ? Math.max(0, ...fs.readdirSync(path.join(runDir, 'review')).filter(d => /^round-\d+$/.test(d)).map(d => +d.slice(6))) : 0;
 const closed = last(e => e.event === 'PHASE_END' && e.phase === 'C6' && e.status === 'PASSED');
 const returned = last(e => e.event === 'PHASE_END' && ['RETURNED', 'ABANDONED'].includes(e.status));
 

@@ -11,7 +11,7 @@ namespace ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
 /// <summary>
 /// Inserts ResourceSchema rows directly into the resources schema through
 /// <see cref="ResourceSchema.Create"/> and EF Core — Arrange-phase preconditions that must not
-/// depend on POST /resources/types.
+/// depend on POST /resources/schemas.
 /// </summary>
 public sealed class ResourcesResourceSchemaFactory
 {

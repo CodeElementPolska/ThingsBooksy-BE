@@ -5,15 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Resources.Core.DAL;
 using ThingsBooksy.Modules.Resources.Core.Exceptions;
 using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceInstance;
-using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
+using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceSchema;
 using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceInstance;
-using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceType;
+using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceSchema;
 using ThingsBooksy.Modules.Resources.Core.Features.GetResourceInstance;
 using ThingsBooksy.Modules.Resources.Core.Features.GetResourceInstances;
-using ThingsBooksy.Modules.Resources.Core.Features.GetResourceType;
-using ThingsBooksy.Modules.Resources.Core.Features.GetResourceTypes;
+using ThingsBooksy.Modules.Resources.Core.Features.GetResourceSchema;
+using ThingsBooksy.Modules.Resources.Core.Features.GetResourceSchemas;
 using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceInstance;
-using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceType;
+using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceSchema;
 using ThingsBooksy.Shared.Abstractions.Commands;
 using ThingsBooksy.Shared.Abstractions.Exceptions;
 using ThingsBooksy.Shared.Abstractions.Queries;
@@ -35,15 +35,15 @@ internal static class Extensions
         return services
             .AddSingleton<IExceptionToResponseMapper, ResourcesExceptionToResponseMapper>()
             .AddScoped<ICommandHandler<CreateResourceInstanceCommand, Guid>, CreateResourceInstanceCommandHandler>()
-            .AddScoped<ICommandHandler<CreateResourceTypeCommand, Guid>, CreateResourceTypeCommandHandler>()
-            .AddScoped<IQueryHandler<GetResourceTypeQuery, GetResourceTypeQueryResult?>, GetResourceTypeQueryHandler>()
-            .AddScoped<IQueryHandler<GetResourceTypesQuery, IReadOnlyList<GetResourceTypesQueryResult>>, GetResourceTypesQueryHandler>()
+            .AddScoped<ICommandHandler<CreateResourceSchemaCommand, Guid>, CreateResourceSchemaCommandHandler>()
+            .AddScoped<IQueryHandler<GetResourceSchemaQuery, GetResourceSchemaQueryResult?>, GetResourceSchemaQueryHandler>()
+            .AddScoped<IQueryHandler<GetResourceSchemasQuery, IReadOnlyList<GetResourceSchemasQueryResult>>, GetResourceSchemasQueryHandler>()
             .AddScoped<IQueryHandler<GetResourceInstanceQuery, GetResourceInstanceQueryResult?>, GetResourceInstanceQueryHandler>()
             .AddScoped<IQueryHandler<GetResourceInstancesQuery, GetResourceInstancesQueryResult>, GetResourceInstancesQueryHandler>()
             .AddScoped<ICommandHandler<UpdateResourceInstanceCommand>, UpdateResourceInstanceCommandHandler>()
             .AddScoped<ICommandHandler<DeleteResourceInstanceCommand>, DeleteResourceInstanceCommandHandler>()
-            .AddScoped<ICommandHandler<UpdateResourceTypeCommand>, UpdateResourceTypeCommandHandler>()
-            .AddScoped<ICommandHandler<DeleteResourceTypeCommand>, DeleteResourceTypeCommandHandler>()
+            .AddScoped<ICommandHandler<UpdateResourceSchemaCommand>, UpdateResourceSchemaCommandHandler>()
+            .AddScoped<ICommandHandler<DeleteResourceSchemaCommand>, DeleteResourceSchemaCommandHandler>()
             .AddPostgres<ResourcesDbContext>(configuration, "ThingsBooksy.Modules.Resources.Migrations")
             .AddOutbox<ResourcesDbContext>(configuration)
             .AddUnitOfWork<ResourcesUnitOfWork>()

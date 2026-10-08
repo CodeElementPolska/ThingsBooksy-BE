@@ -4,12 +4,19 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 
+// jsdom does not implement the <dialog> methods the modal calls
+function stubDialogMethods(): void {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) { this.open = true; };
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) { this.open = false; };
+}
+
 describe('ConfirmDialogComponent', () => {
   let component: ConfirmDialogComponent;
   let fixture: ComponentFixture<ConfirmDialogComponent>;
   let service: ConfirmDialogService;
 
   beforeEach(async () => {
+    stubDialogMethods();
     await TestBed.configureTestingModule({
       imports: [ConfirmDialogComponent, NoopAnimationsModule],
     }).compileComponents();

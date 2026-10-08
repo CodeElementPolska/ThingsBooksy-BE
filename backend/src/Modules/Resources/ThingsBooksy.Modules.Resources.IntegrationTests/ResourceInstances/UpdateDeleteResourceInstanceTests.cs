@@ -48,7 +48,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         var client = new ResourcesTestClient(Factory, owner);
 
         var defs = new[] { new PropertyDefinitionRequest("Color", (int)PropertyDataType.Text, false) };
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Chair", null, defs);
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Chair", null, defs);
         var storedDefs = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
         var colorDefId = storedDefs.First(d => d.Name == "Color").Id;
 
@@ -110,7 +110,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
 
         var ownerClient = new ResourcesTestClient(Factory, owner);
-        var typeId = await ownerClient.CreateResourceTypeAndGetIdAsync(group.Id, "Table");
+        var typeId = await ownerClient.CreateResourceSchemaAndGetIdAsync(group.Id, "Table");
         var instanceId = await ownerClient.CreateResourceInstanceAndGetIdAsync(typeId, "Table A", "Original");
 
         var nonOwnerClient = new ResourcesTestClient(Factory, nonOwner);
@@ -160,7 +160,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Stool");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Stool");
         var instanceId = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Stool A");
 
         // Act
@@ -188,7 +188,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         var client = new ResourcesTestClient(Factory, owner);
 
         var defs = new[] { new PropertyDefinitionRequest("SerialNumber", (int)PropertyDataType.Text, true) };
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Printer", null, defs);
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Printer", null, defs);
         var storedDefs = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
         var serialDef = storedDefs.First(d => d.Name == "SerialNumber");
 
@@ -220,7 +220,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         var client = new ResourcesTestClient(Factory, owner);
 
         var defs = new[] { new PropertyDefinitionRequest("Capacity", (int)PropertyDataType.Number, false) };
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Room", null, defs);
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Room", null, defs);
         var storedDefs = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
         var capacityDef = storedDefs.First(d => d.Name == "Capacity");
 
@@ -252,7 +252,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Bike");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Bike");
         var instanceId = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Bike A");
 
         // Act
@@ -267,7 +267,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         Assert.NotNull(instance.DeletedAt);
 
         // Assert — not in default GET list
-        var listResponse = await client.GetResourceInstancesAsync(resourceTypeId: typeId);
+        var listResponse = await client.GetResourceInstancesAsync(resourceSchemaId: typeId);
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
         var list = await listResponse.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
         Assert.NotNull(list);
@@ -304,7 +304,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
 
         var ownerClient = new ResourcesTestClient(Factory, owner);
-        var typeId = await ownerClient.CreateResourceTypeAndGetIdAsync(group.Id, "Lamp");
+        var typeId = await ownerClient.CreateResourceSchemaAndGetIdAsync(group.Id, "Lamp");
         var instanceId = await ownerClient.CreateResourceInstanceAndGetIdAsync(typeId, "Lamp A");
 
         var nonOwnerClient = new ResourcesTestClient(Factory, nonOwner);
@@ -353,7 +353,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Stand");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Stand");
         var instanceId = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Stand A");
 
         // First delete — should succeed

@@ -62,13 +62,13 @@ public class DeleteManagementGroupTests : IntegrationTestBase
     }
 
     // T070 — deleting a group cascades to the Resources module via the GroupDeleted event:
-    //         all resource types are hard-deleted and all resource instances are soft-deleted.
+    //         all resource schemas are hard-deleted and all resource instances are soft-deleted.
     //
     // The cascade is driven by the AsyncDispatcherJob in-process background service;
     // assertions poll until the side-effect is visible or a 3-second deadline elapses —
     // the same pattern used by EventPublishingTests.
     [Fact]
-    public async Task DeleteManagementGroup_CascadesToResourceInstancesAndTypes()
+    public async Task DeleteManagementGroup_CascadesToResourceInstancesAndSchemas()
     {
         var owner = await _users.CreateUserAsync("delete_cascade_owner@test.com");
         var ownerClient = new ManagementGroupsTestClient(Factory, owner);
@@ -82,36 +82,36 @@ public class DeleteManagementGroupTests : IntegrationTestBase
         Assert.True(groupReadModelCreated,
             "Pre-condition failed: Resources.GroupReadModel not populated after group creation.");
 
-        // Arrange — create 2 resource types and 3 resource instances via the Resources API
+        // Arrange — create 2 resource schemas and 3 resource instances via the Resources API
         // (use factory's HTTP client which carries the owner's JWT)
         var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-        var typeAResponse = await owner.Client.PostAsJsonAsync("/resources/types", new
+        var schemaAResponse = await owner.Client.PostAsJsonAsync("/resources/schemas", new
         {
             GroupId = groupId,
             Name = "Camera Type",
             Description = (string?)null,
             PropertyDefinitions = Array.Empty<object>()
         });
-        typeAResponse.EnsureSuccessStatusCode();
-        var typeAResult = await typeAResponse.Content.ReadFromJsonAsync<ResourceIdResult>(jsonOptions);
-        var typeAId = typeAResult!.Id;
+        schemaAResponse.EnsureSuccessStatusCode();
+        var schemaAResult = await schemaAResponse.Content.ReadFromJsonAsync<ResourceIdResult>(jsonOptions);
+        var schemaAId = schemaAResult!.Id;
 
-        var typeBResponse = await owner.Client.PostAsJsonAsync("/resources/types", new
+        var schemaBResponse = await owner.Client.PostAsJsonAsync("/resources/schemas", new
         {
             GroupId = groupId,
             Name = "Laptop Type",
             Description = (string?)null,
             PropertyDefinitions = Array.Empty<object>()
         });
-        typeBResponse.EnsureSuccessStatusCode();
+        schemaBResponse.EnsureSuccessStatusCode();
 
-        // Create 3 instances of type A
+        // Create 3 instances of schema A
         for (var i = 1; i <= 3; i++)
         {
             var instanceResponse = await owner.Client.PostAsJsonAsync("/resources/instances", new
             {
-                ResourceTypeId = typeAId,
+                ResourceSchemaId = schemaAId,
                 Name = $"Camera {i}",
                 Description = (string?)null,
                 PropertyValues = Array.Empty<object>()
@@ -119,9 +119,9 @@ public class DeleteManagementGroupTests : IntegrationTestBase
             instanceResponse.EnsureSuccessStatusCode();
         }
 
-        // Verify pre-condition: 2 types and 3 instances exist in Resources DB
-        var typesBeforeDelete = await ownerClient.ResourcesAllResourceTypesDeletedAsync(groupId);
-        Assert.False(typesBeforeDelete, "Pre-condition: resource types should exist before delete.");
+        // Verify pre-condition: 2 schemas and 3 instances exist in Resources DB
+        var schemasBeforeDelete = await ownerClient.ResourcesAllResourceSchemasDeletedAsync(groupId);
+        Assert.False(schemasBeforeDelete, "Pre-condition: resource schemas should exist before delete.");
         var instanceCount = await ownerClient.ResourcesResourceInstanceCountAsync(groupId);
         Assert.Equal(3, instanceCount);
 
@@ -130,15 +130,15 @@ public class DeleteManagementGroupTests : IntegrationTestBase
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
         // Assert — GroupDeleted event cascades through Resources.GroupDeletedHandler
-        // which hard-deletes all resource types and soft-deletes all resource instances.
+        // which hard-deletes all resource schemas and soft-deletes all resource instances.
         // Allow up to 5 seconds (50 * 100 ms) — the async dispatcher can take slightly longer
         // when the factory is cold or when several resource rows are involved.
 
-        var allTypesDeleted = await WaitUntilAsync(
-            () => ownerClient.ResourcesAllResourceTypesDeletedAsync(groupId),
+        var allSchemasDeleted = await WaitUntilAsync(
+            () => ownerClient.ResourcesAllResourceSchemasDeletedAsync(groupId),
             maxAttempts: 50);
-        Assert.True(allTypesDeleted,
-            "Resources.ResourceTypes were not hard-deleted after GroupDeleted event — cascade failed.");
+        Assert.True(allSchemasDeleted,
+            "Resources.ResourceSchemas were not hard-deleted after GroupDeleted event — cascade failed.");
 
         var allInstancesSoftDeleted = await WaitUntilAsync(
             () => ownerClient.ResourcesAllResourceInstancesSoftDeletedAsync(groupId),

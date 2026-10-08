@@ -1,6 +1,7 @@
 // Standalone tests for acl-hook.js: feeds synthetic hook JSON through the script and checks exit codes.
 // Run: node tools/fleet/acl-hook.test.js   (no dependencies)
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -64,6 +65,19 @@ const cases = [
   ["test-designer writes Core (deny)", ev("test-designer", "Write", { file_path: CORE }), 2],
   ["sighted reads Core", ev("test-designer-sighted", "Read", { file_path: CORE }), 0],
   ["sighted writes Core (deny)", ev("test-designer-sighted", "Write", { file_path: CORE }), 2],
+  // fe-writer (v0): frontend production code only — never backend, specs or the generated client in app/api.
+  // No write_deny yet: a *.spec.ts under features/ is writable for the hook; the gate's test-hash step guards edits.
+  ["fe-writer reads frontend", ev("fe-writer", "Read", { file_path: path.join(REPO, "frontend", "package.json") }), 0],
+  ["fe-writer reads its own prompt", ev("fe-writer", "Read", { file_path: path.join(REPO, "runs", "015-x", "prompts", "fe-writer-behaviour.md") }), 0],
+  ["fe-writer writes features/", ev("fe-writer", "Write", { file_path: path.join(REPO, "frontend", "src", "app", "features", "x", "x.component.ts") }), 0],
+  ["fe-writer writes backend (deny)", ev("fe-writer", "Write", { file_path: CORE }), 2],
+  ["fe-writer writes specs (deny)", ev("fe-writer", "Write", { file_path: path.join(REPO, "specs", "015-x", "spec.md") }), 2],
+  ["fe-writer writes generated client app/api (deny)", ev("fe-writer", "Edit", { file_path: path.join(REPO, "frontend", "src", "app", "api", "data-contracts.ts") }), 2],
+  ["fe-writer dotnet (deny)", ev("fe-writer", "Bash", { command: "dotnet build backend/ThingsBooksy.slnx" }), 2],
+  ["fe-writer reads backend (deny)", ev("fe-writer", "Read", { file_path: CORE }), 2],
+  ["fe-writer npm build via --prefix", ev("fe-writer", "Bash", { command: "npm --prefix frontend run build" }), 0],
+  ["fe-writer npm test via --prefix", ev("fe-writer", "Bash", { command: "npm --prefix frontend test" }), 0],
+  ["fe-writer cd frontend && npm test (deny: cd is not an allowed prefix)", ev("fe-writer", "Bash", { command: "cd frontend && npm test" }), 2],
   // shell: a `|` inside quotes is not a pipe (xunit trait filter), a bare `|` still is
   ["tester runs the AC filter with | in quotes", ev("test-designer", "Bash", { command: 'dotnet test backend/src/Modules/Resources/X.csproj --filter "AC=AC-3|AC=AC-4"' }), 0],
   ["tester pipes to an unallowed command (deny)", ev("test-designer", "Bash", { command: "dotnet test backend/src/Modules/Resources/X.csproj | tee out.txt" }), 2],
@@ -90,6 +104,22 @@ const cases = [
   ['garbage input (deny)', 'not json', 2],
 ];
 
+// Every template names the agent it is written for (front matter `agent:`). That agent (a) must have an ACL entry — an
+// agent without one runs UNRESTRICTED under this hook (D-13), which for a blind worker is a silent loss of isolation —
+// and (b) must be able to read its own prompt runs/<story>/prompts/<template>[.<instance>].md, because prompt-builder
+// refuses to build a prompt the agent could not read (015 C5 reviewers, 016 impact-analyst + code-researcher).
+const TEMPLATES = path.join(HERE, 'templates');
+const ACL = JSON.parse(fs.readFileSync(path.join(HERE, 'fleet-acl.json'), 'utf8'));
+let staticFail = 0;
+for (const f of fs.readdirSync(TEMPLATES).filter(n => n.endsWith('.md') && n !== 'README.md').sort()) {
+  const fm = fs.readFileSync(path.join(TEMPLATES, f), 'utf8').replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---/);
+  const agent = fm && (fm[1].match(/^agent:\s*(\S+)/m) || [])[1];
+  if (!agent) { console.log(`FAIL static :: template ${f} has no agent: in its front matter`); staticFail++; continue; }
+  if (!ACL.agents?.[agent]) { console.log(`FAIL static :: template ${f}: agent "${agent}" has no entry in fleet-acl.json (it would run unrestricted)`); staticFail++; continue; }
+  cases.push([`${agent} reads its own prompt (template ${f})`, ev(agent, 'Read', { file_path: path.join(REPO, 'runs', '015-x', 'prompts', f) }), 0]);
+  cases.push([`${agent} reads its own prompt, instance r2 (template ${f})`, ev(agent, 'Read', { file_path: path.join(REPO, 'runs', '015-x', 'prompts', f.replace(/\.md$/, '.r2.md')) }), 0]);
+}
+
 let bad = 0;
 for (const [name, input, expect] of cases) {
   const r = spawnSync(process.execPath, [HOOK], { input: typeof input === 'string' ? input : JSON.stringify(input), encoding: 'utf8' });
@@ -97,5 +127,5 @@ for (const [name, input, expect] of cases) {
   if (!ok) bad++;
   console.log(`${ok ? 'OK  ' : 'FAIL'} exit=${r.status} expect=${expect} :: ${name}${r.stderr ? ' :: ' + r.stderr.trim().slice(0, 80) : ''}`);
 }
-console.log(`\n${cases.length - bad}/${cases.length} passed`);
-process.exit(bad ? 1 : 0);
+console.log(`\n${cases.length - bad}/${cases.length} hook cases passed, ${staticFail} static template→ACL check(s) failed`);
+process.exit(bad || staticFail ? 1 : 0);

@@ -1,0 +1,48 @@
+{
+  "story": "016-rename-resource-schema",
+  "round": 0,
+  "reviewers": [
+    "conductor"
+  ],
+  "verdict": "FIX_REQUIRED",
+  "escalation_reason": null,
+  "note": "Round 0 is not a review round. It carries one finding of the conductor from the C2 frontend red-first proof (runbook: a failure goes back to the agent with the script output). CORRECTION (2026-10-08): tests/red-first.json DOES list the frontend specs, including resources-api.service.spec.ts, as hashed acceptance test files; the earlier note said otherwise and was wrong. The owner authorised a REBASELINE for this single edit (DEC-7, decided by owner): the afterEach of resources-api.service.spec.ts may change to try { http.verify(); } finally { TestBed.resetTestingModule(); } - nothing else in that file. The conductor recomputes acceptance_tests_hash with red-first-prover afterwards and journals REBASELINE.",
+  "summary": {
+    "blockers": 0,
+    "majors": 1,
+    "minors": 0,
+    "opinions": 0,
+    "merged_duplicates": 0,
+    "routes": {
+      "writer": 0,
+      "tester": 1,
+      "owner": 0
+    }
+  },
+  "previous_summary": null,
+  "demoted": [],
+  "rejected": [],
+  "findings": [
+    {
+      "id": "conductor-0-1",
+      "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+      "line": 72,
+      "rule_ref": "constitution V (tests must not break the suite); .claude/conventions/angular-http-pattern.md",
+      "severity": "MAJOR",
+      "type": "TEST_DEFECT",
+      "message": "The spec leaks an instantiated TestBed into the next spec file of the same vitest worker. Its last test ('[AC-8] creating a resource posts resourceSchemaId to POST /resources/instances') leaves the request POST /resources/types unmatched (the service still calls the old address, which is the intended red reason), so `afterEach(() => http.verify())` throws. Because this afterEach throws, Angular's global TestBed reset hook for that test does not run, and the next spec file fails in its own `TestBed.configureTestingModule` with 'Cannot configure the test module when the test module has already been instantiated' — a random shared-component 'should create' test (count-chip in one run, icon-settings in another). Proof: with the three story specs stashed (`git stash push -u -- frontend`) the suite is 231/231 green; with them it is 229 passed / 11 failed, i.e. the 10 expected red [AC-8] tests plus one unrelated spec. Required: the spec must never leave the TestBed un-reset or the HttpTestingController unverified in a way that throws past the reset — e.g. verify inside the test body after the assertions, or `afterEach(() => { try { http.verify(); } finally { TestBed.resetTestingModule(); } })`, or `http.verify({ ignoreCancelled: true })` is NOT enough. The [AC-8] tests must stay red for the same reasons as now (no getResourceSchemas/getResourceSchema/createResourceSchema/updateResourceSchema/deleteResourceSchema method; create-instance posts to /resources/types); assertions must not be weakened and the [AC-8] titles must not change.",
+      "evidence": "resources-api.service.spec.ts:72-74 `afterEach(() => { http.verify(); });`. Run 1 (CI=true npm --prefix frontend test): 'FAIL … resources-api.service.spec.ts > … creating a resource posts resourceSchemaId … Error: Expected no open requests, found 1: POST /resources/types' followed by 'FAIL … count-chip.component.spec.ts > CountChipComponent > should create'. Run 2: same, but 'FAIL … icon-settings.component.spec.ts > IconSettingsComponent > should create — Error: Cannot configure the test module when the test module has already been instantiated. Make sure you are not using `inject` before `TestBed.configureTestingModule`. ❯ icon-settings.component.spec.ts:10:19'. Run 3 with story specs stashed: 'Test Files 39 passed (39) / Tests 231 passed (231)'.",
+      "reporters": [
+        "conductor-0-1"
+      ],
+      "route": "tester",
+      "decision_id": "DEC-7",
+      "rebaseline_authorised": "DEC-7: owner authorised the single afterEach edit in frontend/src/app/features/groups/services/resources-api.service.spec.ts (lines 72-74); no assertion, title or AC tag may change.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-c2fe2-muzaj7nm",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:07:02.741Z"
+    }
+  ],
+  "computed_at": "2026-10-08T08:44:48.834Z"
+}

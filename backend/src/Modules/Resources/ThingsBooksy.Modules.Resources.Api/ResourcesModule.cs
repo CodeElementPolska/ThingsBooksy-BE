@@ -9,15 +9,15 @@ using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Resources.Api.Requests;
 using ThingsBooksy.Modules.Resources.Core;
 using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceInstance;
-using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
+using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceSchema;
 using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceInstance;
 using ThingsBooksy.Modules.Resources.Core.Features.GetResourceInstance;
 using ThingsBooksy.Modules.Resources.Core.Features.GetResourceInstances;
-using ThingsBooksy.Modules.Resources.Core.Features.GetResourceType;
-using ThingsBooksy.Modules.Resources.Core.Features.GetResourceTypes;
+using ThingsBooksy.Modules.Resources.Core.Features.GetResourceSchema;
+using ThingsBooksy.Modules.Resources.Core.Features.GetResourceSchemas;
 using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceInstance;
-using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceType;
-using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceType;
+using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceSchema;
+using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceSchema;
 using ThingsBooksy.Shared.Abstractions.Dispatchers;
 using ThingsBooksy.Shared.Abstractions.Modules;
 
@@ -38,35 +38,35 @@ internal sealed class ResourcesModule : IModule
 
     public void Expose(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/resources/types", async (CreateResourceTypeRequest request, IDispatcher dispatcher, HttpContext context) =>
+        endpoints.MapPost("/resources/schemas", async (CreateResourceSchemaRequest request, IDispatcher dispatcher, HttpContext context) =>
         {
             var callerId = GetUserId(context);
             var definitions = (request.PropertyDefinitions ?? [])
                 .Select(d => new PropertyDefinitionInput(d.Name, d.DataType, d.IsRequired))
                 .ToList();
-            var command = new CreateResourceTypeCommand(request.GroupId, callerId, request.Name, request.Description, definitions);
-            var createdId = await dispatcher.SendAsync<CreateResourceTypeCommand, Guid>(command);
-            return Results.Created($"/resources/types/{createdId}", new { id = createdId });
-        }).RequireAuthorization().WithTags("Resources").WithName("Create resource type");
+            var command = new CreateResourceSchemaCommand(request.GroupId, callerId, request.Name, request.Description, definitions);
+            var createdId = await dispatcher.SendAsync<CreateResourceSchemaCommand, Guid>(command);
+            return Results.Created($"/resources/schemas/{createdId}", new { id = createdId });
+        }).RequireAuthorization().WithTags("Resources").WithName("Create resource schema");
 
-        endpoints.MapPut("/resources/types/{id:guid}", async (Guid id, UpdateResourceTypeRequest request, IDispatcher dispatcher, HttpContext context) =>
+        endpoints.MapPut("/resources/schemas/{id:guid}", async (Guid id, UpdateResourceSchemaRequest request, IDispatcher dispatcher, HttpContext context) =>
         {
             var callerId = GetUserId(context);
             var definitions = (request.PropertyDefinitions ?? [])
                 .Select(d => new PropertyDefinitionUpdateInput(d.Id, d.Name, d.DataType, d.IsRequired))
                 .ToList();
-            var command = new UpdateResourceTypeCommand(id, callerId, request.Name, request.Description, definitions);
+            var command = new UpdateResourceSchemaCommand(id, callerId, request.Name, request.Description, definitions);
             await dispatcher.SendAsync(command);
             return Results.NoContent();
-        }).RequireAuthorization().WithTags("Resources").WithName("Update resource type");
+        }).RequireAuthorization().WithTags("Resources").WithName("Update resource schema");
 
-        endpoints.MapDelete("/resources/types/{id:guid}", async (Guid id, IDispatcher dispatcher, HttpContext context) =>
+        endpoints.MapDelete("/resources/schemas/{id:guid}", async (Guid id, IDispatcher dispatcher, HttpContext context) =>
         {
             var callerId = GetUserId(context);
-            var command = new DeleteResourceTypeCommand(id, callerId);
+            var command = new DeleteResourceSchemaCommand(id, callerId);
             await dispatcher.SendAsync(command);
             return Results.NoContent();
-        }).RequireAuthorization().WithTags("Resources").WithName("Delete resource type");
+        }).RequireAuthorization().WithTags("Resources").WithName("Delete resource schema");
 
         endpoints.MapPost("/resources/instances", async (CreateResourceInstanceRequest request, IDispatcher dispatcher, HttpContext context) =>
         {
@@ -74,24 +74,24 @@ internal sealed class ResourcesModule : IModule
             var propertyValues = (request.PropertyValues ?? [])
                 .Select(pv => new PropertyValueInput(pv.PropertyDefinitionId, pv.Value))
                 .ToList();
-            var command = new CreateResourceInstanceCommand(request.ResourceTypeId, callerId, request.Name, request.Description, propertyValues);
+            var command = new CreateResourceInstanceCommand(request.ResourceSchemaId, callerId, request.Name, request.Description, propertyValues);
             var createdId = await dispatcher.SendAsync<CreateResourceInstanceCommand, Guid>(command);
             return Results.Created($"/resources/instances/{createdId}", new { id = createdId });
         }).RequireAuthorization().WithTags("Resources").WithName("Create resource instance");
 
-        endpoints.MapGet("/resources/types/{id:guid}", async (Guid id, IDispatcher dispatcher, HttpContext context) =>
+        endpoints.MapGet("/resources/schemas/{id:guid}", async (Guid id, IDispatcher dispatcher, HttpContext context) =>
         {
             var callerId = GetUserId(context);
-            var result = await dispatcher.QueryAsync(new GetResourceTypeQuery(id, callerId));
+            var result = await dispatcher.QueryAsync(new GetResourceSchemaQuery(id, callerId));
             return result is null ? Results.NotFound() : Results.Ok(result);
-        }).RequireAuthorization().WithTags("Resources").WithName("Get resource type");
+        }).RequireAuthorization().WithTags("Resources").WithName("Get resource schema");
 
-        endpoints.MapGet("/resources/types", async (Guid groupId, IDispatcher dispatcher, HttpContext context) =>
+        endpoints.MapGet("/resources/schemas", async (Guid groupId, IDispatcher dispatcher, HttpContext context) =>
         {
             var callerId = GetUserId(context);
-            var result = await dispatcher.QueryAsync(new GetResourceTypesQuery(groupId, callerId));
+            var result = await dispatcher.QueryAsync(new GetResourceSchemasQuery(groupId, callerId));
             return Results.Ok(result);
-        }).RequireAuthorization().WithTags("Resources").WithName("Get resource types");
+        }).RequireAuthorization().WithTags("Resources").WithName("Get resource schemas");
 
         endpoints.MapGet("/resources/instances/{id:guid}", async (Guid id, IDispatcher dispatcher, HttpContext context) =>
         {
@@ -101,11 +101,11 @@ internal sealed class ResourcesModule : IModule
         }).RequireAuthorization().WithTags("Resources").WithName("Get resource instance");
 
         endpoints.MapGet("/resources/instances", async (
-            Guid? resourceTypeId, Guid? groupId, bool? includeDeleted, Guid? afterId, int? take,
+            Guid? resourceSchemaId, Guid? groupId, bool? includeDeleted, Guid? afterId, int? take,
             IDispatcher dispatcher, HttpContext context) =>
         {
             var callerId = GetUserId(context);
-            var query = new GetResourceInstancesQuery(resourceTypeId, groupId, includeDeleted ?? false, callerId, afterId, take ?? 20);
+            var query = new GetResourceInstancesQuery(resourceSchemaId, groupId, includeDeleted ?? false, callerId, afterId, take ?? 20);
             var result = await dispatcher.QueryAsync(query);
             return Results.Ok(result);
         }).RequireAuthorization().WithTags("Resources").WithName("Get resource instances")

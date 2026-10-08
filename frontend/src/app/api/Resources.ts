@@ -12,9 +12,9 @@
 
 import {
   ThingsBooksyModulesResourcesApiRequestsCreateResourceInstanceRequest,
-  ThingsBooksyModulesResourcesApiRequestsCreateResourceTypeRequest,
+  ThingsBooksyModulesResourcesApiRequestsCreateResourceSchemaRequest,
   ThingsBooksyModulesResourcesApiRequestsUpdateResourceInstanceRequest,
-  ThingsBooksyModulesResourcesApiRequestsUpdateResourceTypeRequest,
+  ThingsBooksyModulesResourcesApiRequestsUpdateResourceSchemaRequest,
   ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesGetResourceInstancesQueryResult,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
@@ -26,16 +26,16 @@ export class Resources<
    * No description
    *
    * @tags Resources
-   * @name CreateResourceType
-   * @request POST:/resources/types
+   * @name CreateResourceSchema
+   * @request POST:/resources/schemas
    * @secure
    */
-  createResourceType = (
-    data: ThingsBooksyModulesResourcesApiRequestsCreateResourceTypeRequest,
+  createResourceSchema = (
+    data: ThingsBooksyModulesResourcesApiRequestsCreateResourceSchemaRequest,
     params: RequestParams = {},
   ) =>
     this.request<void, any>({
-      path: `/resources/types`,
+      path: `/resources/schemas`,
       method: "POST",
       body: data,
       secure: true,
@@ -46,11 +46,11 @@ export class Resources<
    * No description
    *
    * @tags Resources
-   * @name GetResourceTypes
-   * @request GET:/resources/types
+   * @name GetResourceSchemas
+   * @request GET:/resources/schemas
    * @secure
    */
-  getResourceTypes = (
+  getResourceSchemas = (
     query: {
       /** @format uuid */
       groupId: string;
@@ -58,7 +58,7 @@ export class Resources<
     params: RequestParams = {},
   ) =>
     this.request<void, any>({
-      path: `/resources/types`,
+      path: `/resources/schemas`,
       method: "GET",
       query: query,
       secure: true,
@@ -68,17 +68,17 @@ export class Resources<
    * No description
    *
    * @tags Resources
-   * @name UpdateResourceType
-   * @request PUT:/resources/types/{id}
+   * @name UpdateResourceSchema
+   * @request PUT:/resources/schemas/{id}
    * @secure
    */
-  updateResourceType = (
+  updateResourceSchema = (
     id: string,
-    data: ThingsBooksyModulesResourcesApiRequestsUpdateResourceTypeRequest,
+    data: ThingsBooksyModulesResourcesApiRequestsUpdateResourceSchemaRequest,
     params: RequestParams = {},
   ) =>
     this.request<void, any>({
-      path: `/resources/types/${id}`,
+      path: `/resources/schemas/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -89,13 +89,13 @@ export class Resources<
    * No description
    *
    * @tags Resources
-   * @name DeleteResourceType
-   * @request DELETE:/resources/types/{id}
+   * @name DeleteResourceSchema
+   * @request DELETE:/resources/schemas/{id}
    * @secure
    */
-  deleteResourceType = (id: string, params: RequestParams = {}) =>
+  deleteResourceSchema = (id: string, params: RequestParams = {}) =>
     this.request<void, any>({
-      path: `/resources/types/${id}`,
+      path: `/resources/schemas/${id}`,
       method: "DELETE",
       secure: true,
       ...params,
@@ -104,13 +104,13 @@ export class Resources<
    * No description
    *
    * @tags Resources
-   * @name GetResourceType
-   * @request GET:/resources/types/{id}
+   * @name GetResourceSchema
+   * @request GET:/resources/schemas/{id}
    * @secure
    */
-  getResourceType = (id: string, params: RequestParams = {}) =>
+  getResourceSchema = (id: string, params: RequestParams = {}) =>
     this.request<void, any>({
-      path: `/resources/types/${id}`,
+      path: `/resources/schemas/${id}`,
       method: "GET",
       secure: true,
       ...params,
@@ -136,24 +136,25 @@ export class Resources<
       ...params,
     });
   /**
-   * @summary Returns a cursor-paginated list of resource instances. Use afterId + take for forward-only infinite scroll.
+   * No description
    *
    * @tags Resources
    * @name GetResourceInstances
+   * @summary Returns a cursor-paginated list of resource instances. Use afterId + take for forward-only infinite scroll.
    * @request GET:/resources/instances
    * @secure
    */
   getResourceInstances = (
     query?: {
       /** @format uuid */
-      resourceTypeId?: string | null;
+      resourceSchemaId?: string;
       /** @format uuid */
-      groupId?: string | null;
-      includeDeleted?: boolean | null;
+      groupId?: string;
+      includeDeleted?: boolean;
       /** @format uuid */
-      afterId?: string | null;
+      afterId?: string;
       /** @format int32 */
-      take?: number | null;
+      take?: number;
     },
     params: RequestParams = {},
   ) =>

@@ -120,12 +120,12 @@ public class ManagementGroupsTestClient
     internal async Task<bool> ResourcesGroupReadModelAbsentAsync(Guid groupId)
         => !await ResourcesGroupReadModelExistsAsync(groupId);
 
-    internal async Task<bool> ResourcesAllResourceTypesDeletedAsync(Guid groupId)
+    internal async Task<bool> ResourcesAllResourceSchemasDeletedAsync(Guid groupId)
     {
         await using var connection = new NpgsqlConnection(GetConnectionString());
         await connection.OpenAsync();
         await using var cmd = new NpgsqlCommand(
-            """SELECT COUNT(1) FROM resources.resource_types WHERE "GroupId" = @groupId""",
+            """SELECT COUNT(1) FROM resources.resource_schemas WHERE "GroupId" = @groupId""",
             connection);
         cmd.Parameters.AddWithValue("groupId", groupId);
         var count = (long)(await cmd.ExecuteScalarAsync())!;

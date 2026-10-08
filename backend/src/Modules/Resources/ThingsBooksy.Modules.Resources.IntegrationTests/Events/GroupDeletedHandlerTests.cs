@@ -55,9 +55,9 @@ public class GroupDeletedHandlerTests : IntegrationTestBase
         var groupModelReady = await WaitUntilAsync(() => client.GroupReadModelExistsAsync(groupId));
         Assert.True(groupModelReady, "Pre-condition: GroupReadModel was not populated after group creation.");
 
-        // Create 2 resource types and 5 instances through the Resources HTTP API
-        var typeId1 = await client.CreateResourceTypeAndGetIdAsync(groupId, "HandlerType1");
-        var typeId2 = await client.CreateResourceTypeAndGetIdAsync(groupId, "HandlerType2");
+        // Create 2 resource schemas and 5 instances through the Resources HTTP API
+        var typeId1 = await client.CreateResourceSchemaAndGetIdAsync(groupId, "HandlerType1");
+        var typeId2 = await client.CreateResourceSchemaAndGetIdAsync(groupId, "HandlerType2");
 
         await client.CreateResourceInstanceAndGetIdAsync(typeId1, "HandlerInst1");
         await client.CreateResourceInstanceAndGetIdAsync(typeId1, "HandlerInst2");
@@ -79,7 +79,7 @@ public class GroupDeletedHandlerTests : IntegrationTestBase
                 .FirstOrDefaultAsync(g => g.Id == groupId);
             Assert.Null(groupReadModel);
 
-            var types = await db.ResourceTypes
+            var types = await db.ResourceSchemas
                 .IgnoreQueryFilters()
                 .Where(t => t.GroupId == groupId)
                 .ToListAsync();
@@ -118,7 +118,7 @@ public class GroupDeletedHandlerTests : IntegrationTestBase
                 .CountAsync(i => i.GroupId == groupId);
             Assert.Equal(instanceCountBefore, instanceCountAfter);
 
-            var typeCount = await db.ResourceTypes
+            var typeCount = await db.ResourceSchemas
                 .IgnoreQueryFilters()
                 .CountAsync(t => t.GroupId == groupId);
             Assert.Equal(0, typeCount);

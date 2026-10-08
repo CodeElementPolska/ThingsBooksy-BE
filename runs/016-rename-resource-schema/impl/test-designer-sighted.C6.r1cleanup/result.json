@@ -1,0 +1,62 @@
+{
+  "provenance": {
+    "author_agent": "test-designer-sighted",
+    "run_id": "016-rename-resource-schema-test-designer-sighted-r1cleanup-muzcttyu",
+    "story": "016-rename-resource-schema",
+    "phase": "C6",
+    "inputs": [
+      { "path": "runs/016-rename-resource-schema/review/round-1/dedup.json", "sha256": "e0405930a755c18a3c43465329ea2d65157a3e3e81e8225e41cf7fac23097d44" },
+      { "path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb" },
+      { "path": "specs/016-rename-resource-schema/spec.md", "sha256": "3019b07652ddce4cfe405707ee87a96c041c65ee5a6fc371ac78cba2d9a1ff65" },
+      { "path": "runs/016-rename-resource-schema/tests/red-first.json", "sha256": "c3e4dccf4eb277f705c178c3965e1d21b9a669c73ccd31b9a7541c95669c9694" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": [],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/CreateResourceSchemaTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/GetResourceSchemaTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/UpdateDeleteResourceSchemaTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/CreateResourceInstanceTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+    "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-T1", "made_by": "test-designer-sighted", "phase": "C6",
+      "statement": "I read the DEC-10 rebaseline for finding review-maintainability-1-9 as allowing the one test-method rename that the finding asks for. That rename is the whole fix, even though the general rebaseline text says no test title may change.",
+      "bucket": "ASSUME",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "default_chosen": "Renamed CallRemovedSchemaAddresses_WithoutToken_Return404 to CallRemovedSchemaAddresses_WithoutToken_Returns404. The AC-2 tag and every assertion are unchanged.",
+      "rationale": "The owner tagged this exact finding with rebaseline_authorised (DEC-10, 'fix the cheap opinions'), and the only possible fix for it is the rename.",
+      "consequence_if_wrong": "Rename the method back (one line in RemovedTypesAddressesTests.cs:139). Either way the conductor has to update the test id in red-first.json (tests[] entry ...RemovedTypesAddressesTests.CallRemovedSchemaAddresses_WithoutToken_Return404) when it recomputes acceptance_tests_hash."
+    },
+    {
+      "id": "ASM-T2", "made_by": "test-designer-sighted", "phase": "C6",
+      "statement": "For finding review-maintainability-1-1 I changed only the six test methods the finding names. The anonymous raw-URL calls in GetResourceInstanceTests.cs:201-221 and UpdateDeleteResourceInstanceTests.cs:86-89 and :285-288 are left as they are.",
+      "bucket": "ASSUME",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "default_chosen": "Fix only the lines the finding lists. The rebaseline allows editing hashed files only for exactly what the finding names.",
+      "rationale": "DEC-10 limits the edit to what the finding names. The other lines were not edited by this rename, and the finding scopes itself to tests 'whose URL line was edited by this rename'.",
+      "consequence_if_wrong": "Three more 401 tests still use raw URLs. The same mechanical change through ResourcesTestClient.Anonymous(Factory) can be made in a later cleanup."
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": { "build": "PASSED", "unit_tests": "PASSED", "format": "SKIPPED" },
+  "schema_changes": "NONE",
+  "notes": {
+    "fixed": ["review-spec-conformance-1-1", "review-maintainability-1-1", "review-maintainability-1-3", "review-maintainability-1-9", "review-maintainability-1-6"],
+    "details": [
+      "review-spec-conformance-1-1: reworded the doc comment at ResourcesApiDescriptionTests.cs:29 so it no longer contains the old phrase. A case-insensitive Grep for resource[ _]?type over backend/src, excluding **/Migrations/**, now finds no files. The OldNames array and every assertion are unchanged. Side note for the owner, from the finding: FR-009 should be widened to cover this story's own rename migration (spec text, outside tester scope).",
+      "review-maintainability-1-1: the 401 tests CreateResourceSchema_WithoutJwt_Returns401, GetResourceSchema_WithoutJwt_Returns401, GetResourceSchemas_WithoutJwt_Returns401, UpdateResourceSchema_WithoutJwt_Returns401, DeleteResourceSchema_WithoutJwt_Returns401 and CreateResourceInstance_WithoutJwt_Returns401 now go through ResourcesTestClient.Anonymous(Factory) and the matching *Async methods. They no longer use raw route strings. The 401 assertions are unchanged.",
+      "review-maintainability-1-3: GetResourceSchemaTests.cs comments now read '(2 schemas)' and '404 when schema does not exist'.",
+      "review-maintainability-1-9: renamed the test to CallRemovedSchemaAddresses_WithoutToken_Returns404 (see ASM-T1). red-first.json still carries the old test id and needs updating at REBASELINE.",
+      "review-maintainability-1-6: removed the stale intersection type and its comment in resources-panel.component.spec.ts. Both mock arrays are now typed as ResourceRowDto, which declares resourceSchemaId?: string (data-contracts.ts:172). This is a type-only change; runtime behaviour and expectations are unchanged.",
+      "Not fixed, by design: review-maintainability-1-2, 1-4, 1-5 and 1-7 are OPINIONs without rebaseline_authorised. The conductor note marks them as owner/backlog items, and fixing them would mean editing hashed acceptance files with no authorisation. review-maintainability-1-8 is routed to the writer and was closed by the owner (DEC-8).",
+      "DEC-11 ('tester adds the four tests now') is mentioned in rebaseline_authorised, but this prompt gives no target for it (no coverage gaps or test list). It is not part of this pass, so no new tests were added here.",
+      "Local checks: 'dotnet build' of the Resources IntegrationTests project gave 0 errors. 'dotnet test backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests' passed 151 of 151 with 0 failures. A filtered re-run of the edited 401 tests and the renamed 404 test passed 11 of 11. The frontend spec was not run: the ACL hook denies npx/npm for this agent. The edit there is type-only, so the conductor or fe gate should run vitest for resources-panel.component.spec.ts."
+    ]
+  }
+}

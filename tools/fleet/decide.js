@@ -31,7 +31,25 @@ const rw = (file, fn) => { const p = path.join(runDir, 'discovery', file); const
 if (args.gate) {
   // close a gate with the owner's answer as provenance; the status is explicit (no guessing from words)
   if (!['G1', 'G2', 'G2b', 'G3'].includes(args.gate) || !['PASSED', 'REJECTED'].includes(args.status)) { console.error('decide: --gate needs G1|G2|G2b|G3 and --status PASSED|REJECTED'); process.exit(1); }
-  fs.appendFileSync(journalPath, JSON.stringify({ at: new Date().toISOString(), event: 'GATE_ANSWER', phase: args.gate, status: args.status, owner_answer: { tool_use_id: ans.owner_answer.tool_use_id, answers: ans.owner_answer.answers } }) + '\n');
+  // G2b is an answer about ONE migration: it must be newer than the migration-check report and records its migration_sha
+  // (gate.js and status.js compare it; a regenerated migration = a new report = a new question)
+  let bound = {};
+  if (args.gate === 'G2b') {
+    const mcPath = path.join(runDir, 'migration-check.json');
+    if (!fs.existsSync(mcPath)) { console.error('decide: G2b needs runs/<story>/migration-check.json — run migration-check.js first'); process.exit(3); }
+    const mc = JSON.parse(fs.readFileSync(mcPath, 'utf8'));
+    if (!ans.at || !(String(ans.at) > String(mc.computed_at))) { console.error(`decide: the OWNER_ANSWER (${ans.at || 'no timestamp'}) is not newer than migration-check.json (${mc.computed_at}) — ask the owner again about THIS migration`); process.exit(3); }
+    // the answer must be ABOUT this migration (question or chosen option names its sha8) and must SAY what --status
+    // claims: "Akceptuję migrację <sha8>" ⇒ PASSED, "Odrzucam migrację <sha8>" ⇒ REJECTED — the conductor cannot relabel it
+    const sha8 = String(mc.migration_sha || '').slice(0, 8);
+    const hit = Object.entries(ans.owner_answer?.answers || {}).find(([q, a]) => q.includes(sha8) || String(a).includes(sha8));
+    if (!sha8 || !hit) { console.error(`decide: the OWNER_ANSWER does not name migration ${sha8 || '?'} — ask with AskUserQuestion whose question and options name it (options: "Akceptuję migrację ${sha8}" / "Odrzucam migrację ${sha8}")`); process.exit(3); }
+    const label = String(hit[1]).trim();
+    const says = /^(akceptuj|accept|zatwierdz|approve)/i.test(label) ? 'PASSED' : /^(odrzuc|reject)/i.test(label) ? 'REJECTED' : null;
+    if (says !== args.status) { console.error(`decide: the owner's answer "${label}" ${says ? 'means ' + says : 'is ambiguous'} — it does not support --status ${args.status}`); process.exit(3); }
+    bound = { artifact: 'migration-check.json', migration_sha: mc.migration_sha };
+  }
+  fs.appendFileSync(journalPath, JSON.stringify({ at: new Date().toISOString(), event: 'GATE_ANSWER', phase: args.gate, status: args.status, ...bound, owner_answer: { tool_use_id: ans.owner_answer.tool_use_id, answers: ans.owner_answer.answers } }) + '\n');
   console.log(`decide: gate ${args.gate} ${args.status} (ref ${args['answer-ref']})`);
 } else if (args.decision) {
   let found = false;

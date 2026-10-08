@@ -41,7 +41,6 @@ All other rules (entity encapsulation, naming, DI pattern, schema isolation, etc
 - Dev server: `cd frontend && npm start` (localhost:4200)
 - Build: `cd frontend && npm run build`
 - Tests: `cd frontend && npm test`
-- Lint: `cd frontend && npm run lint`
 
 ### Docker
 - `wsl docker compose up --build` (WSL prefix required on Windows). App: `localhost:8080`, Swagger: `localhost:8080/swagger`.

@@ -7,7 +7,7 @@ namespace ThingsBooksy.Modules.Resources.Core.Features.CreateResourceInstance;
 internal record PropertyValueInput(Guid PropertyDefinitionId, string Value);
 
 internal record CreateResourceInstanceCommand(
-    Guid ResourceTypeId,
+    Guid ResourceSchemaId,
     Guid CallerId,
     string Name,
     string? Description,

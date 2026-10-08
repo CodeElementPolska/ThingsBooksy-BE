@@ -176,7 +176,7 @@ export class SchemaDesignerPageComponent implements OnInit, OnDestroy {
 
       if (this.mode() === 'create') {
         await firstValueFrom(
-          this.api.createResourceType({
+          this.api.createResourceSchema({
             groupId: this.groupId(),
             name: this.name().trim(),
             description: this.description(),
@@ -185,7 +185,7 @@ export class SchemaDesignerPageComponent implements OnInit, OnDestroy {
         );
       } else {
         await firstValueFrom(
-          this.api.updateResourceType(this.schemaId()!, {
+          this.api.updateResourceSchema(this.schemaId()!, {
             name: this.name().trim(),
             description: this.description(),
             propertyDefinitions,
@@ -218,7 +218,7 @@ export class SchemaDesignerPageComponent implements OnInit, OnDestroy {
   private async loadSchema(schemaId: string): Promise<void> {
     this.isLoading.set(true);
     try {
-      const schema = await firstValueFrom(this.api.getResourceType(schemaId));
+      const schema = await firstValueFrom(this.api.getResourceSchema(schemaId));
       const fields: FieldDraft[] = (schema.propertyDefinitions ?? []).map(p => ({
         id: crypto.randomUUID(),
         serverId: p.id,

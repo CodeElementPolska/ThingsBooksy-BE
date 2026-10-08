@@ -1,0 +1,69 @@
+{
+  "provenance": {
+    "author_agent": "be-writer",
+    "run_id": "016-rename-resource-schema-be-writer-muy0e2i1",
+    "story": "016-rename-resource-schema",
+    "phase": "C3a",
+    "inputs": [
+      { "path": "specs/016-rename-resource-schema/spec.md", "sha256": "137585e8c4239be4b5e0f5e8ecfb61d717ea8b1a4de2667dabb6576299d48bdf" },
+      { "path": "specs/016-rename-resource-schema/plan.md", "sha256": "45c7f2e96ed1f4a2dce05082f1a98a5df7dcd09fa54b8aac845d1b9c65c1bd24" },
+      { "path": "specs/016-rename-resource-schema/tasks.md", "sha256": "baeb03f3ced461082b29fb815395de0f7cd5183c0d4f95b3e76593fd9bc3d5cc" },
+      { "path": "specs/016-rename-resource-schema/data-model.md", "sha256": "8e020286902a422b25dfa7adc4866e4e226e0e8fc4800bba5a78af0c9cbecb1c" },
+      { "path": "specs/016-rename-resource-schema/contracts/README.md", "sha256": "fae28fc69338ede86eb66190ff0b90192026a5329a985a232a8b6eac81c09b08" },
+      { "path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb" },
+      { "path": "runs/016-rename-resource-schema/contract-next.json", "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4" },
+      { "path": "runs/016-rename-resource-schema/discovery/decisions.jsonl", "sha256": "537476cfe761fb814cca90e6e8ecb1ec1e93cecfcd615cab28db47b4dacb32bc" },
+      { "path": "runs/016-rename-resource-schema/discovery/assumptions.jsonl", "sha256": "dc6c49d9c7395a1f374eeb715b154b3e9c490b17f0155b2835bb11c47d418c57" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T008"],
+  "tasks_remaining": ["T009"],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceSchemaConfiguration.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceInstanceConfiguration.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourcePropertyDefinitionConfiguration.cs"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-W1",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "I reported schema_changes as DESTRUCTIVE even though the change is a pure rename (table resource_types -> resource_schemas, two ResourceTypeId columns -> ResourceSchemaId), because the old table and column names stop existing.",
+      "bucket": "ASSUME",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "default_chosen": "DESTRUCTIVE",
+      "rationale": "The schema enum has no RENAME value. The old names are removed, so anything that still reads them by name breaks (for example the ManagementGroups raw-SQL test helper until T010). tasks.md T009 already expects G2b to be opened and closed for this migration, so the cautious choice matches the plan.",
+      "consequence_if_wrong": "If ADDITIVE was intended, the conductor opens G2b, which T009 runs anyway. Nothing is lost."
+    },
+    {
+      "id": "ASM-W2",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "The one skeleton-check violation (.claude/settings.json, 'outside skeleton scope') existed before this run and is not part of it. I did not touch that file and must not edit it.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "The git status snapshot at session start already lists ' M .claude/settings.json' before any edit of mine. runs/016-rename-resource-schema/skeleton-check.json lists all three files of this run under 'accepted'.",
+      "consequence_if_wrong": "None for the code. The conductor must commit, revert or exclude .claude/settings.json before the skeleton-check gate can report 0 violations."
+    },
+    {
+      "id": "ASM-W3",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "The new PK, FK and index names (PK_resource_schemas, FK_resource_property_definitions_resource_schemas_ResourceSchemaId, IX_resource_property_definitions_ResourceSchemaId, IX_resource_schemas_GroupId_Name) come from EF default naming once the pins are removed. No explicit HasName or HasConstraintName is needed.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "None of the Resources DAL/Configurations/*.cs files has an explicit constraint or index name. specs/016-rename-resource-schema/data-model.md lines 9-15 list exactly the names EF produces by default. tasks.md T008 says 'by default naming'.",
+      "consequence_if_wrong": "The developer would see different names in the generated migration, and the AC-13 test would catch it."
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": {
+    "build": "PASSED",
+    "unit_tests": "SKIPPED",
+    "format": "SKIPPED"
+  },
+  "schema_changes": "DESTRUCTIVE",
+  "error": "Not a failure of T008, but needs the conductor: `node tools/fleet/skeleton-check.js --story 016-rename-resource-schema` exited 3 with 1 violation, '.claude/settings.json — outside skeleton scope'. That file was already modified before this run (ASM-W2). All three files of this run are under RES.Core/DAL/Configurations and the check accepted them. Task scope: T008 is the only be-writer skeleton task. T009 is DEVELOPER-ONLY and needs the migration RenameResourceTypeToResourceSchema (rename-only, DEC-1), then core-surface refresh, migration-check and G2b. Build: `dotnet build backend/ThingsBooksy.slnx` succeeded with 0 errors. Unit tests: none in this phase. Format: not run, because the ACL denies `dotnet format` to be-writer; the change only deletes lines and swaps a string literal."
+}

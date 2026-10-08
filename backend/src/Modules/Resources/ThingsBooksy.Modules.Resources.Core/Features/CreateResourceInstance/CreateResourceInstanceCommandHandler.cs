@@ -28,12 +28,12 @@ internal sealed class CreateResourceInstanceCommandHandler : ICommandHandler<Cre
 
     public async Task<Guid> HandleAsync(CreateResourceInstanceCommand command, CancellationToken cancellationToken = default)
     {
-        var resourceType = await _dataProvider.GetResourceTypeAsync(command.ResourceTypeId, cancellationToken);
+        var resourceSchema = await _dataProvider.GetResourceSchemaAsync(command.ResourceSchemaId, cancellationToken);
 
-        if (resourceType is null)
-            throw new ResourcesDomainException("Resource type not found.");
+        if (resourceSchema is null)
+            throw new ResourcesDomainException("Resource schema not found.");
 
-        var group = await _dataProvider.GetGroupAsync(resourceType.GroupId, cancellationToken);
+        var group = await _dataProvider.GetGroupAsync(resourceSchema.GroupId, cancellationToken);
 
         if (group is null)
             throw new ResourcesDomainException("Group not found.");
@@ -44,14 +44,14 @@ internal sealed class CreateResourceInstanceCommandHandler : ICommandHandler<Cre
         if (string.IsNullOrWhiteSpace(command.Name))
             throw new ResourcesDomainException("Instance name cannot be empty.");
 
-        var nameExists = await _dataProvider.NameExistsAsync(command.ResourceTypeId, command.Name, cancellationToken);
+        var nameExists = await _dataProvider.NameExistsAsync(command.ResourceSchemaId, command.Name, cancellationToken);
 
         if (nameExists)
             throw new ResourcesDomainException("Instance name is already taken.");
 
         var propertyValuesList = (command.PropertyValues ?? []).ToList();
 
-        var definitions = await _dataProvider.GetPropertyDefinitionsAsync(command.ResourceTypeId, cancellationToken);
+        var definitions = await _dataProvider.GetPropertyDefinitionsAsync(command.ResourceSchemaId, cancellationToken);
 
         var submittedIds = propertyValuesList.Select(pv => pv.PropertyDefinitionId).ToHashSet();
 
@@ -72,7 +72,7 @@ internal sealed class CreateResourceInstanceCommandHandler : ICommandHandler<Cre
                 throw new ResourcesDomainException($"Property '{def.Name}' expects a boolean value (true/false).");
         }
 
-        var instance = ResourceInstance.Create(command, resourceType.GroupId, _clock.CurrentDate());
+        var instance = ResourceInstance.Create(command, resourceSchema.GroupId, _clock.CurrentDate());
 
         foreach (var pv in propertyValuesList)
         {
@@ -83,7 +83,7 @@ internal sealed class CreateResourceInstanceCommandHandler : ICommandHandler<Cre
 
         await _dataProvider.AddResourceInstanceAsync(instance, cancellationToken);
         await _dataProvider.SaveChangesAsync(cancellationToken);
-        await _messageBroker.PublishAsync(new ResourceInstanceCreatedEvent(instance.Id, instance.ResourceTypeId), cancellationToken);
+        await _messageBroker.PublishAsync(new ResourceInstanceCreatedEvent(instance.Id, instance.ResourceSchemaId), cancellationToken);
 
         return instance.Id;
     }

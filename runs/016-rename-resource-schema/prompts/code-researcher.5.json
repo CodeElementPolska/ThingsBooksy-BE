@@ -1,0 +1,122 @@
+{
+  "agent_type": "code-researcher",
+  "run_id": "016-rename-resource-schema-code-researcher-5-muquqh1f",
+  "prompt": "You are a code researcher. You answer exactly ONE factual question about the codebase, with evidence.\n\nRules:\n- Read the question file listed below. Do not answer any other question.\n- Use `\"id\": \"F-5\"` in your answer (the id is assigned by the caller, not by you).\n- Keep every `excerpt` under 300 characters — quote the decisive line(s), not the whole block.\n- Every claim must cite `file:line` (or a fragment of a generated artifact). A claim without evidence is not a fact — omit it.\n- \"I don't know\" (`confidence: unknown`) is a valid, expected answer. Never guess.\n- Do not propose solutions or judge the design. Facts only.\n- Return ONLY the JSON object required by the schema below — no prose around it.\n\n## Input files handed to you (paths + hashes)\nThese are the files this task was built from. They are NOT a read boundary: your read scope is set by your access rules (allowed roots such as `backend/`, `frontend/src/`, `generated/`); read whatever you need inside it. If something you need is outside your scope, say so in the answer.\n- `runs/016-rename-resource-schema/discovery/questions/5.md`  (sha256 e64b12cccad3…)\n- `generated/capability-map.json`  (sha256 01040357aff3…)\n- `generated/core-surface.json`  (sha256 72e6a5cc2c4c…)\n\n## Conventions that apply to your output\n- `.specify/memory/constitution.md`\n\n## Your output MUST validate against this JSON Schema\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/fact\",\n  \"title\": \"One entry of facts.jsonl — output of code-researcher / capability-analyst; every claim about existing behaviour needs evidence\",\n  \"type\": \"object\",\n  \"required\": [\n    \"id\",\n    \"claim\",\n    \"evidence\",\n    \"confidence\",\n    \"by\"\n  ],\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\",\n      \"pattern\": \"^F-[0-9]+$\"\n    },\n    \"question\": {\n      \"type\": \"string\",\n      \"description\": \"the single question the researcher was asked\"\n    },\n    \"claim\": {\n      \"type\": \"string\"\n    },\n    \"evidence\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"oneOf\": [\n          {\n            \"type\": \"object\",\n            \"required\": [\n              \"file\",\n              \"line\"\n            ],\n            \"properties\": {\n              \"file\": {\n                \"type\": \"string\"\n              },\n              \"line\": {\n                \"type\": \"integer\",\n                \"minimum\": 1\n              },\n              \"excerpt\": {\n                \"type\": \"string\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"required\": [\n              \"captured_response\"\n            ],\n            \"properties\": {\n              \"captured_response\": {\n                \"type\": \"string\",\n                \"description\": \"verbatim HTTP response / swagger fragment\"\n              },\n              \"source\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"required\": [\n              \"generated\"\n            ],\n            \"properties\": {\n              \"generated\": {\n                \"type\": \"string\",\n                \"description\": \"path in generated/ (capability-map, swagger.base, core-surface)\"\n              }\n            }\n          }\n        ]\n      }\n    },\n    \"confidence\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"certain\",\n        \"likely\",\n        \"unknown\"\n      ],\n      \"description\": \"unknown = 'I don't know' is a valid, expected answer\"\n    },\n    \"by\": {\n      \"type\": \"string\",\n      \"description\": \"agent_type + run_id\"\n    }\n  }\n}\n```\n\n## Provenance block — copy VERBATIM into the `provenance` field of your output\n```json\n{\n  \"author_agent\": \"code-researcher\",\n  \"run_id\": \"016-rename-resource-schema-code-researcher-5-muquqh1f\",\n  \"story\": \"016-rename-resource-schema\",\n  \"phase\": \"B\",\n  \"inputs\": [\n    {\n      \"path\": \"runs/016-rename-resource-schema/discovery/questions/5.md\",\n      \"sha256\": \"e64b12cccad3f11bd16e7ad14b337905c166b1e499dcb9e086cad5399a07926b\"\n    },\n    {\n      \"path\": \"generated/capability-map.json\",\n      \"sha256\": \"01040357aff3a256ea13ee13ac2d7dc16e6e41b283ac5a2827c136803735e18d\"\n    },\n    {\n      \"path\": \"generated/core-surface.json\",\n      \"sha256\": \"72e6a5cc2c4c208beeed3f341bc57fe2d0d5908f7083891b5f7e689370f5476b\"\n    }\n  ],\n  \"schema_version\": \"1\"\n}\n```\n",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "fleet-v4/fact",
+    "title": "One entry of facts.jsonl — output of code-researcher / capability-analyst; every claim about existing behaviour needs evidence",
+    "type": "object",
+    "required": [
+      "id",
+      "claim",
+      "evidence",
+      "confidence",
+      "by"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^F-[0-9]+$"
+      },
+      "question": {
+        "type": "string",
+        "description": "the single question the researcher was asked"
+      },
+      "claim": {
+        "type": "string"
+      },
+      "evidence": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "file",
+                "line"
+              ],
+              "properties": {
+                "file": {
+                  "type": "string"
+                },
+                "line": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "excerpt": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "captured_response"
+              ],
+              "properties": {
+                "captured_response": {
+                  "type": "string",
+                  "description": "verbatim HTTP response / swagger fragment"
+                },
+                "source": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "generated"
+              ],
+              "properties": {
+                "generated": {
+                  "type": "string",
+                  "description": "path in generated/ (capability-map, swagger.base, core-surface)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "confidence": {
+        "type": "string",
+        "enum": [
+          "certain",
+          "likely",
+          "unknown"
+        ],
+        "description": "unknown = 'I don't know' is a valid, expected answer"
+      },
+      "by": {
+        "type": "string",
+        "description": "agent_type + run_id"
+      }
+    }
+  },
+  "provenance": {
+    "author_agent": "code-researcher",
+    "run_id": "016-rename-resource-schema-code-researcher-5-muquqh1f",
+    "story": "016-rename-resource-schema",
+    "phase": "B",
+    "inputs": [
+      {
+        "path": "runs/016-rename-resource-schema/discovery/questions/5.md",
+        "sha256": "e64b12cccad3f11bd16e7ad14b337905c166b1e499dcb9e086cad5399a07926b"
+      },
+      {
+        "path": "generated/capability-map.json",
+        "sha256": "01040357aff3a256ea13ee13ac2d7dc16e6e41b283ac5a2827c136803735e18d"
+      },
+      {
+        "path": "generated/core-surface.json",
+        "sha256": "72e6a5cc2c4c208beeed3f341bc57fe2d0d5908f7083891b5f7e689370f5476b"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "tools_hint": null,
+  "max_turns": 15
+}

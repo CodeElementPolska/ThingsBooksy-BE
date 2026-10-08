@@ -27,7 +27,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
     private readonly ResourcesGroupReadModelFactory _groups;
 
     // Local response records — do not import from Core to keep test project isolated
-    private record ResourceInstanceDtoResponse(Guid Id, Guid ResourceTypeId, Guid GroupId, string Name, string? Description, Guid OwnerId, DateTime CreatedAt, DateTime? DeletedAt, List<PropertyValueDtoResponse> PropertyValues);
+    private record ResourceInstanceDtoResponse(Guid Id, Guid ResourceSchemaId, Guid GroupId, string Name, string? Description, Guid OwnerId, DateTime CreatedAt, DateTime? DeletedAt, List<PropertyValueDtoResponse> PropertyValues);
     private record PropertyValueDtoResponse(Guid PropertyDefinitionId, string PropertyName, string DataType, string Value);
     private record PagedInstancesResponse(List<ResourceInstanceDtoResponse> Items, Guid? NextCursor);
 
@@ -42,6 +42,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
     // -----------------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("AC", "AC-1")]
     public async Task GetResourceInstance_AsOwner_Returns200WithCorrectData()
     {
         // Arrange
@@ -55,7 +56,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
             new PropertyDefinitionRequest("Seats", (int)PropertyDataType.Number, false),
         };
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Car", null, definitions);
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Car", null, definitions);
         var storedDefs = await client.GetResourcePropertyDefinitionsFromDbAsync(typeId);
         var colorDef = storedDefs.First(d => d.Name == "Color");
         var seatsDef = storedDefs.First(d => d.Name == "Seats");
@@ -80,7 +81,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
         Assert.Equal(instanceId, body.Id);
         Assert.Equal("Car One", body.Name);
         Assert.Equal("First car", body.Description);
-        Assert.Equal(typeId, body.ResourceTypeId);
+        Assert.Equal(typeId, body.ResourceSchemaId);
         Assert.Equal(group.Id, body.GroupId);
         Assert.Equal(owner.UserId, body.OwnerId);
         Assert.Null(body.DeletedAt);
@@ -98,23 +99,23 @@ public class GetResourceInstanceTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/instances — happy path list by resourceTypeId
+    // GET /resources/instances — happy path list by resourceSchemaId
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task GetResourceInstances_ByResourceTypeId_Returns200WithBothInstances()
+    public async Task GetResourceInstances_ByResourceSchemaId_Returns200WithBothInstances()
     {
         // Arrange
         var owner = await _users.CreateUserAsync("getrilist_bytype_owner@test.com");
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Desk");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Desk");
         await client.CreateResourceInstanceAndGetIdAsync(typeId, "Desk A");
         await client.CreateResourceInstanceAndGetIdAsync(typeId, "Desk B");
 
         // Act
-        var response = await client.GetResourceInstancesAsync(resourceTypeId: typeId);
+        var response = await client.GetResourceInstancesAsync(resourceSchemaId: typeId);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -140,7 +141,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Monitor");
+        var typeId = await client.CreateResourceSchemaAndGetIdAsync(group.Id, "Monitor");
         var instanceId = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Monitor A");
 
         // Soft-delete via DB directly (DELETE endpoint T043 not yet implemented)
@@ -153,14 +154,14 @@ public class GetResourceInstanceTests : IntegrationTestBase
         }
 
         // Act — default query (excludes deleted)
-        var defaultResponse = await client.GetResourceInstancesAsync(resourceTypeId: typeId);
+        var defaultResponse = await client.GetResourceInstancesAsync(resourceSchemaId: typeId);
         Assert.Equal(HttpStatusCode.OK, defaultResponse.StatusCode);
         var defaultBody = await defaultResponse.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
         Assert.NotNull(defaultBody);
         Assert.Empty(defaultBody.Items);
 
         // Act — with includeDeleted=true
-        var withDeletedResponse = await client.GetResourceInstancesAsync(resourceTypeId: typeId, includeDeleted: true);
+        var withDeletedResponse = await client.GetResourceInstancesAsync(resourceSchemaId: typeId, includeDeleted: true);
         Assert.Equal(HttpStatusCode.OK, withDeletedResponse.StatusCode);
         var withDeletedBody = await withDeletedResponse.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
         Assert.NotNull(withDeletedBody);
@@ -236,7 +237,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
 
         var ownerClient = new ResourcesTestClient(Factory, owner);
-        var typeId = await ownerClient.CreateResourceTypeAndGetIdAsync(group.Id, "Laptop");
+        var typeId = await ownerClient.CreateResourceSchemaAndGetIdAsync(group.Id, "Laptop");
         var instanceId = await ownerClient.CreateResourceInstanceAndGetIdAsync(typeId, "Laptop A");
 
         var nonMemberClient = new ResourcesTestClient(Factory, nonMember);
@@ -261,12 +262,12 @@ public class GetResourceInstanceTests : IntegrationTestBase
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
 
         var ownerClient = new ResourcesTestClient(Factory, owner);
-        var typeId = await ownerClient.CreateResourceTypeAndGetIdAsync(group.Id, "Phone");
+        var typeId = await ownerClient.CreateResourceSchemaAndGetIdAsync(group.Id, "Phone");
 
         var nonMemberClient = new ResourcesTestClient(Factory, nonMember);
 
         // Act
-        var response = await nonMemberClient.GetResourceInstancesAsync(resourceTypeId: typeId);
+        var response = await nonMemberClient.GetResourceInstancesAsync(resourceSchemaId: typeId);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -286,7 +287,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
         await _groups.AddGroupMemberAsync(group.Id, member.UserId);
 
         var ownerClient = new ResourcesTestClient(Factory, owner);
-        var typeId = await ownerClient.CreateResourceTypeAndGetIdAsync(group.Id, "Printer");
+        var typeId = await ownerClient.CreateResourceSchemaAndGetIdAsync(group.Id, "Printer");
         var instanceId = await ownerClient.CreateResourceInstanceAndGetIdAsync(typeId, "Printer A");
 
         var memberClient = new ResourcesTestClient(Factory, member);
@@ -315,13 +316,13 @@ public class GetResourceInstanceTests : IntegrationTestBase
         await _groups.AddGroupMemberAsync(group.Id, member.UserId);
 
         var ownerClient = new ResourcesTestClient(Factory, owner);
-        var typeId = await ownerClient.CreateResourceTypeAndGetIdAsync(group.Id, "Scanner");
+        var typeId = await ownerClient.CreateResourceSchemaAndGetIdAsync(group.Id, "Scanner");
         await ownerClient.CreateResourceInstanceAndGetIdAsync(typeId, "Scanner A");
 
         var memberClient = new ResourcesTestClient(Factory, member);
 
         // Act
-        var response = await memberClient.GetResourceInstancesAsync(resourceTypeId: typeId);
+        var response = await memberClient.GetResourceInstancesAsync(resourceSchemaId: typeId);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -27,7 +27,7 @@ internal sealed class GetResourceInstanceQueryDataProvider : IGetResourceInstanc
             return null;
 
         var definitions = await _dbContext.ResourcePropertyDefinitions
-            .Where(d => d.ResourceTypeId == instance.ResourceTypeId)
+            .Where(d => d.ResourceSchemaId == instance.ResourceSchemaId)
             .ToListAsync(ct);
 
         var defMap = definitions.ToDictionary(d => d.Id);
@@ -46,7 +46,7 @@ internal sealed class GetResourceInstanceQueryDataProvider : IGetResourceInstanc
 
         return new GetResourceInstanceQueryResult(
             instance.Id,
-            instance.ResourceTypeId,
+            instance.ResourceSchemaId,
             instance.GroupId,
             instance.Name,
             instance.Description,

@@ -443,17 +443,17 @@
         }
       }
     },
-    "/resources/types": {
+    "/resources/schemas": {
       "post": {
         "tags": [
           "Resources"
         ],
-        "operationId": "Create resource type",
+        "operationId": "Create resource schema",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceTypeRequest"
+                "$ref": "#/components/schemas/ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceSchemaRequest"
               }
             }
           },
@@ -469,7 +469,7 @@
         "tags": [
           "Resources"
         ],
-        "operationId": "Get resource types",
+        "operationId": "Get resource schemas",
         "parameters": [
           {
             "name": "groupId",
@@ -488,12 +488,12 @@
         }
       }
     },
-    "/resources/types/{id}": {
+    "/resources/schemas/{id}": {
       "put": {
         "tags": [
           "Resources"
         ],
-        "operationId": "Update resource type",
+        "operationId": "Update resource schema",
         "parameters": [
           {
             "name": "id",
@@ -509,7 +509,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceTypeRequest"
+                "$ref": "#/components/schemas/ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceSchemaRequest"
               }
             }
           },
@@ -525,7 +525,7 @@
         "tags": [
           "Resources"
         ],
-        "operationId": "Delete resource type",
+        "operationId": "Delete resource schema",
         "parameters": [
           {
             "name": "id",
@@ -547,7 +547,7 @@
         "tags": [
           "Resources"
         ],
-        "operationId": "Get resource type",
+        "operationId": "Get resource schema",
         "parameters": [
           {
             "name": "id",
@@ -596,7 +596,7 @@
         "operationId": "Get resource instances",
         "parameters": [
           {
-            "name": "resourceTypeId",
+            "name": "resourceSchemaId",
             "in": "query",
             "schema": {
               "type": "string",
@@ -947,7 +947,7 @@
       "ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceInstanceRequest": {
         "type": "object",
         "properties": {
-          "resourceTypeId": {
+          "resourceSchemaId": {
             "type": "string",
             "format": "uuid"
           },
@@ -969,7 +969,7 @@
         },
         "additionalProperties": false
       },
-      "ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceTypeRequest": {
+      "ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceSchemaRequest": {
         "type": "object",
         "properties": {
           "groupId": {
@@ -1080,7 +1080,7 @@
         },
         "additionalProperties": false
       },
-      "ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceTypeRequest": {
+      "ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceSchemaRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -1157,7 +1157,7 @@
             "type": "string",
             "format": "uuid"
           },
-          "resourceTypeId": {
+          "resourceSchemaId": {
             "type": "string",
             "format": "uuid"
           },

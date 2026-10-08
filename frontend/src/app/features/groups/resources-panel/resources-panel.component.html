@@ -30,7 +30,7 @@
         <thead>
           <tr>
             <th scope="col" class="resources-panel__th">Name</th>
-            <th scope="col" class="resources-panel__th">Type</th>
+            <th scope="col" class="resources-panel__th">Schema</th>
             <th scope="col" class="resources-panel__th">Status</th>
             <th scope="col" class="resources-panel__th resources-panel__th--icon" aria-label="Row action"></th>
           </tr>
@@ -40,7 +40,7 @@
             <tr class="resources-panel__row">
               <td class="resources-panel__td resources-panel__td--name">{{ resource.name ?? '—' }}</td>
               <td class="resources-panel__td resources-panel__td--type">
-                {{ getSchemaName(resource.resourceTypeId) }}
+                {{ getSchemaName(resource.resourceSchemaId) }}
               </td>
               <td class="resources-panel__td resources-panel__td--status">
                 <span class="resources-panel__badge resources-panel__badge--available">

@@ -44,12 +44,21 @@ for (const line of fm[1].split('\n')) {
   else if (li && cur && Array.isArray(meta[cur])) meta[cur].push(li[1]);
 }
 const body = fm[2];
+// the template's `agent:` is the ACL identity it was written for — building it under another --agent would hand the
+// prompt to an agent with a different read/write scope (runbook pairs e.g. --agent test-designer-sighted --template test-designer-fix)
+if (meta.agent && meta.agent !== agent) { console.error(`prompt-builder: template ${path.basename(tplPath)} is for agent "${meta.agent}", not "${agent}"`); process.exit(1); }
 const subst = s => String(s).replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : `{${k}}`));
 
 // --- resolve inputs & enforce ACL -----------------------------------------------------------------
 const acl = JSON.parse(fs.readFileSync(path.join(HERE, 'fleet-acl.json'), 'utf8')).agents?.[agent];
+// an agent without an ACL entry runs UNRESTRICTED under the hook (D-13: unknown agent_type → allow) — for a fleet worker
+// that is a silent loss of isolation (a blind tester would see production code), so refuse to build its prompt at all
+if (!acl) { console.error(`prompt-builder: agent "${agent}" has no entry in tools/fleet/fleet-acl.json — add one (without it the hook would let it read everything)`); process.exit(3); }
 const globToRe = g => new RegExp('^' + g.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*\*\//g, '(?:.*/)?').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*') + '(/|$)');
-const insideAcl = rel => !acl || (acl.read_allow || []).some(r => globToRe(r.replace(/\\/g, '/')).test(rel));
+// ACL entries are matched the way acl-hook.js matches them: backslashes, a leading "./", a trailing "/" and letter case
+// are irrelevant there — this pre-flight must predict the hook's verdict, not a stricter one (016: two matchers diverged)
+const aclRe = r => new RegExp(globToRe(r.replace(/\\/g, '/').replace(/^\.\//, '').replace(/\/+$/, '')).source, 'i');
+const insideAcl = rel => (acl.read_allow || []).some(r => aclRe(r).test(rel));
 function expand(pattern) {
   const p = subst(pattern).replace(/\\/g, '/');
   if (!p.includes('*')) return fs.existsSync(path.join(REPO, p)) ? [p] : [];
@@ -82,6 +91,9 @@ const schema = schemaName ? loadSchema(schemaName) : null;
 const referenced = {}; const collectRefs = node => { if (!node || typeof node !== 'object') return; for (const [k, v] of Object.entries(node)) { if (k === '$ref' && typeof v === 'string' && v.startsWith('fleet-v4/')) { const n = v.slice(9); if (!referenced[n] && n !== schemaName && fs.existsSync(path.join(SCHEMAS, `${n}.schema.json`))) { referenced[n] = loadSchema(n); collectRefs(referenced[n]); } } else collectRefs(v); } };
 collectRefs(schema);
 const conventions = (meta.conventions || []).map(c => subst(c)).filter(c => fs.existsSync(path.join(REPO, c)));
+// conventions are read by the agent exactly like inputs — the hook does not know the difference
+const deniedConventions = conventions.filter(c => !insideAcl(c));
+if (deniedConventions.length) { console.error(`prompt-builder: conventions outside ${agent}'s read_allow (fix fleet-acl.json or the template):\n - ${deniedConventions.join('\n - ')}`); process.exit(3); }
 
 // --- assemble --------------------------------------------------------------------------------------------
 const runId = args['run-id'] || `${story}-${agent}${vars.instance ? '-' + vars.instance : ''}-${Date.now().toString(36)}`;

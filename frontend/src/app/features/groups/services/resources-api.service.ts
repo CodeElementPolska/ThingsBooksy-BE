@@ -3,8 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import {
   ThingsBooksyModulesResourcesApiRequestsCreateResourceInstanceRequest as CreateResourceInstanceRequest,
-  ThingsBooksyModulesResourcesApiRequestsCreateResourceTypeRequest as CreateResourceTypeRequest,
-  ThingsBooksyModulesResourcesApiRequestsUpdateResourceTypeRequest as UpdateResourceTypeRequest,
+  ThingsBooksyModulesResourcesApiRequestsCreateResourceSchemaRequest as CreateResourceSchemaRequest,
+  ThingsBooksyModulesResourcesApiRequestsUpdateResourceSchemaRequest as UpdateResourceSchemaRequest,
   ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesGetResourceInstancesQueryResult as ResourceInstancesPage,
 } from '../../../api/data-contracts';
 import { CursorParams } from './groups-api.service';
@@ -18,7 +18,7 @@ export interface PropertyDefinitionDto {
   readonly isRequired: boolean;
 }
 
-export interface ResourceTypeSummaryDto {
+export interface ResourceSchemaSummaryDto {
   readonly id: string;
   readonly groupId: string;
   readonly name: string;
@@ -27,10 +27,10 @@ export interface ResourceTypeSummaryDto {
   readonly propertyDefinitions: PropertyDefinitionDto[];
 }
 
-export type ResourceTypeDetailDto = ResourceTypeSummaryDto;
+export type ResourceSchemaDetailDto = ResourceSchemaSummaryDto;
 
 export interface CreateResourceInstancePayload {
-  resourceTypeId: string;
+  resourceSchemaId: string;
   name: string;
   description: string | null;
   propertyValues: { propertyDefinitionId: string; value: string | null }[];
@@ -40,26 +40,26 @@ export interface CreateResourceInstancePayload {
 export class ResourcesApiService {
   private readonly http = inject(HttpClient);
 
-  getResourceTypes(groupId: string): Observable<ResourceTypeSummaryDto[]> {
-    return this.http.get<ResourceTypeSummaryDto[]>('/resources/types', {
+  getResourceSchemas(groupId: string): Observable<ResourceSchemaSummaryDto[]> {
+    return this.http.get<ResourceSchemaSummaryDto[]>('/resources/schemas', {
       params: { groupId },
     });
   }
 
-  getResourceType(id: string): Observable<ResourceTypeDetailDto> {
-    return this.http.get<ResourceTypeDetailDto>(`/resources/types/${id}`);
+  getResourceSchema(id: string): Observable<ResourceSchemaDetailDto> {
+    return this.http.get<ResourceSchemaDetailDto>(`/resources/schemas/${id}`);
   }
 
-  createResourceType(req: CreateResourceTypeRequest): Observable<{ id: string }> {
-    return this.http.post<{ id: string }>('/resources/types', req);
+  createResourceSchema(req: CreateResourceSchemaRequest): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>('/resources/schemas', req);
   }
 
-  updateResourceType(id: string, req: UpdateResourceTypeRequest): Observable<void> {
-    return this.http.put<void>(`/resources/types/${id}`, req).pipe(map(() => void 0));
+  updateResourceSchema(id: string, req: UpdateResourceSchemaRequest): Observable<void> {
+    return this.http.put<void>(`/resources/schemas/${id}`, req).pipe(map(() => void 0));
   }
 
-  deleteResourceType(id: string): Observable<void> {
-    return this.http.delete<void>(`/resources/types/${id}`).pipe(map(() => void 0));
+  deleteResourceSchema(id: string): Observable<void> {
+    return this.http.delete<void>(`/resources/schemas/${id}`).pipe(map(() => void 0));
   }
 
   getResourceInstances(
@@ -77,7 +77,7 @@ export class ResourcesApiService {
     payload: CreateResourceInstancePayload,
   ): Observable<{ id: string }> {
     const req: CreateResourceInstanceRequest = {
-      resourceTypeId: payload.resourceTypeId,
+      resourceSchemaId: payload.resourceSchemaId,
       name: payload.name,
       description: payload.description,
       propertyValues: payload.propertyValues,

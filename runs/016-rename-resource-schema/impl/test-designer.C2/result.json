@@ -1,0 +1,111 @@
+{
+  "provenance": {
+    "author_agent": "test-designer",
+    "run_id": "016-rename-resource-schema-test-designer-muz9bsth",
+    "story": "016-rename-resource-schema",
+    "phase": "C2",
+    "inputs": [
+      {"path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb"},
+      {"path": "specs/016-rename-resource-schema/spec.md", "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a"},
+      {"path": "specs/016-rename-resource-schema/tasks.md", "sha256": "6a364140c211bab1dd5980c35337bb13040d45bb297ec5e1839113a314a80128"},
+      {"path": "runs/016-rename-resource-schema/contract-next.json", "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4"},
+      {"path": "runs/016-rename-resource-schema/discovery/decisions.jsonl", "sha256": "7ca3c8fb5eae38360b0c6ea3889ed6bc6e5374d1df52d96f9ae5fb3ab943ee08"},
+      {"path": "generated/core-surface.json", "sha256": "78f92a5c6efb1279d9e1e6929d32b55576a4af4c0aeda5e3abc1ae9d8ec78201"},
+      {"path": "generated/capability-map.json", "sha256": "01040357aff3a256ea13ee13ac2d7dc16e6e41b283ac5a2827c136803735e18d"}
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T010", "T011", "T012", "T013", "T014", "T015", "T016", "T017", "T018", "T019", "T020", "T021"],
+  "tasks_remaining": [],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResponseAssert.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceSchemaFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourcePropertyDefinitionFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesGroupReadModelFactory.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/CreateResourceSchemaEndpointTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/UpdateResourceSchemaEndpointTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/CreateResourceSchemaTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/GetResourceSchemaTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/UpdateDeleteResourceSchemaTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/SoftDeleteResourceSchemaTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/SoftDeleteResourceSchemaReadPathTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/CreateResourceInstanceTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/GetResourceInstanceTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Events/ResourceLifecycleEventNoPublishTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/ForeignSchemaFilterTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesDatabaseNamesTests.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+    "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/DeleteManagementGroupTests.cs",
+    "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+    "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
+    "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-T1", "made_by": "test-designer", "phase": "C2",
+      "statement": "Error bodies for 400/403 are asserted strictly as { errors: [ { code, message } ] } with a single error; the 409 body as bare { code, message }; the 404 of a missing schema/instance read as an empty body.",
+      "bucket": "NO_ASK",
+      "evidence": "spec.md Access baseline header; runs/016-rename-resource-schema/discovery/raw/q2.json (F-2: ExceptionToResponseMapper ErrorsResponse, Results.NotFound())",
+      "score": {"hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true}
+    },
+    {
+      "id": "ASM-T2", "made_by": "test-designer", "phase": "C2",
+      "statement": "Baseline rows that cannot differ before/after the rename were folded into a test with a row that does, so every contract test is red-first: member and outsider rows 3+4 in one test each; outsider rows 11, 12, 14, 15 in one test; member row 14 additionally asserts rows carry resourceSchemaId.",
+      "bucket": "ASSUME",
+      "default_chosen": "Fold inherently-green rows into a red test of the same operation family",
+      "rationale": "Constitution V rejects tests that pass before the behaviour exists; AC-10/AC-11 still need every row asserted.",
+      "consequence_if_wrong": "If one test per row is required, split the combined tests; assertions stay identical.",
+      "score": {"hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true}
+    },
+    {
+      "id": "ASM-T3", "made_by": "test-designer", "phase": "C2",
+      "statement": "AC-2 test file is named RemovedTypesAddressesTests.cs instead of tasks.md's RemovedResourceTypeAddressesTests.cs, and negative-assertion literals for the old name (AC-6, AC-9, AC-13, frontend) are built by string concatenation, so the FR-009/FR-011 repository search for the old name stays clean in test code.",
+      "bucket": "ASSUME",
+      "default_chosen": "Rename file/class; concatenate old-name literals",
+      "rationale": "FR-009 says a search for resource[ _]?type in backend/src finds only historical migrations; the tasks.md file name would itself be a hit.",
+      "consequence_if_wrong": "Rename the file back; search exception list grows by these files.",
+      "score": {"hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true}
+    },
+    {
+      "id": "ASM-T4", "made_by": "test-designer", "phase": "C2",
+      "statement": "AC-9 runs on a separate database created in the test container; the ResourcesDbContext for it is built with ActivatorUtilities from the app's DI options plus Database.SetConnectionString; the old DataType column literal (number vs name) is read from information_schema at run time.",
+      "bucket": "ASSUME",
+      "default_chosen": "Separate DB + app options + runtime catalog lookup",
+      "rationale": "Migration source is outside the tester's read scope; this avoids guessing migrations assembly or column types. Verified green.",
+      "consequence_if_wrong": "Test fails at arrange with a clear DB error; adjust the helper only.",
+      "score": {"hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true}
+    },
+    {
+      "id": "ASM-T5", "made_by": "test-designer", "phase": "C2",
+      "statement": "The new frontend resources-api.service.spec.ts locates the service class from the module's runtime exports and calls the methods by the data-model.md names (getResourceSchemas, getResourceSchema, createResourceSchema(payload), updateResourceSchema(id, payload), deleteResourceSchema(id)); the create-instance method is found as the only create* method not containing 'schema'; Observable or Promise results are both handled.",
+      "bucket": "ASSUME",
+      "default_chosen": "Dynamic lookup so the spec compiles against the service before and after the rename",
+      "rationale": "resources-api.service.ts is outside the tester's read scope; class name and exact signatures are unknown.",
+      "consequence_if_wrong": "If createResourceSchema takes (groupId, payload) the URL/method assertion still holds; if the service class is not providedIn root it is provided explicitly; a differently named create-instance method that starts with 'create' is still found.",
+      "score": {"hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true}
+    },
+    {
+      "id": "ASM-T6", "made_by": "test-designer", "phase": "C2",
+      "statement": "The schemas-panel empty-state check passes if the new sentence appears for either owner state and the old sentence appears in neither; the add-button check selects elements whose aria-label starts with 'Add resource' with isOwner=true.",
+      "bucket": "ASSUME",
+      "default_chosen": "Owner-state-agnostic text check; aria-label prefix selector",
+      "rationale": "schemas-panel.component.html is outside the tester's read scope; discovery F-3 gives the texts but not the rendering conditions.",
+      "consequence_if_wrong": "Adjust the selector or owner state in the spec.",
+      "score": {"hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true}
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": {"build": "PASSED", "unit_tests": "SKIPPED", "format": "SKIPPED"},
+  "notes": "Builds: dotnet build of Resources.IntegrationTests and ManagementGroups.IntegrationTests both succeeded, 0 errors. Red-first: dotnet test --filter AC-1|AC-2|AC-6|AC-7|AC-10|AC-11|AC-12 gave 60 failed, 0 passed. The failures come from missing behaviour: 404 at /resources/schemas, old routes still answering 200/201/204, old message wording ('Resource type not found.', 'Either GroupId or ResourceTypeId must be provided.'), and resourceSchemaId being ignored or absent. AC-9/AC-13/AC-14 (5 tests) pass as ASM-18 expects. Existing tests whose expectations changed and now carry this story's AC tag: CreateResourceSchemaEndpointTests.CreateResourceSchema_DuplicateNameInGroup_Returns409 and UpdateResourceSchemaEndpointTests.UpdateResourceSchema_DuplicateAmongOthers_Returns409 (code RESOURCE_SCHEMA_NAME_TAKEN, exact message, AC-1 and AC-7); GetResourceInstanceTests.GetResourceInstance_AsOwner_Returns200WithCorrectData and SoftDeleteResourceSchemaReadPathTests (field ResourceSchemaId, AC-1). Other existing tests changed only through the test client (addresses, JSON field, query parameter) or literal URLs, or a renamed description string. They are the AC-1 regression net and currently fail on 404, which is expected until T023. In ManagementGroups tests, the raw SQL now reads resources.resource_schemas, and DeleteManagementGroupTests posts to /resources/schemas with ResourceSchemaId. Frontend: the [AC-8] specs were written but not run, because the Bash ACL denies npm/vitest for this agent; the conductor must run them in T033. The two retitled resources-panel tests: the new header test and the mapping test should be red until T029-T031; the existing '—' fallback test is inherently green. New infra: ResourcesTestClient.Anonymous, the *AtRemovedAddressAsync methods, GetResourceSchemasByGroupFromDbAsync, GetResourceInstancesBySchemaFromDbAsync (renamed from the ByType version), ResourcesResourceInstanceFactory.SoftDeleteResourceInstanceAsync, and the ResourcesResponseAssert helper."
+}

@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 // S6 — gate (phase C4): the deterministic bar every implementation must clear before any LLM review.
 // Steps (each recorded, first hard failure stops unless --all):
+//   migration    migration-check.json is present, fresh (file hashes) and, when g2b_required, answered for THIS
+//                migration (GATE_ANSWER G2b PASSED with the same migration_sha) — D-1; SKIPPED only when no migration
 //   build        dotnet build backend/ThingsBooksy.slnx (analyzers run here)
 //   format       dotnet format --verify-no-changes
 //   arch-tests   dotnet test --filter Category=Architecture   (SKIPPED until the deferred analyzers epic lands)
 //   tests        dotnet test (story tests by AC filter, or everything with --full)
+//   fe-build     npm --prefix frontend run build   } run when story.md says touches_ui: true OR frontend/ changed since
+//   fe-test      npm --prefix frontend test -- --watch=false  } baseline (or either cannot be established); otherwise SKIPPED
 //   swagger      re-export generated/swagger.base.json (Tooling test)   [--no-swagger to skip]
 //   contract     contract-diff (contract-next vs re-exported swagger)   [needs runs/<story>/contract-next.json]
 //   ac-matrix    every AC has ≥1 test
@@ -17,7 +21,8 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readAcIds } from './ac-ids.js';
-import { sha256Files } from './hash.js';
+import { sha256File, sha256Files } from './hash.js';
+import { collectMigrationChanges, currentMigrationSha } from './migration-check.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -43,6 +48,32 @@ function step(name, fn) {
 const tail = (r, n = 15) => (r.stdout + '\n' + r.stderr).split('\n').filter(l => /error|fail|warn/i.test(l)).slice(0, n).join('\n');
 
 let go = true;
+go = go && step('migration', () => {
+  const bl = path.join(runDir, 'baseline.json');
+  if (!fs.existsSync(bl)) return { status: 'FAILED', detail: 'no baseline.json — run baseline.js before C3a (migration-check diffs from the story start commit)' };
+  const baseline = JSON.parse(fs.readFileSync(bl, 'utf8'));
+  const { migrations, snapshots } = collectMigrationChanges(REPO, baseline.commit);
+  const mcPath = path.join(runDir, 'migration-check.json');
+  const mc = fs.existsSync(mcPath) ? JSON.parse(fs.readFileSync(mcPath, 'utf8')) : null;
+  if (!migrations.length) {
+    if (snapshots.length) return { status: 'FAILED', detail: 'model snapshot changed but there is no migration — run dotnet ef migrations add, then migration-check.js' };
+    if (!mc?.g2b_required) return { status: 'SKIPPED', detail: 'no migration since baseline' };
+    // be-writer forecast DESTRUCTIVE and no migration exists: the owner must confirm that (the answer binds to the empty set's sha)
+  }
+  if (!mc) return { status: 'FAILED', detail: `migration present (${migrations.map(m => path.basename(m.path)).join(', ')}) but no migration-check.json — run migration-check.js` };
+  if (mc.commit !== baseline.commit) return { status: 'FAILED', detail: `migration-check.json was computed from ${String(mc.commit).slice(0, 8)}, baseline is ${String(baseline.commit).slice(0, 8)} — rerun migration-check.js` };
+  const nowSha = currentMigrationSha(REPO, migrations);
+  if (nowSha !== mc.migration_sha) return { status: 'FAILED', detail: 'migration-check.json is stale (migration files added, edited or deleted since the report) — rerun migration-check.js (and G2b if it is required)' };
+  if (mc.g2b_required) {
+    const jp = path.join(runDir, 'journal.jsonl');
+    const journal = fs.existsSync(jp) ? fs.readFileSync(jp, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
+    const a = [...journal].reverse().find(e => e.event === 'GATE_ANSWER' && e.phase === 'G2b');
+    if (!a) return { status: 'FAILED', detail: `migration-check ${mc.verdict}: G2b not answered — AskUserQuestion, then decide.js --gate G2b` };
+    if (a.status !== 'PASSED') return { status: 'FAILED', detail: 'G2b REJECTED — regenerate the migration and rerun migration-check' };
+    if (a.migration_sha !== mc.migration_sha) return { status: 'FAILED', detail: 'G2b answer is for another migration (migration_sha mismatch) — ask again for this one' };
+  }
+  return { status: 'PASSED', detail: `migration-check ${mc.verdict}${mc.g2b_required ? ' (G2b PASSED for this migration)' : ''}` };
+});
 go = go && step('build', () => { const r = run('dotnet', ['build', 'backend/ThingsBooksy.slnx', '--nologo', '-v', 'q']); return r.status === 0 ? { status: 'PASSED' } : { status: 'FAILED', detail: tail(r) }; });
 go = go && step('format', () => { const r = run('dotnet', ['format', 'backend/ThingsBooksy.slnx', '--verify-no-changes', '--no-restore']); return r.status === 0 ? { status: 'PASSED' } : { status: 'FAILED', detail: tail(r) || 'formatting differences' }; });
 go = go && step('arch-tests', () => ({ status: 'SKIPPED', detail: 'deferred epic: docs/backlog/deferred-static-analysis-sonarqube.md' }));
@@ -55,6 +86,52 @@ go = go && step('tests', () => {
   const failedAny = r.status !== 0 || /Failed!/.test(r.stdout);
   return failedAny ? { status: 'FAILED', detail: tail(r, 25) || `exit ${r.status}` } : { status: 'PASSED', detail: `${m.passed} passed` };
 });
+// Frontend steps run when the story declares UI work (story.md front matter `touches_ui: true`, nested under
+// blast_radius) OR anything under frontend/ changed since the baseline. "Changed files only" would be fail-open for a
+// story that should have changed the UI and did not. What cannot be established (no story.md / front matter, no
+// baseline, git error) counts as "run": SKIPPED must be a proven statement, never a default.
+const feScope = (() => {
+  const reasons = [];
+  const storyMd = path.join(runDir, 'story.md');
+  const fm = fs.existsSync(storyMd) ? fs.readFileSync(storyMd, 'utf8').replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---/) : null;
+  if (!fm) reasons.push('story.md front matter unreadable');
+  else {
+    // absent key or a plain `false` = the story does not declare UI work; anything else than a plain true/false
+    // (quotes, `True`, a trailing comment) cannot be read as "no UI" → run
+    const v = (fm[1].match(/^\s*touches_ui:[ \t]*(.*?)[ \t]*$/m) || [])[1];
+    if (v === 'true') reasons.push('touches_ui: true');
+    else if (v !== undefined && v !== 'false') reasons.push(`touches_ui has an unrecognised value "${v}"`);
+  }
+  const bl = path.join(runDir, 'baseline.json');
+  let commit = null;
+  try { commit = JSON.parse(fs.readFileSync(bl, 'utf8')).commit; } catch { /* no baseline */ }
+  if (!commit) reasons.push('no baseline.json');
+  else {
+    const diff = run('git', ['diff', '--name-only', commit, '--', 'frontend']);
+    const untracked = run('git', ['ls-files', '--others', '--exclude-standard', '--', 'frontend']);
+    if (diff.status !== 0 || untracked.status !== 0) reasons.push('git could not list frontend changes');
+    else {
+      const n = `${diff.stdout}\n${untracked.stdout}`.split('\n').filter(l => l.trim()).length;
+      if (n) reasons.push(`${n} file(s) changed under frontend/ since baseline`);
+    }
+  }
+  return { run: reasons.length > 0, why: reasons.join('; ') };
+})();
+// a hung or runaway frontend process must not block the gate forever; a kill / buffer overflow leaves status null → FAILED
+const FE_SPAWN = { timeout: 10 * 60 * 1000, maxBuffer: 64 * 1024 * 1024 };
+const feStep = (npmArgs, okDetail) => () => {
+  if (!feScope.run) return { status: 'SKIPPED', detail: 'story does not touch UI and no frontend changes since baseline' };
+  const r = run('npm', ['--prefix', 'frontend', ...npmArgs], FE_SPAWN);
+  if (r.status === 0) return { status: 'PASSED', detail: okDetail(r) };
+  // the detail goes back to fe-writer: no colour codes, errors only (ng prints budget/deprecation warnings first)
+  const errors = `${r.stdout || ''}\n${r.stderr || ''}`.replace(/\x1b\[[0-9;]*m/g, '').split('\n').filter(l => /error|fail/i.test(l)).slice(0, 25).join('\n');
+  // on Windows a timeout kills the shell only — the node child of npm may survive and keep files locked
+  if (r.error) return { status: 'FAILED', detail: `${r.error.message}${r.error.code === 'ETIMEDOUT' ? ' — timed out; check for leftover node processes before the next run' : ''}` };
+  return { status: 'FAILED', detail: errors || `exit ${r.status}` };
+};
+go = go && step('fe-build', feStep(['run', 'build'], () => feScope.why));
+// --watch=false: `ng test` watches by default on a TTY; the gate must always be a single run
+go = go && step('fe-test', feStep(['test', '--', '--watch=false'], r => ((r.stdout || '').match(/Tests\s+.*\d+ passed[^\n]*/) || [feScope.why])[0].replace(/\x1b\[[0-9;]*m/g, '').trim()));
 go = go && step('swagger', () => {
   if (args['no-swagger']) return { status: 'SKIPPED' };
   const r = run('dotnet', ['test', 'backend/src/Shared/ThingsBooksy.Shared.IntegrationTests', '--no-build', '--filter', 'Category=Tooling', '--nologo', '-v', 'q']);

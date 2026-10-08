@@ -1,0 +1,289 @@
+{
+  "overlay": "1.0.0",
+  "info": {
+    "title": "Story 016 - rename resource type to resource schema (contract delta)",
+    "version": "1.0.0"
+  },
+  "extends": "generated/swagger.base.json",
+  "actions": [
+    {
+      "target": "$.paths['/resources/types']",
+      "description": "AC-2: the old address /resources/types no longer exists (no alias)",
+      "remove": true,
+      "x-evidence": "F-1"
+    },
+    {
+      "target": "$.paths['/resources/schemas']",
+      "description": "AC-1/AC-6: same operations under /resources/schemas; operation names say \"resource schema\"",
+      "update": {
+        "post": {
+          "tags": [
+            "Resources"
+          ],
+          "operationId": "Create resource schema",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceSchemaRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        },
+        "get": {
+          "tags": [
+            "Resources"
+          ],
+          "operationId": "Get resource schemas",
+          "parameters": [
+            {
+              "name": "groupId",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      }
+    },
+    {
+      "target": "$.paths['/resources/types/{id}']",
+      "description": "AC-2: the old address /resources/types/{id} no longer exists (no alias)",
+      "remove": true,
+      "x-evidence": "F-1"
+    },
+    {
+      "target": "$.paths['/resources/schemas/{id}']",
+      "description": "AC-1/AC-6: same operations under /resources/schemas/{id}; operation names say \"resource schema\"",
+      "update": {
+        "put": {
+          "tags": [
+            "Resources"
+          ],
+          "operationId": "Update resource schema",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceSchemaRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "Resources"
+          ],
+          "operationId": "Delete resource schema",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        },
+        "get": {
+          "tags": [
+            "Resources"
+          ],
+          "operationId": "Get resource schema",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      }
+    },
+    {
+      "target": "$.components.schemas['ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceTypeRequest']",
+      "description": "AC-6: request model CreateResourceTypeRequest is renamed",
+      "remove": true
+    },
+    {
+      "target": "$.components.schemas['ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceSchemaRequest']",
+      "description": "AC-6: CreateResourceSchemaRequest (same fields as CreateResourceTypeRequest)",
+      "update": {
+        "type": "object",
+        "properties": {
+          "groupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertyDefinitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThingsBooksy.Modules.Resources.Api.Requests.PropertyDefinitionInputDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "target": "$.components.schemas['ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceTypeRequest']",
+      "description": "AC-6: request model UpdateResourceTypeRequest is renamed",
+      "remove": true
+    },
+    {
+      "target": "$.components.schemas['ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceSchemaRequest']",
+      "description": "AC-6: UpdateResourceSchemaRequest (same fields as UpdateResourceTypeRequest)",
+      "update": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertyDefinitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThingsBooksy.Modules.Resources.Api.Requests.PropertyDefinitionUpdateInputDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "target": "$.components.schemas['ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceInstanceRequest'].properties.resourceTypeId",
+      "description": "AC-1/AC-6: field resourceTypeId leaves the create-instance request",
+      "remove": true
+    },
+    {
+      "target": "$.components.schemas['ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceInstanceRequest'].properties.resourceSchemaId",
+      "description": "AC-1/AC-6: field resourceSchemaId in the create-instance request (same type)",
+      "update": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    {
+      "target": "$.components.schemas['ThingsBooksy.Modules.Resources.Core.Features.GetResourceInstances.ResourceInstanceRowDto'].properties.resourceTypeId",
+      "description": "AC-1/AC-6: field resourceTypeId leaves the instance list row",
+      "remove": true
+    },
+    {
+      "target": "$.components.schemas['ThingsBooksy.Modules.Resources.Core.Features.GetResourceInstances.ResourceInstanceRowDto'].properties.resourceSchemaId",
+      "description": "AC-1/AC-6: field resourceSchemaId in the instance list row (same type)",
+      "update": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    {
+      "target": "$.paths['/resources/instances'].get.parameters",
+      "description": "AC-1/AC-6: list filter resourceTypeId is renamed to resourceSchemaId (other parameters unchanged)",
+      "update": [
+        {
+          "name": "resourceSchemaId",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "groupId",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "afterId",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "take",
+          "in": "query",
+          "schema": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      ],
+      "x-evidence": "F-1"
+    }
+  ]
+}

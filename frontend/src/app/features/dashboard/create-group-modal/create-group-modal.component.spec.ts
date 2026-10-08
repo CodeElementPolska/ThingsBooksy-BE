@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { afterEach, describe, it, expect, beforeEach, vi } from 'vitest';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { CreateOrEditGroupModalComponent } from './create-group-modal.component';
@@ -17,12 +17,19 @@ function buildMockDashboardService() {
   };
 }
 
+// jsdom does not implement the <dialog> methods the modal calls
+function stubDialogMethods(): void {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) { this.open = true; };
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) { this.open = false; };
+}
+
 describe('CreateOrEditGroupModalComponent', () => {
   let component: CreateOrEditGroupModalComponent;
   let fixture: ComponentFixture<CreateOrEditGroupModalComponent>;
   let mockService: ReturnType<typeof buildMockDashboardService>;
 
   beforeEach(async () => {
+    stubDialogMethods();
     mockService = buildMockDashboardService();
 
     await TestBed.configureTestingModule({
@@ -82,6 +89,8 @@ describe('CreateOrEditGroupModalComponent', () => {
   });
 
   describe('submit behaviour', () => {
+    afterEach(() => vi.useRealTimers());
+
     it('does not call createGroup when form is invalid', async () => {
       fixture.componentRef.setInput('open', true);
       fixture.detectChanges();
@@ -92,7 +101,8 @@ describe('CreateOrEditGroupModalComponent', () => {
       expect(mockService.createGroup).not.toHaveBeenCalled();
     });
 
-    it('calls createGroup and emits submitted on success', fakeAsync(async () => {
+    it('calls createGroup and emits submitted on success', async () => {
+      vi.useFakeTimers();
       fixture.componentRef.setInput('open', true);
       fixture.detectChanges();
 
@@ -102,12 +112,11 @@ describe('CreateOrEditGroupModalComponent', () => {
       component.form.controls.name.setValue('Test Group');
       component.form.controls.name.markAsDirty();
       component.form.controls.name.markAsTouched();
-      // Manually mark as valid to bypass async validator in unit context
-      component.form.controls.name.setErrors(null);
+      // advance past the debounce so the async name validator (mocked: available) settles
+      await vi.advanceTimersByTimeAsync(400);
       fixture.detectChanges();
 
       await component.onSubmit();
-      tick();
       fixture.detectChanges();
 
       expect(mockService.createGroup).toHaveBeenCalledWith({
@@ -115,11 +124,14 @@ describe('CreateOrEditGroupModalComponent', () => {
         description: null,
       });
       expect(emitted.length).toBe(1);
-    }));
+    });
   });
 
   describe('async name validator', () => {
-    it('marks name control with { taken: true } when name is not available', fakeAsync(() => {
+    afterEach(() => vi.useRealTimers());
+
+    it('marks name control with { taken: true } when name is not available', async () => {
+      vi.useFakeTimers();
       mockService.isGroupNameAvailable.mockReturnValue(of(false));
 
       fixture.componentRef.setInput('open', true);
@@ -134,10 +146,10 @@ describe('CreateOrEditGroupModalComponent', () => {
       nameControl.updateValueAndValidity();
 
       // advance past debounce timer
-      tick(400);
+      await vi.advanceTimersByTimeAsync(400);
       fixture.detectChanges();
 
       expect(nameControl.errors?.['taken']).toBe(true);
-    }));
+    });
   });
 });

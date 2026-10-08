@@ -60,7 +60,8 @@
         "generated",
         "runs/*/discovery/questions",
         ".specify/memory",
-        ".claude/conventions"
+        ".claude/conventions",
+        "runs/*/prompts"
       ],
       "write_allow": []
     },
@@ -73,7 +74,8 @@
         "runs/*/story.md",
         "runs/*/discovery",
         ".specify/memory",
-        ".claude/conventions"
+        ".claude/conventions",
+        "runs/*/prompts"
       ],
       "write_allow": []
     },
@@ -184,6 +186,28 @@
         "dotnet test backend/src/Modules/",
         "dotnet format backend/ThingsBooksy.slnx",
         "node tools/fleet/skeleton-check.js",
+        "node tools/fleet/validate.js",
+        "git diff",
+        "git status"
+      ]
+    },
+    "fe-writer": {
+      "read_allow": [
+        "frontend",
+        "specs",
+        "runs",
+        "generated",
+        ".claude/conventions"
+      ],
+      "write_allow": [
+        "frontend/src/app/features",
+        "frontend/src/app/shared",
+        "frontend/src/app/core",
+        "runs/*/impl"
+      ],
+      "shell": [
+        "npm --prefix frontend run build",
+        "npm --prefix frontend test",
         "node tools/fleet/validate.js",
         "git diff",
         "git status"

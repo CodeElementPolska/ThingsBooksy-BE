@@ -5,8 +5,8 @@ import { SchemasPanelComponent } from './schemas-panel.component';
 import { SchemaSummary } from '../group-context.store';
 
 const MOCK_SCHEMAS: SchemaSummary[] = [
-  { id: 'schema-1', name: 'Equipment', description: 'Physical equipment', propertyDefinitionsCount: 5, propertyDefinitions: [] },
-  { id: 'schema-2', name: 'Room', description: null, propertyDefinitionsCount: 2, propertyDefinitions: [] },
+  { id: 'schema-1', name: 'Equipment', description: 'Physical equipment', propertyDefinitionsCount: 5, propertyDefinitions: [], resourceCount: 0 },
+  { id: 'schema-2', name: 'Room', description: null, propertyDefinitionsCount: 2, propertyDefinitions: [], resourceCount: 0 },
 ];
 
 describe('SchemasPanelComponent', () => {
@@ -92,6 +92,49 @@ describe('SchemasPanelComponent', () => {
     it('should not show Add schema CTA in empty state when not owner', () => {
       const cta = fixture.debugElement.query(By.css('.schemas-panel__empty-cta'));
       expect(cta).toBeNull();
+    });
+  });
+
+  describe('schema wording (story 016)', () => {
+    const OLD_EMPTY_STATE = 'Create the first schema to define a resource' + ' type.';
+    const NEW_EMPTY_STATE = 'Create the first schema to describe your resources.';
+
+    it('[AC-8] empty state reads "Create the first schema to describe your resources."', () => {
+      const texts: string[] = [];
+      for (const isOwner of [true, false]) {
+        const f = TestBed.createComponent(SchemasPanelComponent);
+        f.componentRef.setInput('schemas', []);
+        f.componentRef.setInput('isOwner', isOwner);
+        f.detectChanges();
+        texts.push((f.nativeElement as HTMLElement).textContent?.replace(/\s+/g, ' ') ?? '');
+      }
+
+      expect(texts.some((t) => t.includes(NEW_EMPTY_STATE))).toBe(true);
+      expect(texts.some((t) => t.includes(OLD_EMPTY_STATE))).toBe(false);
+    });
+
+    it('[AC-8] add-resource buttons are labelled "Add resource to schema <name>"', () => {
+      fixture.componentRef.setInput('schemas', MOCK_SCHEMAS);
+      fixture.componentRef.setInput('isOwner', true);
+      fixture.detectChanges();
+
+      const labels = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll('[aria-label^="Add resource"]'),
+      ).map((el) => el.getAttribute('aria-label'));
+
+      expect(labels).toEqual(['Add resource to schema Equipment', 'Add resource to schema Room']);
+    });
+
+    it('[AC-8] add-resource buttons "Add resource to schema <name>" are not rendered for a non-owner', () => {
+      fixture.componentRef.setInput('schemas', MOCK_SCHEMAS);
+      fixture.componentRef.setInput('isOwner', false);
+      fixture.detectChanges();
+
+      const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('.schemas-panel__row');
+      const addButtons = (fixture.nativeElement as HTMLElement).querySelectorAll('[aria-label^="Add resource to schema"]');
+
+      expect(rows.length).toBe(MOCK_SCHEMAS.length);
+      expect(addButtons.length).toBe(0);
     });
   });
 

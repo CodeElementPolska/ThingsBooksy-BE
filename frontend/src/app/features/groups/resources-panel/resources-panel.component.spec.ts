@@ -4,24 +4,25 @@ import { ResourcesPanelComponent } from './resources-panel.component';
 import { ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto as ResourceRowDto } from '../../../api/data-contracts';
 import { SchemaSummary } from '../group-context.store';
 
+// Story 016: list rows carry the schema reference as `resourceSchemaId`.
 const mockResources: ResourceRowDto[] = [
   {
     id: 'res-1',
-    resourceTypeId: 'schema-a',
+    resourceSchemaId: 'schema-a',
     name: 'Laptop Dell',
     createdAt: '2025-01-01T00:00:00Z',
   },
   {
     id: 'res-2',
-    resourceTypeId: 'schema-b',
+    resourceSchemaId: 'schema-b',
     name: 'Conference Room A',
     createdAt: '2025-01-02T00:00:00Z',
   },
 ];
 
 const mockSchemas: SchemaSummary[] = [
-  { id: 'schema-a', name: 'Laptops', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [] },
-  { id: 'schema-b', name: 'Rooms', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [] },
+  { id: 'schema-a', name: 'Laptops', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [], resourceCount: 0 },
+  { id: 'schema-b', name: 'Rooms', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [], resourceCount: 0 },
 ];
 
 describe('ResourcesPanelComponent', () => {
@@ -32,11 +33,9 @@ describe('ResourcesPanelComponent', () => {
   beforeEach(async () => {
     originalIntersectionObserver = window.IntersectionObserver;
 
-    const mockObserver = vi.fn().mockImplementation(() => ({
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
-    }));
+    const mockObserver = vi.fn().mockImplementation(function () {
+      return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() };
+    });
     (window as any).IntersectionObserver = mockObserver;
 
     await TestBed.configureTestingModule({
@@ -57,7 +56,19 @@ describe('ResourcesPanelComponent', () => {
   });
 
   describe('row rendering with schema name mapping', () => {
-    it('renders a table row for each resource and maps resourceTypeId to schema name', () => {
+    it('[AC-8] shows the column header "Schema" for the schema name column', () => {
+      fixture.componentRef.setInput('resources', mockResources);
+      fixture.componentRef.setInput('schemas', mockSchemas);
+      fixture.detectChanges();
+
+      const headers = Array.from(fixture.nativeElement.querySelectorAll('th') as NodeListOf<HTMLElement>).map((th) =>
+        th.textContent?.trim(),
+      );
+      expect(headers).toContain('Schema');
+      expect(headers).not.toContain('Type');
+    });
+
+    it('[AC-8] renders a table row for each resource and maps resourceSchemaId to schema name', () => {
       fixture.componentRef.setInput('resources', mockResources);
       fixture.componentRef.setInput('schemas', mockSchemas);
       fixture.detectChanges();
@@ -74,9 +85,9 @@ describe('ResourcesPanelComponent', () => {
       expect(secondRowCells[1].textContent?.trim()).toBe('Rooms');
     });
 
-    it('renders "—" for type when resourceTypeId does not match any schema', () => {
+    it('[AC-8] renders "—" for schema when resourceSchemaId does not match any schema', () => {
       const resources: ResourceRowDto[] = [
-        { id: 'res-x', resourceTypeId: 'unknown-schema', name: 'Orphan' },
+        { id: 'res-x', resourceSchemaId: 'unknown-schema', name: 'Orphan' },
       ];
       fixture.componentRef.setInput('resources', resources);
       fixture.componentRef.setInput('schemas', mockSchemas);
@@ -134,7 +145,7 @@ describe('ResourcesPanelComponent', () => {
       fixture.detectChanges();
 
       const emitted: void[] = [];
-      component.addResource.subscribe(() => emitted.push());
+      component.addResource.subscribe(() => emitted.push(undefined));
 
       const btn = fixture.nativeElement.querySelector('.resources-panel__add-btn');
       btn.click();
@@ -145,9 +156,9 @@ describe('ResourcesPanelComponent', () => {
 
   describe('infinite scroll', () => {
     it('emits loadMore when IntersectionObserver fires for the sentinel', () => {
-      let intersectCallback: IntersectionObserverCallback | null = null;
+      let intersectCallback = null as IntersectionObserverCallback | null;
 
-      const mockObserver = vi.fn().mockImplementation((cb: IntersectionObserverCallback) => {
+      const mockObserver = vi.fn().mockImplementation(function (cb: IntersectionObserverCallback) {
         intersectCallback = cb;
         return {
           observe: vi.fn(),
@@ -164,7 +175,7 @@ describe('ResourcesPanelComponent', () => {
       fixture.detectChanges();
 
       const emitted: void[] = [];
-      component.loadMore.subscribe(() => emitted.push());
+      component.loadMore.subscribe(() => emitted.push(undefined));
 
       if (intersectCallback) {
         const fakeEntry = [{ isIntersecting: true }] as unknown as IntersectionObserverEntry[];

@@ -12,7 +12,7 @@ Turn an accepted story into a spec the delivery pipeline can execute without any
 
 ## Start checklist (do this before anything else, report the result in one line)
 1. `git rev-parse --abbrev-ref HEAD` must be `NNN-slug` = the story id. If not, stop and tell the owner.
-2. `node tools/fleet/status.js --story <story>` must exit 0. It fails when `.specify/feature.json` points at another story — that file overrides the branch for every `/speckit-*` skill and has already overwritten another story's plan once. Fix it (`{"feature_directory":"specs/<story>"}`) with the owner's consent, then re-run status.
+2. `node tools/fleet/status.js --story <story>` must exit 0. It fails when the branch is not the story, or when a stray `.specify/feature.json` exists — that file takes precedence over the branch for every `/speckit-*` skill and overwrote another story's plan once (it is removed from the repo and git-ignored since 2026-10-01; only `/speckit-specify` recreates it). Delete the file with the owner's consent (never rewrite it), re-run status, and record the occurrence in the fleet defect journal (`tools/fleet/README.md`).
 3. `runs/<story>/story.md` exists? If not, ask for the issue text and write it (schema `story`).
 
 ## Ground rules (mechanically enforced elsewhere; do not fight them)
@@ -50,7 +50,7 @@ Tell the owner in two sentences and stop; the business session takes it from the
 3. `runs/<story>/discovery/ui-sketch.md` — screens → elements → states → actions → endpoint (only when the story touches UI; D-7).
 4. `runs/<story>/contract-delta.overlay.json` — OpenAPI Overlay 1.0 over `generated/swagger.base.json` (D-10) for every new/changed endpoint; then `node tools/fleet/contract-compose.js --story <story>` must pass. Actions touching an existing route need `x-evidence: F-n`.
 5. Show the owner ONE screen: open decisions (should be none), the ASSUME list (one line + consequence each), the endpoint diff (from `contract-next.json`, not the overlay), the UI sketch, links to spec/plan. Ask for G2 acceptance with a single AskUserQuestion (`Akceptujesz paczkę G2?`), then close the gate with `node tools/fleet/decide.js --story <story> --gate G2 --status PASSED --answer-ref latest` (or `REJECTED`). Only that command makes `status` show G2 as passed — individual decisions never do.
-6. Finish with a short handoff for the owner: what the delivery session needs (`specs/<story>/`, `runs/<story>/`), what you could not resolve, and the fleet defects you noticed (they go to `runs/<story>/discovery/fleet-defects.md`, not into the story artifacts).
+6. Finish with a short handoff for the owner: what the delivery session needs (`specs/<story>/`, `runs/<story>/`), what you could not resolve, and the fleet defects you noticed (they go, with the owner's consent, into the single fleet defect journal in `tools/fleet/README.md` — never into the story artifacts).
 
 ## Style with the owner
 Short paragraphs, tables for options, no jargon without a one-line explanation, never more than one screen per message. Recommend, do not decide for them on the hard list. When you are unsure whether something is on the hard list, treat it as if it were.

@@ -28,18 +28,18 @@ internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResour
         {
             resolvedGroupId = query.GroupId.Value;
         }
-        else if (query.ResourceTypeId.HasValue)
+        else if (query.ResourceSchemaId.HasValue)
         {
-            var resourceType = await _dataProvider.GetResourceTypeAsync(query.ResourceTypeId.Value, cancellationToken);
+            var resourceSchema = await _dataProvider.GetResourceSchemaAsync(query.ResourceSchemaId.Value, cancellationToken);
 
-            if (resourceType is null)
-                throw new ResourcesDomainException("Resource type not found.");
+            if (resourceSchema is null)
+                throw new ResourcesDomainException("Resource schema not found.");
 
-            resolvedGroupId = resourceType.GroupId;
+            resolvedGroupId = resourceSchema.GroupId;
         }
         else
         {
-            throw new ResourcesDomainException("Either GroupId or ResourceTypeId must be provided.");
+            throw new ResourcesDomainException("Either GroupId or ResourceSchemaId must be provided.");
         }
 
         var isOwner = await _dataProvider.IsOwnerAsync(resolvedGroupId, query.RequesterId, cancellationToken);
@@ -51,12 +51,12 @@ internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResour
         var take = Math.Clamp(query.Take == 0 ? DefaultTake : query.Take, MinTake, MaxTake);
 
         var instances = await _dataProvider.GetInstancesAsync(
-            query.ResourceTypeId, query.GroupId, query.IncludeDeleted, query.AfterId, take, cancellationToken);
+            query.ResourceSchemaId, query.GroupId, query.IncludeDeleted, query.AfterId, take, cancellationToken);
 
         if (instances.Count == 0)
             return new GetResourceInstancesQueryResult([], null);
 
-        var relevantTypeIds = instances.Select(i => i.ResourceTypeId).Distinct();
+        var relevantTypeIds = instances.Select(i => i.ResourceSchemaId).Distinct();
         var definitions = await _dataProvider.GetPropertyDefinitionsAsync(relevantTypeIds, cancellationToken);
         var defMap = definitions.ToDictionary(d => d.Id);
 
@@ -77,7 +77,7 @@ internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResour
 
                 return new ResourceInstanceRowDto(
                     instance.Id,
-                    instance.ResourceTypeId,
+                    instance.ResourceSchemaId,
                     instance.GroupId,
                     instance.Name,
                     instance.Description,

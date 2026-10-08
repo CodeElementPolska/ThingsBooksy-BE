@@ -6,7 +6,7 @@ namespace ThingsBooksy.Modules.Resources.Api.Requests;
 internal record PropertyValueInputDto(Guid PropertyDefinitionId, string Value);
 
 internal record CreateResourceInstanceRequest(
-    Guid ResourceTypeId,
+    Guid ResourceSchemaId,
     string Name,
     string? Description,
     IEnumerable<PropertyValueInputDto>? PropertyValues

@@ -1,0 +1,28 @@
+{
+  "story": "016-rename-resource-schema",
+  "base": "bd3e9e18c1055d4085118a8a98aae0365c5e3303",
+  "status": "OK",
+  "accepted": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceInstanceConfiguration.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourcePropertyDefinitionConfiguration.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceSchemaConfiguration.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20261007112358_RenameResourceTypeToResourceSchema.Designer.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20261007112358_RenameResourceTypeToResourceSchema.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/ResourcesDbContextModelSnapshot.cs",
+    "runs/016-rename-resource-schema/baseline.json",
+    "runs/016-rename-resource-schema/discovery/decisions.jsonl",
+    "runs/016-rename-resource-schema/impl/be-writer.C3a.dec6/result.json",
+    "runs/016-rename-resource-schema/impl/be-writer.C3a/result.json",
+    "runs/016-rename-resource-schema/journal.jsonl",
+    "runs/016-rename-resource-schema/prompts/be-writer-skeleton.dec6.json",
+    "runs/016-rename-resource-schema/prompts/be-writer-skeleton.dec6.md",
+    "runs/016-rename-resource-schema/prompts/be-writer-skeleton.json",
+    "runs/016-rename-resource-schema/prompts/be-writer-skeleton.md",
+    "runs/016-rename-resource-schema/skeleton-check.json",
+    "runs/016-rename-resource-schema/state.json",
+    "specs/016-rename-resource-schema/data-model.md",
+    "specs/016-rename-resource-schema/spec.md",
+    "specs/016-rename-resource-schema/tasks.md"
+  ],
+  "violations": []
+}

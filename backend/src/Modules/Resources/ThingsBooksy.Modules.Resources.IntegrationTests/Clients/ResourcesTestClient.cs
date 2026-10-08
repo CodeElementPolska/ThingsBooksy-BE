@@ -19,7 +19,7 @@ namespace ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
 
 public record CreateGroupResponse(Guid Id);
 
-public record CreateResourceTypeResponse(Guid Id);
+public record CreateResourceSchemaResponse(Guid Id);
 
 public record PropertyDefinitionRequest(string Name, int DataType, bool IsRequired);
 
@@ -32,11 +32,13 @@ public record PropertyValueRequest(Guid PropertyDefinitionId, string Value);
 /// <summary>
 /// Test client for the Resources module integration tests.
 ///
-/// Since Resources has no feature HTTP endpoints in T009–T029, this client wraps:
+/// Wraps:
 /// - ManagementGroups HTTP endpoints (used to trigger domain events that flow into
 ///   Resources event handlers)
-/// - Resources DB query helpers (assert side-effects on ResourcesDbContext)
-/// - Resources schema raw SQL helpers (lightweight cross-schema checks)
+/// - Resources HTTP endpoints (/resources/schemas, /resources/instances)
+/// - the removed /resources/types addresses (story 016, AC-2: they must answer 404)
+/// - Resources DB query helpers (assert side-effects on ResourcesDbContext, always IgnoreQueryFilters
+///   unless the method name says otherwise)
 /// </summary>
 public class ResourcesTestClient
 {
@@ -48,6 +50,12 @@ public class ResourcesTestClient
         _factory = factory;
         _client = user.Client;
     }
+
+    /// <summary>
+    /// A test client whose HTTP calls carry no bearer token (unauthenticated caller).
+    /// </summary>
+    public static ResourcesTestClient Anonymous(ThingsBooksyWebAppFactory factory)
+        => new(factory, new AuthenticatedUser(factory.CreateClient(), Guid.Empty, "anonymous@test.com"));
 
     // -----------------------------------------------------------------------------------------
     // ManagementGroups HTTP methods — trigger domain events consumed by Resources handlers
@@ -125,15 +133,15 @@ public class ResourcesTestClient
         => await GetGroupMemberReadModelFromDbAsync(groupId, userId) is null;
 
     // -----------------------------------------------------------------------------------------
-    // Resources HTTP methods — POST /resources/types
+    // Resources HTTP methods — POST /resources/schemas
     // -----------------------------------------------------------------------------------------
 
-    public Task<HttpResponseMessage> CreateResourceTypeAsync(
+    public Task<HttpResponseMessage> CreateResourceSchemaAsync(
         Guid groupId,
         string name,
         string? description = null,
         IEnumerable<PropertyDefinitionRequest>? propertyDefinitions = null)
-        => _client.PostAsJsonAsync("/resources/types", new
+        => _client.PostAsJsonAsync("/resources/schemas", new
         {
             GroupId = groupId,
             Name = name,
@@ -141,72 +149,85 @@ public class ResourcesTestClient
             PropertyDefinitions = (IEnumerable<PropertyDefinitionRequest>)(propertyDefinitions ?? Array.Empty<PropertyDefinitionRequest>())
         });
 
-    public async Task<Guid> CreateResourceTypeAndGetIdAsync(
+    public async Task<Guid> CreateResourceSchemaAndGetIdAsync(
         Guid groupId,
         string name,
         string? description = null,
         IEnumerable<PropertyDefinitionRequest>? propertyDefinitions = null)
     {
-        var response = await CreateResourceTypeAsync(groupId, name, description, propertyDefinitions);
+        var response = await CreateResourceSchemaAsync(groupId, name, description, propertyDefinitions);
         response.EnsureSuccessStatusCode();
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var result = await response.Content.ReadFromJsonAsync<CreateResourceTypeResponse>(options);
+        var result = await response.Content.ReadFromJsonAsync<CreateResourceSchemaResponse>(options);
         return result!.Id;
     }
 
     // -----------------------------------------------------------------------------------------
-    // Resources DB helpers — query ResourcesDbContext for ResourceType/ResourcePropertyDefinition
+    // Resources DB helpers — query ResourcesDbContext for ResourceSchema/ResourcePropertyDefinition
     // -----------------------------------------------------------------------------------------
 
-    internal async Task<ResourceType?> GetResourceTypeFromDbAsync(Guid id)
+    internal async Task<ResourceSchema?> GetResourceSchemaFromDbAsync(Guid id)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
-        return await db.ResourceTypes
+        return await db.ResourceSchemas
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     /// <summary>
     /// Unfiltered read (IgnoreQueryFilters): returns the row even when it is soft-deleted, so the
-    /// caller can assert on <c>DeletedAt</c>. Same query as <see cref="GetResourceTypeFromDbAsync"/>,
+    /// caller can assert on <c>DeletedAt</c>. Same query as <see cref="GetResourceSchemaFromDbAsync"/>,
     /// named explicitly for soft-delete assertions.
     /// </summary>
-    internal Task<ResourceType?> GetResourceTypeFromDbIgnoringFiltersAsync(Guid id)
-        => GetResourceTypeFromDbAsync(id);
+    internal Task<ResourceSchema?> GetResourceSchemaFromDbIgnoringFiltersAsync(Guid id)
+        => GetResourceSchemaFromDbAsync(id);
 
     /// <summary>
     /// Filtered read — deliberately WITHOUT IgnoreQueryFilters. Returns null for a soft-deleted row.
     /// Used only to prove that a soft-deleted schema is visible exclusively through IgnoreQueryFilters.
     /// </summary>
-    internal async Task<ResourceType?> GetResourceTypeFromDbRespectingQueryFiltersAsync(Guid id)
+    internal async Task<ResourceSchema?> GetResourceSchemaFromDbRespectingQueryFiltersAsync(Guid id)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
-        return await db.ResourceTypes
+        return await db.ResourceSchemas
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     /// <summary>
-    /// Unfiltered read of all ResourceType rows of a group with the given name (active and soft-deleted).
+    /// Unfiltered read of all ResourceSchema rows of a group with the given name (active and soft-deleted).
     /// </summary>
-    internal async Task<List<ResourceType>> GetResourceTypesByGroupAndNameFromDbIgnoringFiltersAsync(Guid groupId, string name)
+    internal async Task<List<ResourceSchema>> GetResourceSchemasByGroupAndNameFromDbIgnoringFiltersAsync(Guid groupId, string name)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
-        return await db.ResourceTypes
+        return await db.ResourceSchemas
             .IgnoreQueryFilters()
             .Where(x => x.GroupId == groupId && x.Name == name)
             .ToListAsync();
     }
 
-    internal async Task<List<ResourcePropertyDefinition>> GetResourcePropertyDefinitionsFromDbAsync(Guid resourceTypeId)
+    /// <summary>
+    /// Unfiltered read of all ResourceSchema rows of a group (active and soft-deleted).
+    /// </summary>
+    internal async Task<List<ResourceSchema>> GetResourceSchemasByGroupFromDbAsync(Guid groupId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+        return await db.ResourceSchemas
+            .IgnoreQueryFilters()
+            .Where(x => x.GroupId == groupId)
+            .ToListAsync();
+    }
+
+    internal async Task<List<ResourcePropertyDefinition>> GetResourcePropertyDefinitionsFromDbAsync(Guid resourceSchemaId)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         return await db.ResourcePropertyDefinitions
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == resourceTypeId)
+            .Where(x => x.ResourceSchemaId == resourceSchemaId)
             .ToListAsync();
     }
 
@@ -215,25 +236,25 @@ public class ResourcesTestClient
     // -----------------------------------------------------------------------------------------
 
     public Task<HttpResponseMessage> CreateResourceInstanceAsync(
-        Guid resourceTypeId,
+        Guid resourceSchemaId,
         string name,
         string? description = null,
         IEnumerable<PropertyValueRequest>? propertyValues = null)
         => _client.PostAsJsonAsync("/resources/instances", new
         {
-            ResourceTypeId = resourceTypeId,
+            ResourceSchemaId = resourceSchemaId,
             Name = name,
             Description = description,
             PropertyValues = (IEnumerable<PropertyValueRequest>)(propertyValues ?? Array.Empty<PropertyValueRequest>())
         });
 
     public async Task<Guid> CreateResourceInstanceAndGetIdAsync(
-        Guid resourceTypeId,
+        Guid resourceSchemaId,
         string name,
         string? description = null,
         IEnumerable<PropertyValueRequest>? propertyValues = null)
     {
-        var response = await CreateResourceInstanceAsync(resourceTypeId, name, description, propertyValues);
+        var response = await CreateResourceInstanceAsync(resourceSchemaId, name, description, propertyValues);
         response.EnsureSuccessStatusCode();
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var result = await response.Content.ReadFromJsonAsync<CreateResourceInstanceResponse>(options);
@@ -287,27 +308,27 @@ public class ResourcesTestClient
         => _client.DeleteAsync($"/resources/instances/{id}");
 
     // -----------------------------------------------------------------------------------------
-    // Resources HTTP methods — GET /resources/types and GET /resources/instances
+    // Resources HTTP methods — GET /resources/schemas and GET /resources/instances
     // -----------------------------------------------------------------------------------------
 
-    public Task<HttpResponseMessage> GetResourceTypeAsync(Guid id)
-        => _client.GetAsync($"/resources/types/{id}");
+    public Task<HttpResponseMessage> GetResourceSchemaAsync(Guid id)
+        => _client.GetAsync($"/resources/schemas/{id}");
 
-    public Task<HttpResponseMessage> GetResourceTypesAsync(Guid groupId)
-        => _client.GetAsync($"/resources/types?groupId={groupId}");
+    public Task<HttpResponseMessage> GetResourceSchemasAsync(Guid groupId)
+        => _client.GetAsync($"/resources/schemas?groupId={groupId}");
 
     public Task<HttpResponseMessage> GetResourceInstanceAsync(Guid id)
         => _client.GetAsync($"/resources/instances/{id}");
 
     public Task<HttpResponseMessage> GetResourceInstancesAsync(
-        Guid? resourceTypeId = null,
+        Guid? resourceSchemaId = null,
         Guid? groupId = null,
         bool includeDeleted = false,
         Guid? afterId = null,
         int? take = null)
     {
         var qs = new List<string>();
-        if (resourceTypeId.HasValue) qs.Add($"resourceTypeId={resourceTypeId}");
+        if (resourceSchemaId.HasValue) qs.Add($"resourceSchemaId={resourceSchemaId}");
         if (groupId.HasValue) qs.Add($"groupId={groupId}");
         if (includeDeleted) qs.Add("includeDeleted=true");
         if (afterId.HasValue) qs.Add($"afterId={afterId}");
@@ -317,24 +338,24 @@ public class ResourcesTestClient
     }
 
     // -----------------------------------------------------------------------------------------
-    // Resources DB helpers — query ResourcesDbContext for ResourceInstance list by type/group
+    // Resources DB helpers — query ResourcesDbContext for ResourceInstance list by schema/group
     // -----------------------------------------------------------------------------------------
 
-    internal async Task<List<ResourceInstance>> GetResourceInstancesByTypeFromDbAsync(Guid resourceTypeId)
+    internal async Task<List<ResourceInstance>> GetResourceInstancesBySchemaFromDbAsync(Guid resourceSchemaId)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
         return await db.ResourceInstances
             .IgnoreQueryFilters()
-            .Where(x => x.ResourceTypeId == resourceTypeId)
+            .Where(x => x.ResourceSchemaId == resourceSchemaId)
             .ToListAsync();
     }
 
     /// <summary>
-    /// Unfiltered read of all instances of a resource type, including soft-deleted ones.
+    /// Unfiltered read of all instances of a resource schema, including soft-deleted ones.
     /// </summary>
-    internal Task<List<ResourceInstance>> GetInstancesFromDbIgnoringFiltersAsync(Guid resourceTypeId)
-        => GetResourceInstancesByTypeFromDbAsync(resourceTypeId);
+    internal Task<List<ResourceInstance>> GetInstancesFromDbIgnoringFiltersAsync(Guid resourceSchemaId)
+        => GetResourceInstancesBySchemaFromDbAsync(resourceSchemaId);
 
     internal async Task<List<ResourceInstance>> GetResourceInstancesByGroupFromDbAsync(Guid groupId)
     {
@@ -347,15 +368,15 @@ public class ResourcesTestClient
     }
 
     // -----------------------------------------------------------------------------------------
-    // Resources HTTP methods — PUT /resources/types/{id}
+    // Resources HTTP methods — PUT /resources/schemas/{id}
     // -----------------------------------------------------------------------------------------
 
-    public Task<HttpResponseMessage> UpdateResourceTypeAsync(
+    public Task<HttpResponseMessage> UpdateResourceSchemaAsync(
         Guid id,
         string name,
         string? description = null,
         IEnumerable<PropertyDefinitionUpdateRequest>? propertyDefinitions = null)
-        => _client.PutAsJsonAsync($"/resources/types/{id}", new
+        => _client.PutAsJsonAsync($"/resources/schemas/{id}", new
         {
             Name = name,
             Description = description,
@@ -363,11 +384,45 @@ public class ResourcesTestClient
         });
 
     // -----------------------------------------------------------------------------------------
-    // Resources HTTP methods — DELETE /resources/types/{id}
+    // Resources HTTP methods — DELETE /resources/schemas/{id}
     // -----------------------------------------------------------------------------------------
 
-    public Task<HttpResponseMessage> DeleteResourceTypeAsync(Guid id)
-        => _client.DeleteAsync($"/resources/types/{id}");
+    public Task<HttpResponseMessage> DeleteResourceSchemaAsync(Guid id)
+        => _client.DeleteAsync($"/resources/schemas/{id}");
+
+    // -----------------------------------------------------------------------------------------
+    // Removed addresses — the five schema operations under their pre-016 address /resources/types.
+    // Story 016, AC-2: every one of them must answer 404 (no alias is kept). Same request shapes
+    // as the schema operations above, so only the address differs.
+    // -----------------------------------------------------------------------------------------
+
+    private const string RemovedSchemasAddress = "/resources/types";
+
+    public Task<HttpResponseMessage> CreateResourceSchemaAtRemovedAddressAsync(Guid groupId, string name)
+        => _client.PostAsJsonAsync(RemovedSchemasAddress, new
+        {
+            GroupId = groupId,
+            Name = name,
+            Description = (string?)null,
+            PropertyDefinitions = Array.Empty<PropertyDefinitionRequest>()
+        });
+
+    public Task<HttpResponseMessage> GetResourceSchemasAtRemovedAddressAsync(Guid groupId)
+        => _client.GetAsync($"{RemovedSchemasAddress}?groupId={groupId}");
+
+    public Task<HttpResponseMessage> GetResourceSchemaAtRemovedAddressAsync(Guid id)
+        => _client.GetAsync($"{RemovedSchemasAddress}/{id}");
+
+    public Task<HttpResponseMessage> UpdateResourceSchemaAtRemovedAddressAsync(Guid id, string name)
+        => _client.PutAsJsonAsync($"{RemovedSchemasAddress}/{id}", new
+        {
+            Name = name,
+            Description = (string?)null,
+            PropertyDefinitions = Array.Empty<PropertyDefinitionUpdateRequest>()
+        });
+
+    public Task<HttpResponseMessage> DeleteResourceSchemaAtRemovedAddressAsync(Guid id)
+        => _client.DeleteAsync($"{RemovedSchemasAddress}/{id}");
 
     private string GetConnectionString()
     {

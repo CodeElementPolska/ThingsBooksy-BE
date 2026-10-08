@@ -1,15 +1,18 @@
-# HANDOFF — flota v4, stan na 2026-09-28
+# HANDOFF — flota v4, stan na 2026-10-08
 
-Dla nowej sesji przejmującej pracę. Czytać razem z `workflow.md`, `decisions.md`, `runbook-delivery.md`, `tools/fleet/README.md`.
+Sam stan, bez historii. Historia i defekty: dziennik w `tools/fleet/README.md`. Projekt: `workflow.md`; decyzje właściciela: `decisions.md`; dostawa: `runbook-delivery.md`. Następne kroki: `NEXT-SESSION.md`, sekcja „Pierwsze kroki” (2–6).
 
 ## Gdzie jesteśmy
-- Gałęzie: `ai/014-agents-redesign` = flota (head `c71782a`); `015-resource-time-buffer` = `ai/014` + discovery + C3a + **C2/C3b/C4b (sesja C, 2026-09-28)** przeplatane commitami floty `fix(fleet)` (`7c395ab`, `c59d049`, `a1f13cf`). Decyzja właściciela: cherry-pick commitów floty na `ai/014` i rebase 015 **dopiero po zaprojektowaniu C5/C6** — wszystko przenosimy na koniec.
-- **Story 015 ZAMKNIĘTA (2026-09-28, wieczór): C1–C6 przeszły w całości, DoD 10/10, G3 PASSED.** C5 = 3 rundy (2 decyzje DEC-6/7, AC-10 dopisane po G2, naprawy testera), C6 = `architecture-guard` + `trace-auditor` (DEC-8 zdarzenia bez konsumenta zaakceptowane, DEC-9 klauzule AC-7 → testy architektury w epiku, 3 testy AC-8/AC-9 dopisane). Gate: 142 testy, 8 AC / 14 testów oznaczonych. Materiał: `runs/015-resource-time-buffer/{review,closing,close-report.md,metrics.json}`.
-- Zbudowane i sprawdzone na prawdziwej story: substrat, sesja B, agenci dostawy (`be-writer`, `test-designer`, `test-designer-sighted` + szablony `*-fix`), **C5** (`review-spec-conformance`, `review-security-authz`, `review-maintainability`, `review-arbiter` — arbiter niesprawdzony, bo nie było sporu; skrypty `review-diff`, `dedup-findings`, `close-finding`), **C6** (`architecture-guard`, `trace-auditor`; `tick-tasks`, `dod`, `closer` sprawdzone). Odłożone: `docs-delta`, `rule-harvester` (kandydaci na reguły ręcznie do `docs/backlog/deferred-static-analysis-sonarqube.md`). Dziennik defektów z sesji C w `tools/fleet/README.md` (~25 wpisów z 2026-09-28).
-- **Zrobione po zamknięciu 015 (2026-09-28, wieczór):** cherry-pick floty na `ai/014-agents-redesign` + rebase 015 (bez konfliktów); obserwacje z dziennika domknięte (`hash.js`, `journal.js`, metryki closera, guard nadpisywania promptów, ACL z cudzysłowami, `red-first.json` commitowany); **sesja A zbudowana, nieprzetestowana**: `scrum` (persona), `capability-analyst`, `scope-critic`, `premortem-critic`, `backlog-writer.js` — szczegóły w `workflow.md` §1.1 „Implementacja sesji A".
-- **Następny krok = druga story przez PEŁNY tor A → B → C.** Start sesji A (PowerShell, katalog repo, gałąź, z której story ma wyrosnąć — dla story zależnej od 015 to `015-resource-time-buffer`): `claude --agent scrum`, potem wkleić pomysł. Persona przydzieli `016-<slug>`, utworzy gałąź, przeprowadzi krytyków, po G1 utworzy issue przez MCP. Potem `claude --agent dev-analyst` na gałęzi story (sesja B), potem sesja C wg `runbook-delivery.md` (dyrygent = zwykła sesja; w niej **od razu** logować `journal.js --event AGENT_END` po każdym agencie). Porównać `metrics.json` z 015. Skill `/deliver` po drugim przebiegu, gdy runbook się ustabilizuje.
-- Znane ryzyka sesji A (pierwszy przebieg): hook odpowiedzi zapisuje do `runs/_unassigned/`, dopóki persona nie utworzy gałęzi — persona ma to zrobić przed pierwszym AskUserQuestion; `backlog-writer` parsuje tylko prosty YAML (skalary, listy, mapy jednego poziomu); MCP GitHub w personie: etykieta `story` musi istnieć w repo albo persona ją pomija.
-- **Nie istnieje jeszcze:** sesja A (`scrum`, `capability-analyst`, `scope-critic`, `premortem-critic`, `backlog-writer`), C5 (reviewerzy ×3, `review-arbiter`, `dedup-findings`), C6 (`architecture-guard`, `trace-auditor`, `docs-delta`, `rule-harvester`), `plan-guard`, `migration-reviewer`, `fe-writer`, skill `/deliver` (dyrygent = sesja główna ręcznie), skrypt workflow, projekty `*.Tests.Unit`, odłożony epik analizatorów (`docs/backlog/`).
+- **Gałęzie:** `main` = PR #59 (story 015 zmergowana). `016-rename-resource-schema` = `main` + sesja A/B 016 + commity floty + 7 commitów dostawy (`c3350bc` krok 0 … `37174b1` review/zamknięcie + commit zamykający); gałąź gotowa do PR do `main` (sprawdź upstream przed pushem).
+- **Story 015:** zamknięta 2026-09-28, DoD 10/10, G3 PASSED — `runs/015-resource-time-buffer/{close-report.md,metrics.json}`.
+- **Story 016:** ZAMKNIĘTA — G3 PASSED 2026-10-08, DoD 10/10, gate GREEN (204 BE + 243 FE testów, 84 otagowane AC, 11/11 AC), 0 UNSPECIFIED, 11 decyzji właściciela (DEC-6…DEC-11 w sesji C), 2 REBASELINE, 15 przebiegów agentów, 1,72 M tokenów — `runs/016-rename-resource-schema/{close-report.md,metrics.json}`; komentarz z checklistą na issue #57. Przebieg sesji C i defekty: dziennik w `tools/fleet/README.md` (wiersze 2026-10-07/08).
+- **Etykiety AC:** testy zamkniętej story 015 mają `[Trait("AC", "015/AC-n")]`, żeby filtr `AC=AC-n` widział tylko bieżącą story. Etykiety 016 (`AC-1`, `AC-2`, `AC-6`…`AC-14`, 84 testy BE + specy FE `[AC-8]`) trzeba przemianować na `016/AC-n` TERAZ, przed C2 story 017 (reguła trwała; po zmianie `red-first.json` 016 jest historyczny, nie przeliczać).
+- **Przeszło na prawdziwej story:** sesja A (016), sesja B (015, 016), sesja C fazy C1–C6 (015, 016 — w 016 także `fe-writer` v0, `migration-check` + G2b, dwa przebiegi `test-designer-fix` w C6 z REBASELINE, `rehash-acceptance.mjs`). Agenci i skrypty ze statusami: tabele w `tools/fleet/README.md`.
+- **Zbudowane, niesprawdzone na prawdziwej story:** `review-arbiter` (w 015 i 016 nie było sporu).
+- **Nie istnieje:** `write_deny` w hooku ACL (`fe-writer` może technicznie zapisać `*.spec.ts`; pilnuje prompt + `test-hash`), `spec-critic`, skill `/deliver` (dyrygent = sesja główna ręcznie), projekty `*.Tests.Unit`, skrypt generatora klienta TS (`swagger-typescript-api` jest w devDeps, skryptu brak), `npm run lint` we frontendzie.
+- **Otwarta luka:** agent z plikiem w `.claude/agents/`, który nie jest personą i nie ma wpisu w `fleet-acl.json`, działa w hooku bez ograniczeń (pilnuje go tylko `prompt-builder`). Fail-closed = zmiana D-13, zaplanowana po G3 016, przed sesją B 017.
+- **Skreślone przez właściciela:** `plan-guard` (w jego miejsce spec-critic), `migration-reviewer` (w jego miejsce `migration-check`), `docs-delta`, `rule-harvester`. D-16 (zakres floty) nie jest jeszcze zapisane w `decisions.md`.
+- **Następna story:** `017-<slug>` — sesja A może ruszyć (z `main` po merge 016 albo z gałęzi 016). Przed sesją B 017: fail-closed ACL (D-13) i etykiety `016/AC-n`; kandydaci na reguły z 016 w `docs/backlog/deferred-static-analysis-sonarqube.md`.
 
 ## Nawyki operacyjne (nauczone kosztem czasu)
 1. **Rejestr agentów** ładuje nowe/zmienione pliki `.claude/agents/*.md` dopiero na początku kolejnej wiadomości użytkownika. Po utworzeniu agenta poproś użytkownika o dowolną wiadomość, zanim wywołasz Agent.
@@ -17,21 +20,13 @@ Dla nowej sesji przejmującej pracę. Czytać razem z `workflow.md`, `decisions.
 3. **Zapis plików przez subagenta** działa w trybie uprawnień `auto` sesji dyrygenta; w trybie headless (`claude -p`) Write jest blokowany, bo nie ma komu udzielić zgody.
 4. **`claude --agent <persona>`** testuje się w PowerShell/cmd, nie z wnętrza działającej sesji Claude (użytkownik raz to pomylił — persona nie została wstrzyknięta). Persona nie zaczyna sama bez `initialPrompt`.
 5. **`dotnet`**: nie uruchamiaj równolegle dwóch buildów/testów na tym samym drzewie (blokady `obj/`). Testy integracyjne wymagają Docker Desktop (Testcontainers) — sprawdzaj `docker ps` z PowerShell, nie `wsl docker`. `pwsh` nie ma w Git Bash — `powershell.exe -File`.
-6. **Kolejność w dostawie:** `status.js` → `baseline.js` (przed C3a!) → C3a → migracja (użytkownik) → C2 → `red-first-prover` → C3b → `gate` → `coverage-gaps` → C4b. `gate`/`dod`/`closer` nigdy w discovery.
-7. **Wynik agenta** zapisuj do `runs/<story>/impl/<agent>.<faza>/result.json`, waliduj `validate.js --schema result`, porównaj `files_changed` z `git status -- backend`.
-8. **Decyzje właściciela**: tylko `decide.js` (z `--answer-ref latest` po AskUserQuestion). Bramki: `decide.js --gate G2 --status PASSED`.
+6. **Kolejność w dostawie:** `status.js` → `baseline.js` (przed C3a!) → C3a → migracja (użytkownik) → `migration-check.js` (REVIEW/DESTRUCTIVE → AskUserQuestion nazywające migrację + `decide.js --gate G2b`) → C2 → `red-first-prover` → C3b → `gate` → `coverage-gaps` → C4b. `gate`/`dod`/`closer` nigdy w discovery.
+7. **Wynik agenta** zapisuj do `runs/<story>/impl/<agent>.<faza>/result.json`, waliduj `validate.js --schema result`, porównaj `files_changed` z `git status -- backend frontend`.
+8. **Decyzje właściciela**: tylko `decide.js` (z `--answer-ref latest` po AskUserQuestion). Bramki: `decide.js --gate G2|G2b|G3 --status PASSED|REJECTED`; G2b wymaga odpowiedzi nowszej niż `migration-check.json`, nazywającej migrację (sha8) i zgodnej ze statusem — gate i status porównują `migration_sha`.
 9. **Commity tylko po wyraźnym „tak"**; użytkownik chce widzieć, co wchodzi. Wiadomości commitów po angielsku, rozmowa po polsku.
 10. **Heredoc w Bash tool** z backtickami/apostrofami potrafi się wywrócić — pisz skrypty plikiem (Write) i uruchamiaj `node plik.js`.
 
-## Otwarte sprawy projektowe (nie decyzje właściciela — propozycje w `workflow.md` §8a)
-- kontrakt BE↔BE (zdarzenia w `Shared.Abstractions`): krok szeregowy w C3a jako jedyny właściciel zapisu; test architektury na sieroty;
-- paczka G2: jeden ekran (decyzje → założenia → diff endpointów → szkic UI);
-- budżet tokenów per story (`state.budget_tokens`) — po 2–3 stories z metrykami;
-- `tasks.md` z dev-analysta zawiera gotowy kod (015) — reguła dodana do promptu, do sprawdzenia na następnej story;
+## Otwarte sprawy projektowe (nie decyzje właściciela)
+- Propozycje do potwierdzenia — kontrakt BE↔BE, paczka G2, budżet tokenów per story: `workflow.md` §8a.
+- `tasks.md` z dev-analysta zawierał gotowy kod (015) — reguła dodana do promptu, do sprawdzenia na 016.
 - `SendMessage` niedostępne w `--agent`; dopytanie = nowa instancja (przyjęte).
-
-## Materiał do projektowania C5/C6 (reviewerzy, arbiter, guard)
-- `reviews/2026-09-21-fable.md`, `reviews/2026-09-21-opus.md` — pierwsze recenzje projektu (sekcje o pętli review, arbitrze, guardach, metrykach);
-- `reviews/2026-09-23-blind-critic-opus.md` — ślepa recenzja z symulacją story;
-- `runs/015-resource-time-buffer/` — prawdziwy materiał: spec z AC, wynik C3a, wkrótce testy i zachowanie.
-- Reguły już ustalone: D-9 (wagi), `findings.schema.json` (`rule_ref` obowiązkowy), arbiter tylko dla sporów, od rundy 2 tylko diff, „blockery muszą maleć", zaakceptowana uogólnialna uwaga → `rule_candidate`.

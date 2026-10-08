@@ -1,0 +1,86 @@
+{
+  "provenance": {
+    "author_agent": "test-designer-sighted",
+    "run_id": "016-rename-resource-schema-test-designer-sighted-c2fe-muza8nf9",
+    "story": "016-rename-resource-schema",
+    "phase": "C2",
+    "inputs": [
+      {
+        "path": "runs/016-rename-resource-schema/review/round-0/dedup.json",
+        "sha256": "3db0aeaa4369d29d3adb5fc18ad95cfff76295b98ce4190702647034a6e3d7e2"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/story.md",
+        "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb"
+      },
+      {
+        "path": "specs/016-rename-resource-schema/spec.md",
+        "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/tests/red-first.json",
+        "sha256": "81f2915b80b3c892fc87d7009efceda9ba756565c5f670313cdd2f89ca96b651"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "status": "BLOCKED_ON_DECISION",
+  "tasks_completed": [],
+  "files_changed": [],
+  "assumptions": [],
+  "decisions_needed": [
+    {
+      "id": "DEC-101",
+      "asked_by": "test-designer-sighted",
+      "phase": "C5",
+      "question": "May the tester change the cleanup step (afterEach) in frontend/src/app/features/groups/services/resources-api.service.spec.ts, even though red-first.json marks that file as a hashed, read-only acceptance test file?",
+      "context": "Finding conductor-0-1 (MAJOR, route tester) is correct. The spec's afterEach calls http.verify(), which throws in the last [AC-8] test because a POST /resources/types request is still open. In vitest, a throwing afterEach in the describe block stops the parent afterEach hooks from running, so Angular's global TestBed reset never runs. The next spec file in the same worker then fails with 'Cannot configure the test module when the test module has already been instantiated'. The fix has to go in that afterEach. dedup.json says frontend specs are not listed in red-first.json and may be fixed, but that is wrong: runs/016-rename-resource-schema/tests/red-first.json:402 lists frontend/src/app/features/groups/services/resources-api.service.spec.ts in acceptance_test_files (hash_version 2, acceptance_tests_hash 5d1a71e3...). Editing the file would change the gate hash, so I did not edit it without your authorisation.",
+      "code_says": [
+        {
+          "claim": "The spec file is hashed as a read-only acceptance test file.",
+          "evidence": "runs/016-rename-resource-schema/tests/red-first.json:402"
+        },
+        {
+          "claim": "The leak comes from a throwing afterEach with no TestBed reset.",
+          "evidence": "frontend/src/app/features/groups/services/resources-api.service.spec.ts:72-74 `afterEach(() => { http.verify(); });`"
+        },
+        {
+          "claim": "The round-0 note says the frontend specs are not in red-first.json, which contradicts the file.",
+          "evidence": "runs/016-rename-resource-schema/review/round-0/dedup.json:7"
+        }
+      ],
+      "options": [
+        {
+          "label": "A: REBASELINE: authorise a single edit to lines 72-74 of the spec, then recompute acceptance_tests_hash",
+          "consequences": "The afterEach becomes `afterEach(() => { try { http.verify(); } finally { TestBed.resetTestingModule(); } });`. No assertion, AC tag or test title changes. The 6 [AC-8] tests stay red for the same reasons: missing get/create/update/deleteResourceSchema methods, and create-instance still posting to /resources/types. The verify error still surfaces, but TestBed is reset before the next file, so the unrelated count-chip and icon-settings failures go away. The conductor must recompute acceptance_tests_hash in red-first.json after the edit."
+        },
+        {
+          "label": "B: Work around it in global frontend test setup without touching the hashed spec",
+          "consequences": "Add an unconditional `beforeEach(() => getTestBed().resetTestingModule())` in a global vitest setup file. The hash stays the same, but this changes the test environment for every spec in the repo. It is broader than what the finding names (rule: a fix changes only what the finding names), and the leaking spec stays as it is."
+        },
+        {
+          "label": "C: Leave it and accept the noise until the writer turns the [AC-8] tests green",
+          "consequences": "Once the service calls /resources/schemas and the create-instance request matches, verify() stops throwing and the leak disappears. Until then the frontend suite shows one random extra failure, which breaks the red-first proof's 'only the expected tests are red' check."
+        }
+      ],
+      "recommendation": "A: it is the minimal, local fix the finding asks for. It keeps every assertion, title and AC tag, and keeps the intended red reason. The only cost is a one-time hash recompute.",
+      "argument_against": "Any edit to a blind-pass file weakens the guarantee that acceptance tests were not tuned after the implementation was seen. Option C needs no rebaseline, and the problem goes away by itself once AC-8 is implemented.",
+      "consequences": "If A: the tester applies the 3-line afterEach change to resources-api.service.spec.ts in the next C5 pass, the conductor recomputes acceptance_tests_hash, and the frontend red-first proof is rerun (expected: 10 [AC-8] failures, no unrelated spec failing). If B: the tester edits the global test setup file instead. If C: conductor-0-1 is closed as won't-fix and the red-first proof tolerates the extra failure.",
+      "status": "OPEN"
+    }
+  ],
+  "local_checks": {
+    "build": "SKIPPED",
+    "unit_tests": "SKIPPED",
+    "format": "SKIPPED"
+  },
+  "notes": {
+    "fixed": [],
+    "blocked": [
+      "conductor-0-1: I agree with the finding, but the only local fix is in frontend/src/app/features/groups/services/resources-api.service.spec.ts, which runs/016-rename-resource-schema/tests/red-first.json:402 lists in acceptance_test_files. Owner authorisation (REBASELINE) is needed, see DEC-101."
+    ],
+    "local_checks_reason": "No file was changed, so the dotnet build and test run of backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests was skipped. Nothing could have regressed, and the only finding is about the frontend.",
+    "input_inconsistency": "dedup.json line 7 says the frontend specs are not listed in red-first.json and may be fixed. red-first.json lists every frontend spec file, including resources-api.service.spec.ts, so the conductor's note and the gate input disagree."
+  },
+  "conductor_note": "status: OPEN added by the conductor to decisions_needed[0] (required by the schema, missing in the agent output); no other change."
+}

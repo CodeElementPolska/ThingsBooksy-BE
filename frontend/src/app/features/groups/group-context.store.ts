@@ -9,7 +9,7 @@ import { GroupDetailDto, GroupsApiService } from './services/groups-api.service'
 import {
   PropertyDefinitionDto,
   ResourcesApiService,
-  ResourceTypeSummaryDto,
+  ResourceSchemaSummaryDto,
 } from './services/resources-api.service';
 
 export interface SchemaSummary {
@@ -56,7 +56,7 @@ export class GroupContextStore {
     const resourceItems = this._resources().items;
     return this._schemas().map(s => ({
       ...s,
-      resourceCount: resourceItems.filter(r => r.resourceTypeId === s.id).length,
+      resourceCount: resourceItems.filter(r => r.resourceSchemaId === s.id).length,
     }));
   });
   readonly members = this._members.asReadonly();
@@ -76,7 +76,7 @@ export class GroupContextStore {
     try {
       const [group, schemas, membersPage, resourcesPage] = await Promise.all([
         firstValueFrom(this.groupsApi.getGroup(groupId)),
-        firstValueFrom(this.resourcesApi.getResourceTypes(groupId)),
+        firstValueFrom(this.resourcesApi.getResourceSchemas(groupId)),
         firstValueFrom(this.groupsApi.getGroupMembers(groupId, { take: PAGE_SIZE })),
         firstValueFrom(
           this.resourcesApi.getResourceInstances({ groupId, take: PAGE_SIZE }),
@@ -163,11 +163,11 @@ export class GroupContextStore {
     this._resources.set({ ...current, items: [resource, ...current.items] });
   }
 
-  addSchema(schema: ResourceTypeSummaryDto): void {
+  addSchema(schema: ResourceSchemaSummaryDto): void {
     this._schemas.set([...this._schemas(), this.toSummary(schema)]);
   }
 
-  replaceSchema(schema: ResourceTypeSummaryDto): void {
+  replaceSchema(schema: ResourceSchemaSummaryDto): void {
     this._schemas.set(
       this._schemas().map(s => (s.id === schema.id ? this.toSummary(schema) : s)),
     );
@@ -178,19 +178,19 @@ export class GroupContextStore {
     const r = this._resources();
     this._resources.set({
       ...r,
-      items: r.items.filter(row => row.resourceTypeId !== schemaId),
+      items: r.items.filter(row => row.resourceSchemaId !== schemaId),
     });
   }
 
   countResourcesOfSchema(schemaId: string): number {
-    return this._resources().items.filter(r => r.resourceTypeId === schemaId).length;
+    return this._resources().items.filter(r => r.resourceSchemaId === schemaId).length;
   }
 
-  private mapSchemas(raw: ResourceTypeSummaryDto[]): SchemaSummary[] {
+  private mapSchemas(raw: ResourceSchemaSummaryDto[]): SchemaSummary[] {
     return raw.map(r => this.toSummary(r));
   }
 
-  private toSummary(schema: ResourceTypeSummaryDto): SchemaSummary {
+  private toSummary(schema: ResourceSchemaSummaryDto): SchemaSummary {
     return {
       id: schema.id,
       name: schema.name,

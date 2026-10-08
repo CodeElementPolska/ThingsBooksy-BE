@@ -22,17 +22,17 @@ internal sealed class GetResourceInstancesQueryDataProvider : IGetResourceInstan
     public Task<bool> IsMemberAsync(Guid groupId, Guid userId, CancellationToken ct)
         => _dbContext.GroupMemberReadModels.AnyAsync(m => m.GroupId == groupId && m.UserId == userId, ct);
 
-    public Task<ResourceType?> GetResourceTypeAsync(Guid resourceTypeId, CancellationToken ct)
-        => _dbContext.ResourceTypes.FirstOrDefaultAsync(t => t.Id == resourceTypeId, ct);
+    public Task<ResourceSchema?> GetResourceSchemaAsync(Guid resourceSchemaId, CancellationToken ct)
+        => _dbContext.ResourceSchemas.FirstOrDefaultAsync(t => t.Id == resourceSchemaId, ct);
 
-    public async Task<List<ResourceInstance>> GetInstancesAsync(Guid? resourceTypeId, Guid? groupId, bool includeDeleted, Guid? afterId, int take, CancellationToken ct)
+    public async Task<List<ResourceInstance>> GetInstancesAsync(Guid? resourceSchemaId, Guid? groupId, bool includeDeleted, Guid? afterId, int take, CancellationToken ct)
     {
         IQueryable<ResourceInstance> query = includeDeleted
             ? _dbContext.ResourceInstances.IgnoreQueryFilters().Include(x => x.PropertyValues)
             : _dbContext.ResourceInstances.Include(x => x.PropertyValues);
 
-        if (resourceTypeId.HasValue)
-            query = query.Where(x => x.ResourceTypeId == resourceTypeId.Value);
+        if (resourceSchemaId.HasValue)
+            query = query.Where(x => x.ResourceSchemaId == resourceSchemaId.Value);
 
         if (groupId.HasValue)
             query = query.Where(x => x.GroupId == groupId.Value);
@@ -43,8 +43,8 @@ internal sealed class GetResourceInstancesQueryDataProvider : IGetResourceInstan
         return await query.OrderBy(x => x.Id).Take(take).ToListAsync(ct);
     }
 
-    public Task<List<ResourcePropertyDefinition>> GetPropertyDefinitionsAsync(IEnumerable<Guid> resourceTypeIds, CancellationToken ct)
+    public Task<List<ResourcePropertyDefinition>> GetPropertyDefinitionsAsync(IEnumerable<Guid> resourceSchemaIds, CancellationToken ct)
         => _dbContext.ResourcePropertyDefinitions
-            .Where(d => resourceTypeIds.Contains(d.ResourceTypeId))
+            .Where(d => resourceSchemaIds.Contains(d.ResourceSchemaId))
             .ToListAsync(ct);
 }

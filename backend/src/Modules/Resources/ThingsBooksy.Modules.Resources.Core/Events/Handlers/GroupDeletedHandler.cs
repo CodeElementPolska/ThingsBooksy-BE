@@ -30,8 +30,8 @@ internal sealed class GroupDeletedHandler : IEventHandler<GroupDeleted>
                 .SetProperty(x => x.UpdatedAt, now),
                 cancellationToken);
 
-        // Hard-delete all resource types for the group — DB cascade removes ResourcePropertyDefinitions
-        await _dbContext.ResourceTypes
+        // Hard-delete all resource schemas for the group — DB cascade removes ResourcePropertyDefinitions
+        await _dbContext.ResourceSchemas
             .IgnoreQueryFilters()
             .Where(x => x.GroupId == @event.GroupId)
             .ExecuteDeleteAsync(cancellationToken);

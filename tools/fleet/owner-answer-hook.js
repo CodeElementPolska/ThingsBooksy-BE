@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Owner-answer hook (PostToolUse, matcher "AskUserQuestion") — registered in the frontmatter of the
-// PERSONA agents (dev-analyst, scrum). Copies the owner's answer verbatim into runs/<story>/journal.jsonl
+// Owner-answer hook (PostToolUse, matcher "AskUserQuestion") — registered project-wide in .claude/settings.json,
+// so it fires for the personas (dev-analyst, scrum) AND for the main session acting as conductor.
+// Only an AskUserQuestion answer reaches the journal — an answer typed in the chat does not. Copies the owner's
+// answer verbatim into runs/<story>/journal.jsonl
 // as an OWNER_ANSWER event (schemas/journal-event.schema.json). This is the ONLY source a script may
 // use to mark a decision as `decided_by: owner` (D-2 provenance). Never blocks (exit 0).
 // Story resolution: env FLEET_STORY, else the current git branch when it matches NNN-slug, else

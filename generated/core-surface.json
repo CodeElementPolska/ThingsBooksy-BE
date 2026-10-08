@@ -372,7 +372,7 @@
           ]
         },
         {
-          "name": "ResourceTypeConfiguration",
+          "name": "ResourceSchemaConfiguration",
           "ns": "ThingsBooksy.Modules.Resources.Core.DAL.Configurations",
           "kind": "class",
           "baseType": null,
@@ -382,7 +382,7 @@
           "properties": [],
           "factories": [],
           "methods": [
-            "Void Configure(EntityTypeBuilder\u003CResourceType\u003E)"
+            "Void Configure(EntityTypeBuilder\u003CResourceSchema\u003E)"
           ]
         },
         {
@@ -395,8 +395,8 @@
           ],
           "properties": [
             {
-              "name": "ResourceTypes",
-              "type": "DbSet\u003CResourceType\u003E",
+              "name": "ResourceSchemas",
+              "type": "DbSet\u003CResourceSchema\u003E",
               "setter": "public"
             },
             {
@@ -475,7 +475,7 @@
               "setter": "private"
             },
             {
-              "name": "ResourceTypeId",
+              "name": "ResourceSchemaId",
               "type": "Guid",
               "setter": "private"
             },
@@ -548,7 +548,7 @@
               "setter": "private"
             },
             {
-              "name": "ResourceTypeId",
+              "name": "ResourceSchemaId",
               "type": "Guid",
               "setter": "private"
             },
@@ -569,7 +569,7 @@
             }
           ],
           "factories": [
-            "Create(PropertyDefinitionInput input, Guid resourceTypeId)"
+            "Create(PropertyDefinitionInput input, Guid resourceSchemaId)"
           ],
           "methods": [
             "Void Update(PropertyDefinitionUpdateInput)"
@@ -613,7 +613,7 @@
           ]
         },
         {
-          "name": "ResourceType",
+          "name": "ResourceSchema",
           "ns": "ThingsBooksy.Modules.Resources.Core.Domain",
           "kind": "class",
           "baseType": null,
@@ -668,12 +668,35 @@
             }
           ],
           "factories": [
-            "Create(CreateResourceTypeCommand command, DateTime now)"
+            "Create(CreateResourceSchemaCommand command, DateTime now)"
           ],
           "methods": [
-            "Void Update(UpdateResourceTypeCommand, DateTime)",
+            "Void Update(UpdateResourceSchemaCommand, DateTime)",
             "Void Delete(DateTime)"
           ]
+        },
+        {
+          "name": "ResourceSchemaNameAlreadyExistsException",
+          "ns": "ThingsBooksy.Modules.Resources.Core.Exceptions",
+          "kind": "class",
+          "baseType": "CustomException",
+          "ctor": [
+            "public"
+          ],
+          "properties": [
+            {
+              "name": "GroupId",
+              "type": "Guid",
+              "setter": "none"
+            },
+            {
+              "name": "Name",
+              "type": "String",
+              "setter": "none"
+            }
+          ],
+          "factories": [],
+          "methods": []
         },
         {
           "name": "ResourcesDomainException",
@@ -710,29 +733,6 @@
             "public"
           ],
           "properties": [],
-          "factories": [],
-          "methods": []
-        },
-        {
-          "name": "ResourceTypeNameAlreadyExistsException",
-          "ns": "ThingsBooksy.Modules.Resources.Core.Exceptions",
-          "kind": "class",
-          "baseType": "CustomException",
-          "ctor": [
-            "public"
-          ],
-          "properties": [
-            {
-              "name": "GroupId",
-              "type": "Guid",
-              "setter": "none"
-            },
-            {
-              "name": "Name",
-              "type": "String",
-              "setter": "none"
-            }
-          ],
           "factories": [],
           "methods": []
         },

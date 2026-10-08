@@ -15,18 +15,19 @@ const args = Object.fromEntries(process.argv.slice(2).map((a, i, arr) => a.start
 const story = args.story; if (!story) { console.error('usage: status --story NNN-slug [--print]'); process.exit(1); }
 if (!/^\d{3}-[a-z0-9-]+$/.test(story)) { console.error(`status: "${story}" is not NNN-slug`); process.exit(1); }
 const runDir = path.join(REPO, 'runs', story);
-// SpecKit trap: .specify/feature.json overrides the branch for every /speckit-* script. If it points
-// elsewhere, /speckit-plan would silently overwrite ANOTHER story's plan (happened on 015 → 010).
+const branch = (spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout || '').trim();
+if (branch !== story && !args['skip-branch-check']) { console.error(`status: current branch "${branch}" ≠ story "${story}" — SpecKit scripts would silently target another spec dir`); process.exit(1); }
+// SpecKit trap: .specify/feature.json takes precedence over the branch name for every /speckit-* script. The fleet
+// does not use that file — story id = branch = specs/NNN-slug — and since 2026-10-01 it is removed from the repo and
+// git-ignored (a committed pointer went stale after every merge: 015 → 010, 016 → 015). A stray local copy (only
+// /speckit-specify writes one) must be deleted, never "fixed": the branch is the single source of truth.
 const featureJson = path.join(REPO, '.specify', 'feature.json');
 if (fs.existsSync(featureJson)) {
   let fd = null; try { fd = JSON.parse(fs.readFileSync(featureJson, 'utf8')).feature_directory; } catch { /* unreadable → treat as mismatch */ }
-  if (String(fd || '').replace(/\\/g, '/').replace(/\/$/, '') !== `specs/${story}`) {
-    console.error(`status: .specify/feature.json points to "${fd}" but the story is "${story}" — fix it before any /speckit-* skill: {"feature_directory":"specs/${story}"} (or delete the file to fall back to the branch name)`);
-    process.exit(1);
-  }
+  const same = String(fd || '').replace(/\\/g, '/').replace(/\/$/, '') === `specs/${story}`;
+  if (!same) { console.error(`status: .specify/feature.json exists and points to "${fd}" (story "${story}") — delete the file; SpecKit must resolve the spec dir from the branch name (tools/fleet/README.md, journal 2026-10-01)`); process.exit(1); }
+  console.error(`status: WARNING .specify/feature.json exists (ignored by git) — delete it; the branch name is the only source of truth for SpecKit`);
 }
-const branch = (spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout || '').trim();
-if (branch !== story && !args['skip-branch-check']) { console.error(`status: current branch "${branch}" ≠ story "${story}" — SpecKit scripts would silently target another spec dir`); process.exit(1); }
 
 const sha = f => sha256File(f); // CRLF-normalised like every other fleet script (hash.js)
 const exists = rel => fs.existsSync(path.join(runDir, rel));
@@ -54,7 +55,8 @@ const gateOpen = g => last(e => e.event === 'GATE_OPEN' && e.phase === g);
 const gates = {};
 for (const g of ['G1', 'G2', 'G2b', 'G3']) {
   const a = gateAnswered(g), o = gateOpen(g);
-  gates[g] = a ? { status: a.status === 'REJECTED' ? 'REJECTED' : 'PASSED', answer_ref: a.owner_answer?.tool_use_id || a.owner_answer?.prompt_id, at: a.at }
+  // an answer counts only if nothing reopened the gate after it (migration-check reopens G2b for a regenerated migration)
+  gates[g] = a && (!o || String(a.at) >= String(o.at)) ? { status: a.status === 'REJECTED' ? 'REJECTED' : 'PASSED', answer_ref: a.owner_answer?.tool_use_id || a.owner_answer?.prompt_id, at: a.at }
     : o ? { status: 'WAITING_OWNER', at: o.at } : { status: 'PENDING' };
 }
 
@@ -64,7 +66,8 @@ const assumptions = readJsonl('discovery/assumptions.jsonl');
 const redFirst = readJson('tests/red-first.json');
 const gate = readJson('gate.json');
 const skeleton = readJson('skeleton-check.json');
-const reviewRounds = fs.existsSync(path.join(runDir, 'review')) ? fs.readdirSync(path.join(runDir, 'review')).filter(d => /^round-\d+$/.test(d)).length : 0;
+// review rounds = the highest existing round-N directory (round-0 may hold conductor findings before C5; a count would then point at a missing round-1)
+const reviewRounds = fs.existsSync(path.join(runDir, 'review')) ? Math.max(0, ...fs.readdirSync(path.join(runDir, 'review')).filter(d => /^round-\d+$/.test(d)).map(d => +d.slice(6))) : 0;
 const closed = last(e => e.event === 'PHASE_END' && e.phase === 'C6' && e.status === 'PASSED');
 const returned = last(e => e.event === 'PHASE_END' && ['RETURNED', 'ABANDONED'].includes(e.status));
 
@@ -94,6 +97,12 @@ const disputes = readJsonl('impl/disputes.jsonl').filter(d => !d.verdict).map(d 
 const tokens = journal.filter(e => e.tokens).reduce((s, e) => s + e.tokens, 0);
 const budgetEv = last(e => e.event === 'BUDGET_STOP' || e.budget_tokens);
 
+// G2b (D-1): a migration flagged by migration-check (S9b) needs an owner answer FOR THIS migration content; the answer
+// carries migration_sha, so a regenerated migration reopens the question. The blocker is a constant id (blockers are ids).
+const migrationCheck = readJson('migration-check.json');
+const g2bAnswer = gateAnswered('G2b');
+const g2bPending = !!migrationCheck?.g2b_required && !(g2bAnswer?.status === 'PASSED' && g2bAnswer.migration_sha === migrationCheck.migration_sha);
+
 const state = {
   story, branch, computed_at: new Date().toISOString(),
   track: readJson('story.meta.json')?.track,
@@ -104,7 +113,7 @@ const state = {
   open_items: {
     decisions_open: decisionsOpen,
     hard_list_assumptions_without_decision: hardListWithoutDecision,
-    blockers: findings.filter(f => f.severity === 'BLOCKER').map(f => f.id),
+    blockers: [...findings.filter(f => f.severity === 'BLOCKER').map(f => f.id), ...(g2bPending ? ['G2B-MIGRATION'] : [])],
     disputes,
     unspecified_behaviour: findings.filter(f => f.type === 'UNSPECIFIED_BEHAVIOR').map(f => f.id),
   },

@@ -1,6 +1,6 @@
 {
-  "generated_at_commit": "047c6ee",
-  "swagger_sha256": "4ad8b820ca57f87cd41e331883f7a9951105a22d272fa9b1d805aef6423aa6eb",
+  "generated_at_commit": "e21c514",
+  "swagger_sha256": "a27b34ab4439be081531fc4858b3e40789615df6b11e4ab3dc1ae332f2decb4f",
   "modules": [
     {
       "name": "ManagementGroups",
@@ -219,8 +219,8 @@
     "resources": [
       {
         "method": "POST",
-        "route": "/resources/types",
-        "operationId": "Create resource type",
+        "route": "/resources/schemas",
+        "operationId": "Create resource schema",
         "tags": [
           "Resources"
         ],
@@ -229,12 +229,12 @@
         "responses": [
           "200"
         ],
-        "requestSchema": "ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceTypeRequest"
+        "requestSchema": "ThingsBooksy.Modules.Resources.Api.Requests.CreateResourceSchemaRequest"
       },
       {
         "method": "GET",
-        "route": "/resources/types",
-        "operationId": "Get resource types",
+        "route": "/resources/schemas",
+        "operationId": "Get resource schemas",
         "tags": [
           "Resources"
         ],
@@ -247,8 +247,8 @@
       },
       {
         "method": "PUT",
-        "route": "/resources/types/{id}",
-        "operationId": "Update resource type",
+        "route": "/resources/schemas/{id}",
+        "operationId": "Update resource schema",
         "tags": [
           "Resources"
         ],
@@ -257,12 +257,12 @@
         "responses": [
           "200"
         ],
-        "requestSchema": "ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceTypeRequest"
+        "requestSchema": "ThingsBooksy.Modules.Resources.Api.Requests.UpdateResourceSchemaRequest"
       },
       {
         "method": "DELETE",
-        "route": "/resources/types/{id}",
-        "operationId": "Delete resource type",
+        "route": "/resources/schemas/{id}",
+        "operationId": "Delete resource schema",
         "tags": [
           "Resources"
         ],
@@ -275,8 +275,8 @@
       },
       {
         "method": "GET",
-        "route": "/resources/types/{id}",
-        "operationId": "Get resource type",
+        "route": "/resources/schemas/{id}",
+        "operationId": "Get resource schema",
         "tags": [
           "Resources"
         ],

@@ -1,0 +1,59 @@
+{
+  "provenance": {
+    "author_agent": "architecture-guard",
+    "run_id": "016-rename-resource-schema-architecture-guard-muzc2mbw",
+    "story": "016-rename-resource-schema",
+    "phase": "C6",
+    "inputs": [
+      { "path": "runs/016-rename-resource-schema/review/round-1/scope.json", "sha256": "ea8aeb05df0e8391209038fdc00ebe14274bc491a679f38abc7ab91f556282c2" },
+      { "path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb" },
+      { "path": "specs/016-rename-resource-schema/spec.md", "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a" },
+      { "path": "runs/016-rename-resource-schema/contract-next.json", "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4" }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "architecture-guard",
+  "round": 1,
+  "scope": {
+    "diff_sha": "456ecff94f591e1ee849c49a7ab4dec927b1b354",
+    "files": [
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20261007131957_RenameResourceTypeToResourceSchema.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/ResourcesDbContextModelSnapshot.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceSchemaConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceInstanceConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourcePropertyDefinitionConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/ResourcesDbContext.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Extensions.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceSchema/CreateResourceSchemaCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceSchema/DeleteResourceSchemaCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/ResourcesModule.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/CreateResourceSchemaRequest.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/UpdateResourceSchemaRequest.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/CreateResourceInstanceRequest.cs",
+      "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+      "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/DeleteManagementGroupTests.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaCreatedEvent.cs",
+      "backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Resources/ResourceSchemaDeletedEvent.cs",
+      "backend/src/Bootstrapper/ThingsBooksy.Bootstrapper/Program.cs",
+      "backend/src/Bootstrapper/ThingsBooksy.Bootstrapper/ThingsBooksy.Bootstrapper.csproj",
+      "backend/src/Modules/*/*/*.csproj"
+    ]
+  },
+  "findings": [
+    {
+      "id": "architecture-guard-1-1",
+      "file": "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+      "line": 128,
+      "severity": "OPINION",
+      "type": "ARCHITECTURE",
+      "message": "The ManagementGroups integration-test project reads the Resources module's tables directly with hard-coded raw SQL, so this story's table rename in the Resources module forced an edit in another module's tests. The pattern was already there and has no project or type reference, so the module-boundary rules in constitution#I and #IV (which are about module code) are not clearly broken. Still, every later physical rename in the Resources schema will break ManagementGroups tests silently, at runtime and not at compile time. Owner to consider whether cross-module cascade assertions should go through the owning module's API or a shared end-to-end test project instead.",
+      "evidence": "ManagementGroupsTestClient.cs:106 `// --- Resources schema DB helpers (raw SQL — no cross-module type import) ---`; :128 `\"\"\"SELECT COUNT(1) FROM resources.resource_schemas WHERE \"GroupId\" = @groupId\"\"\"`; :140 `FROM resources.resource_instances`; DeleteManagementGroupTests.cs:89 `owner.Client.PostAsJsonAsync(\"/resources/schemas\", ...)`",
+      "suggested_fix": "Optional: move the GroupDeleted cascade assertions into Resources.IntegrationTests, where the module owns its table names. Or add a cross-module end-to-end test project so one module's tests do not depend on another module's physical schema.",
+      "rule_candidate": {
+        "kind": "arch-test",
+        "description": "Scan the source of each <Module>.IntegrationTests project for SQL string literals that name a schema other than the module's own snake_case schema (e.g. 'FROM resources.' inside ManagementGroups.IntegrationTests) and report them."
+      }
+    }
+  ],
+  "summary": { "blockers": 0, "majors": 0, "minors": 0, "opinions": 1 }
+}

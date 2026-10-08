@@ -19,7 +19,7 @@
   @if (schemas().length === 0) {
     <div class="schemas-panel__empty" role="status">
       <p class="schemas-panel__empty-title">No schemas yet</p>
-      <p class="schemas-panel__empty-subtitle">Create the first schema to define a resource type.</p>
+      <p class="schemas-panel__empty-subtitle">Create the first schema to describe your resources.</p>
       @if (isOwner()) {
         <button
           type="button"
@@ -50,7 +50,7 @@
                 <button
                   type="button"
                   class="schemas-panel__row-action schemas-panel__row-action--add"
-                  [attr.aria-label]="'Add resource of type ' + schema.name"
+                  [attr.aria-label]="'Add resource to schema ' + schema.name"
                   title="Add resource"
                   (click)="addResourceForSchema.emit(schema.id)"
                 >

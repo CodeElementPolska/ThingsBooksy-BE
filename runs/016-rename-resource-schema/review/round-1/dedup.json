@@ -1,0 +1,219 @@
+{
+  "story": "016-rename-resource-schema",
+  "round": 1,
+  "reviewers": [
+    "review-maintainability",
+    "review-security-authz",
+    "review-spec-conformance"
+  ],
+  "verdict": "CLEAN",
+  "escalation_reason": null,
+  "summary": {
+    "blockers": 0,
+    "majors": 0,
+    "minors": 2,
+    "opinions": 8,
+    "merged_duplicates": 0,
+    "routes": {
+      "writer": 0,
+      "tester": 0,
+      "owner": 0
+    }
+  },
+  "previous_summary": null,
+  "findings": [
+    {
+      "id": "review-spec-conformance-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs",
+      "line": 29,
+      "rule_ref": "spec:FR-009",
+      "severity": "MINOR",
+      "type": "SPEC_VIOLATION",
+      "message": "FR-009 says that after the story, a case-insensitive search for `resource[ _]?type` in backend/src finds only the historical migration files of earlier stories and their designer files. This new acceptance-test file still has one hit, in a doc comment. The comment itself claims the opposite: that the old names are built by concatenation so the search finds nothing in this file. No other file outside the migrations matches, and no production code or user-visible text is affected. Severity is MINOR, not BLOCKER, because FR-009 is a functional requirement and not an AC, decision or contract clause (AC-6, AC-7 and AC-13 do not cover test source). The file is a hashed acceptance-test file (red-first), so fixing it requires a rebaseline decision like DEC-7. Side note on the same rule: the story's own migration (20261007131957_RenameResourceTypeToResourceSchema.cs and its Designer) has to contain the old names in order to rename them. FR-009 as written ('earlier stories' only) does not allow for that. This is a gap in the spec text, not a code defect; the owner should widen FR-009 to include this story's migration.",
+      "evidence": "ResourcesApiDescriptionTests.cs:29: `/// the old name (FR-009) finds no hit in this file. \"resource type\" also covers \"resource types\";` (Grep `(?i)resource[ _]?type` over backend/src: hits only in Migrations/* and this line)",
+      "suggested_fix": "Reword the comment so it does not contain the old phrase. Apply this through the acceptance-test rebaseline path, because the file is hashed.",
+      "reporters": [
+        "review-spec-conformance-1-1"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-10",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-r1cleanup-muzcttyu",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.384Z"
+    },
+    {
+      "id": "review-maintainability-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/CreateResourceSchemaTests.cs",
+      "line": 123,
+      "rule_ref": "conventions/integration-test-infrastructure.md#Rationale",
+      "severity": "MINOR",
+      "type": "CONVENTION",
+      "message": "Changed lines still hard-code the route in the test body instead of going through the module TestClient. The diff itself adds ResourcesTestClient.Anonymous(factory), so the unauthenticated case no longer needs a raw HttpClient. The same pattern exists in the other Resources tests whose URL line was edited by this rename (GetResourceSchemaTests.cs:131 and :148, UpdateDeleteResourceSchemaTests.cs:104 and :210, CreateResourceInstanceTests.cs around :144). The cross-module ManagementGroups usage is excluded because it has no Resources TestClient.",
+      "evidence": "CreateResourceSchemaTests.cs:123: `var response = await anonClient.PostAsJsonAsync(\"/resources/schemas\", new` ; rule: \"TestClient centralises route strings and request shapes in one place. Tests do not contain raw URL strings — a route change requires updating only the TestClient, not every test method that calls it.\" A route change (this very story) forced edits in 6+ test methods.",
+      "suggested_fix": "Use `ResourcesTestClient.Anonymous(Factory).CreateResourceSchemaAsync(...)` / `GetResourceSchemaAsync(...)` / `UpdateResourceSchemaAsync(...)` / `DeleteResourceSchemaAsync(...)` for the 401 tests.",
+      "rule_candidate": {
+        "kind": "script",
+        "description": "Grep every *.IntegrationTests project outside Clients/ for string literals starting with \"/<module-route>\" passed to HttpClient calls (GetAsync/PostAsJsonAsync/PutAsJsonAsync/DeleteAsync); allowlist OpenAPI-document assertions."
+      },
+      "reporters": [
+        "review-maintainability-1-1"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-10",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-r1cleanup-muzcttyu",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.443Z"
+    },
+    {
+      "id": "review-maintainability-1-2",
+      "file": "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+      "line": 128,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "A table rename in the Resources module forced edits in the ManagementGroups test project: it reads resources.resource_schemas with raw SQL (ManagementGroupsTestClient.cs:128) and seeds schemas and instances through the public Resources API (DeleteManagementGroupTests.cs:89, :100, :114). Both lines were edited here. It is test-only and may be deliberate for the cascade test, so this is an owner decision rather than a violation. Constitution IV forbids a module from querying another module's database; this is a test project, not a module.",
+      "evidence": "ManagementGroupsTestClient.cs:128: `\"\"\"SELECT COUNT(1) FROM resources.resource_schemas WHERE \"GroupId\" = @groupId\"\"\"`; DeleteManagementGroupTests.cs:89: `owner.Client.PostAsJsonAsync(\"/resources/schemas\", new`",
+      "suggested_fix": "Optional: keep the cross-module cascade check, but isolate the Resources table name and routes in one helper so the next Resources rename touches one place.",
+      "reporters": [
+        "review-maintainability-1-2"
+      ],
+      "route": "tester"
+    },
+    {
+      "id": "review-maintainability-1-5",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+      "line": 55,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "The diff introduces near-identical test scaffolding and overlapping coverage. MemberAccessBaselineTests and OutsiderAccessBaselineTests each define their own `Baseline` record and `SeedAsync` with the same schema, definition, instance and value seeding, differing only in names. ForeignSchemaFilterTests seeds the same shape again. Several 'missing id' and 'only owner may' cases are asserted three times (Member rows 6/8/10/13, Outsider rows 6/8/10/13, ResourceSchemaMessagesTests). The two 409 tests in ResourceSchemaContractTests repeat CreateResourceSchemaEndpointTests.CreateResourceSchema_DuplicateNameInGroup_Returns409 and UpdateResourceSchemaEndpointTests.UpdateResourceSchema_DuplicateAmongOthers_Returns409, which this diff also extended with AC-1 and AC-7 traits and the same code and message assertions.",
+      "evidence": "MemberAccessBaselineTests.cs:55 `private async Task<Baseline> SeedAsync(string prefix)` vs OutsiderAccessBaselineTests.cs:70 `private async Task<Baseline> SeedAsync(string prefix)`; ResourceSchemaContractTests `CreateResourceSchema_WithTakenName_Returns409WithSchemaNameTakenCode` vs CreateResourceSchemaEndpointTests `CreateResourceSchema_DuplicateNameInGroup_Returns409`",
+      "suggested_fix": "Extract a shared seeding helper (a factory-style class in Clients/) and drop or merge the duplicated 409 and missing-id tests, keeping one test per (AC, behaviour).",
+      "reporters": [
+        "review-maintainability-1-5"
+      ],
+      "route": "tester"
+    },
+    {
+      "id": "review-maintainability-1-4",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResponseAssert.cs",
+      "line": 27,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "The old name is rebuilt by string concatenation in about nine places (C# and TS) only so that a repo-wide search for the old name (FR-009) finds no hit. The knowledge of the old names is duplicated and the obfuscation makes the tests harder to read. A path allowlist in the FR-009 check would be simpler.",
+      "evidence": "ResourcesResponseAssert.cs:27 `\"resource\" + \"TypeId\"`; ResourcesDatabaseNamesTests.cs:31 `{ \"resource\" + \"_type\", \"Resource\" + \"Type\" }`; ResourcesUpgradeFromMainTests.cs:34 `\"20260928111659_SoftDelete\" + \"Resource\" + \"TypeUniqueIndex\"` and :37; ResourcesApiDescriptionTests.cs:32-36; resources-api.service.spec.ts:20; schemas-panel.component.spec.ts:99",
+      "suggested_fix": "Declare the legacy names once per test project (one constants class), and let the FR-009 search script exclude those files explicitly.",
+      "rule_candidate": {
+        "kind": "script",
+        "description": "FR-009 old-name search: scan the repo for the old name with an explicit allowlist of the few files that must mention it, instead of forcing concatenated literals."
+      },
+      "reporters": [
+        "review-maintainability-1-4"
+      ],
+      "route": "tester"
+    },
+    {
+      "id": "review-maintainability-1-3",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/GetResourceSchemaTests.cs",
+      "line": 70,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "Two comment lines edited by this rename still use the old vocabulary, so the story's goal (the template is called a schema everywhere) is only half applied on those lines.",
+      "evidence": "GetResourceSchemaTests.cs:70: `// GET /resources/schemas — happy path list (2 types)` ; GetResourceSchemaTests.cs:100: `// GET /resources/schemas/{id} — 404 when type does not exist`",
+      "suggested_fix": "Change to `(2 schemas)` and `404 when schema does not exist`.",
+      "reporters": [
+        "review-maintainability-1-3"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-10",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-r1cleanup-muzcttyu",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.513Z"
+    },
+    {
+      "id": "review-maintainability-1-9",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+      "line": 139,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "Result segment reads `Return404`, while the naming guide's examples and the rest of the Resources suite use `Returns404`. The action segment `CallRemovedSchemaAddresses` is not an operation + entity pair as the guide prescribes.",
+      "evidence": "RemovedTypesAddressesTests.cs:139 `public async Task CallRemovedSchemaAddresses_WithoutToken_Return404()` ; integration-test-naming.md: `DeleteGroup_AsNonOwner_Returns403`",
+      "suggested_fix": "Rename to e.g. `CallRemovedSchemaAddresses_WithoutToken_Returns404`.",
+      "reporters": [
+        "review-maintainability-1-9"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-10",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-r1cleanup-muzcttyu",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.636Z"
+    },
+    {
+      "id": "review-maintainability-1-8",
+      "file": "frontend/src/app/api/ManagementGroups.ts",
+      "line": 14,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "Regenerating the API client brought unrelated churn into a story that only renames Resources. In ManagementGroups.ts the nullable query types changed (`string | null` became `string`, `query` became optional), the error type changed from `any` to ProblemDetails, and `addGroupMember` was moved. In data-contracts.ts interfaces were reordered and a ProblemDetails type was added. This hides the real rename in review and changes ManagementGroups call signatures with no AC behind it.",
+      "evidence": "ManagementGroups.ts:14 `+  MicrosoftAspNetCoreMvcProblemDetails,` ; diff: `-    query: {\\n-      name?: string | null;` / `+    query?: {\\n+      name?: string;` ; `-      any` / `+      MicrosoftAspNetCoreMvcProblemDetails`",
+      "suggested_fix": "Regenerate against the same generator version/config as main, or revert the hunks unrelated to resourceSchemaId / resources/schemas, so the diff of generated files contains only the rename.",
+      "rule_candidate": {
+        "kind": "script",
+        "description": "CI check: regenerate the frontend API client from the current swagger and fail if it differs from the committed files, so generator drift lands in its own commit."
+      },
+      "reporters": [
+        "review-maintainability-1-8"
+      ],
+      "route": "writer",
+      "decision_id": "DEC-8",
+      "closed_by": "owner",
+      "chosen": "Full regeneration (Recommended)",
+      "answer_ref": "toolu_01TCaPZEtKvi8t5L6g5ob8Kw",
+      "closed_at": "2026-10-08T09:24:11.428Z"
+    },
+    {
+      "id": "review-maintainability-1-6",
+      "file": "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
+      "line": 9,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "Dead compatibility shim. The intersection type exists only because the spec was written before the generated contract carried the field. data-contracts.ts in this same diff now declares `resourceSchemaId` on ResourceInstanceRowDto, so the comment is stale and the type adds nothing.",
+      "evidence": "resources-panel.component.spec.ts:7-9: `// ... The intersection keeps the mock valid whether or not the generated contract already declares the field.` `type ResourceRow = ResourceRowDto & { resourceSchemaId?: string };` ; data-contracts.ts: `resourceSchemaId?: string;` in ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto",
+      "suggested_fix": "Remove the intersection and the comment; type the mocks as ResourceRowDto.",
+      "reporters": [
+        "review-maintainability-1-6"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-10",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-r1cleanup-muzcttyu",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.575Z"
+    },
+    {
+      "id": "review-maintainability-1-7",
+      "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+      "line": 25,
+      "severity": "OPINION",
+      "type": "MAINTAINABILITY",
+      "message": "The spec is written to compile 'before and after the rename': it finds the service class by scanning module exports, calls methods by string name, and guesses the create-instance method with a regex. Now that the rename is done this reflection layer is dead flexibility. It hides typos behind run-time errors and loses type checking of the payloads.",
+      "evidence": "resources-api.service.spec.ts:25 `function findServiceClass(): Type<unknown> {` ... `const service = candidates.find((c) => /Service$/.test(c.name)) ?? candidates[0];` ; :134 `const createInstance = methodNames(service).find((n) => /^create/i.test(n) && !/schema/i.test(n));`",
+      "suggested_fix": "Inject ResourcesApiService directly and call getResourceSchemas / createResourceSchema / createResourceInstance with typed arguments.",
+      "reporters": [
+        "review-maintainability-1-7"
+      ],
+      "route": "tester"
+    }
+  ],
+  "demoted": [],
+  "rejected": [],
+  "computed_at": "2026-10-08T09:23:37.193Z",
+  "note": "Conductor 2026-10-08: rebaseline_authorised set on the tester-route findings per DEC-10/DEC-11; opinions 1-2, 1-4, 1-5 (round 1) and architecture-guard-1-1 are owner/backlog items, not for this pass."
+}

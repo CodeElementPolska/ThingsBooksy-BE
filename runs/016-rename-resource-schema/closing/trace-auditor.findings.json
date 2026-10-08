@@ -1,0 +1,318 @@
+{
+  "provenance": {
+    "author_agent": "trace-auditor",
+    "run_id": "016-rename-resource-schema-trace-auditor-muzc2mdv",
+    "story": "016-rename-resource-schema",
+    "phase": "C6",
+    "inputs": [
+      {
+        "path": "runs/016-rename-resource-schema/story.md",
+        "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb"
+      },
+      {
+        "path": "specs/016-rename-resource-schema/spec.md",
+        "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/ac-matrix.json",
+        "sha256": "f8a00e98a2e6c49deeab7a26aabde89d4cb1cb7f572ec8864a043b97d9fb3a2f"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/review/round-1/review-spec-conformance.findings.json",
+        "sha256": "a8ae9413c16987c49573fc6857be9fc2d5891b6c116ef753842d4e37c2c67af2"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "trace-auditor",
+  "round": 1,
+  "scope": {
+    "files": [
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResponseAssert.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/CreateResourceSchemaEndpointTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/UpdateResourceSchemaEndpointTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/SoftDeleteResourceSchemaReadPathTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceInstances/GetResourceInstanceTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/ForeignSchemaFilterTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesDatabaseNamesTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+      "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
+      "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
+      "frontend/src/app/features/groups/services/resources-api.service.spec.ts"
+    ]
+  },
+  "ac_assessment": [
+    {
+      "ac": "AC-1",
+      "tests": [
+        "GetResourceInstance_AsOwner_Returns200WithCorrectData",
+        "CreateResourceSchema_DuplicateNameInGroup_Returns409",
+        "CreateResourceSchema_AsOwner_Returns201WithLocationAndPersistsInDb",
+        "GetResourceSchemas_AsOwner_Returns200WithEverySchemaOfTheGroup",
+        "GetResourceSchema_AsOwner_Returns200WithPropertyDefinitionsFromDb",
+        "UpdateResourceSchema_AsOwner_Returns204AndUpdatesDb",
+        "DeleteResourceSchema_AsOwner_Returns204SoftDeletesAndPublishesEvent",
+        "CreateResourceInstance_WithResourceSchemaId_Returns201AndPersistsInDb",
+        "GetResourceInstances_ByGroup_RowsCarryResourceSchemaId",
+        "GetResourceInstances_FilteredByResourceSchemaId_Returns200WithOnlyThatSchemasInstances",
+        "GetResourceInstances_FilteredByGroupAndResourceSchemaId_Returns200WithOnlyThatSchemasInstances",
+        "GetResourceInstance_AsOwner_BodyCarriesResourceSchemaId",
+        "CreateResourceSchema_WithTakenName_Returns409WithSchemaNameTakenCode",
+        "UpdateResourceSchema_ToTakenName_Returns409WithSchemaNameTakenCode",
+        "GetResourceInstances_IncludeDeletedForSoftDeletedType_ReturnsPropertyValuesWithDefinitionNames",
+        "UpdateResourceSchema_DuplicateAmongOthers_Returns409"
+      ],
+      "verdict": "STRONG",
+      "clauses_unproven": [],
+      "note": "All five schema operations at /resources/schemas and all four instance operations that name a schema are asserted on status, body, a DB re-read and, where they apply, the lifecycle events (schema created/deleted and instance created: exactly one, with their payloads). POST answers 201 with Location /resources/schemas/{id} and { id }. The 409 asserts the bare body with code RESOURCE_SCHEMA_NAME_TAKEN, the unchanged message, and exactly one stored row. CarriesSchemaReference also asserts that the old field name is absent from instance JSON. Non-owner and other-group access is proven under AC-10 and AC-11."
+    },
+    {
+      "ac": "AC-2",
+      "tests": [
+        "CreateResourceSchemaAtRemovedAddress_AsOwner_Returns404AndPersistsNothing",
+        "GetResourceSchemasAtRemovedAddress_AsOwner_Returns404",
+        "GetResourceSchemaAtRemovedAddress_AsOwnerForExistingSchema_Returns404",
+        "UpdateResourceSchemaAtRemovedAddress_AsOwnerForExistingSchema_Returns404AndLeavesSchemaUnchanged",
+        "DeleteResourceSchemaAtRemovedAddress_AsOwnerForExistingSchema_Returns404AndKeepsSchemaActive",
+        "CallRemovedSchemaAddresses_WithoutToken_Return404"
+      ],
+      "verdict": "STRONG",
+      "clauses_unproven": [],
+      "note": "All five old addresses answer 404 for the owner, using ids and data that would be valid at the new address, and for a caller without a token. A DB re-read proves no alias acted: nothing was created, renamed or soft-deleted."
+    },
+    {
+      "ac": "AC-6",
+      "tests": [
+        "GetApiDescription_ResourcesPathsAndModels_ContainNoOldName",
+        "GetApiDescription_ResourcesPathsAndModels_UseResourceSchemaNames"
+      ],
+      "verdict": "STRONG",
+      "clauses_unproven": [],
+      "note": "Every /resources path item (address, operationId, parameters, $refs) and every Resources component (name and raw JSON) is searched case-insensitively for 'ResourceType' (which also covers resourceTypeId), 'resource type' (which also covers 'resource types') and 'resource_type'. The test also asserts the presence of the five operation names, the two request models and resourceSchemaId in the create request, the list row and the list filter."
+    },
+    {
+      "ac": "AC-7",
+      "tests": [
+        "CreateResourceSchema_DuplicateNameInGroup_Returns409",
+        "CreateResourceSchema_WithTakenName_Returns409WithSchemaNameTakenCode",
+        "UpdateResourceSchema_ToTakenName_Returns409WithSchemaNameTakenCode",
+        "UpdateResourceSchema_WithMissingId_Returns400ResourceSchemaNotFound",
+        "DeleteResourceSchema_WithMissingId_Returns400ResourceSchemaNotFound",
+        "CreateResourceInstance_WithMissingSchemaId_Returns400ResourceSchemaNotFound",
+        "GetResourceInstances_FilteredByMissingSchemaIdOnly_Returns400ResourceSchemaNotFound",
+        "CreateResourceSchema_AsNonOwner_Returns403OnlyOwnerMayCreateResourceSchema",
+        "UpdateResourceSchema_AsNonOwner_Returns403OnlyOwnerMayUpdateResourceSchema",
+        "DeleteResourceSchema_AsNonOwner_Returns403OnlyOwnerMayDeleteResourceSchema",
+        "CreateResourceSchema_WithEmptyName_Returns400ResourceSchemaNameCannotBeEmpty",
+        "GetResourceInstances_WithoutGroupAndSchemaFilter_Returns400GroupOrSchemaRequired",
+        "UpdateResourceSchema_DuplicateAmongOthers_Returns409"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "a text search of the module's user-visible messages finds no 'resource type'"
+      ],
+      "note": "Rows 1-7 of the spec's Message list are each asserted with the exact text, status and code, including all four situations of row 1. The second clause of the AC is a search over all user-visible messages of the module. No test performs it: the tests only prove the messages discovery listed, so a message the list missed that still says 'resource type' would pass. The round-1 spec-conformance reviewer checked this with grep, but that is a reviewer observation and no test asserts it. No decision_id closes it."
+    },
+    {
+      "ac": "AC-8",
+      "tests": [
+        "resources-panel.component.spec.ts::shows the column header",
+        "resources-panel.component.spec.ts::renders a table row for each resource and maps resourceSchemaId to schema name",
+        "resources-panel.component.spec.ts::renders",
+        "schemas-panel.component.spec.ts::empty state reads",
+        "schemas-panel.component.spec.ts::add-buttons are labelled",
+        "resources-api.service.spec.ts::getResourceSchemas lists a group's schemas",
+        "resources-api.service.spec.ts::getResourceSchema reads one schema from GET /resources/schemas/{id}",
+        "resources-api.service.spec.ts::createResourceSchema posts to POST /resources/schemas",
+        "resources-api.service.spec.ts::updateResourceSchema puts to PUT /resources/schemas/{id}",
+        "resources-api.service.spec.ts::deleteResourceSchema deletes via DELETE /resources/schemas/{id}",
+        "resources-api.service.spec.ts::creating a resource posts resourceSchemaId to POST /resources/instances"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "creating an instance of the schema from the screen sends resourceSchemaId (proven only at the service boundary, with a payload the test builds itself)",
+        "role: owner: the non-owner path for the renamed 'Add resource to schema <name>' buttons is not asserted in the AC-8 tests"
+      ],
+      "note": "All three DEC-4 texts are asserted exactly (column header 'Schema' and not 'Type'; the empty-state sentence, with the old sentence absent; aria-labels 'Add resource to schema <name>'). Every service method is asserted to hit /resources/schemas with the right HTTP method. The journey 'every step works as before' is proven only per service method. The UI caller that builds the create-instance payload is never run. The sign-in slogan that stays unchanged is a DEC-4 / spec clause, not part of the story's AC-8 text, and no test asserts it (noted, not raised as a finding)."
+    },
+    {
+      "ac": "AC-9",
+      "tests": [
+        "MigrateResourcesDatabase_FromLastMigrationOfMainWithData_KeepsEveryRow"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "the new version of the application starts without errors on the old database (only the migration is run against it; no application host starts on it)"
+      ],
+      "note": "The test seeds a separate database at main's last migration, in the pre-016 shape, including a soft-deleted schema. It then migrates to latest and re-reads every row through the renamed model. It asserts no pending migrations. This is stronger than the AC's 'data may be removed'. Startup itself is inferred from ASM-10 (the application migrates at startup), so it is asserted only indirectly."
+    },
+    {
+      "ac": "AC-10",
+      "tests": [
+        "CreateResourceSchema_AsMember_Returns403AndPersistsNothing",
+        "GetResourceSchemas_AsMember_Returns200WithGroupSchemas",
+        "GetResourceSchema_AsMember_ExistingReturns200AndMissingReturns404",
+        "UpdateResourceSchema_AsMember_Returns403AndLeavesSchemaUnchanged",
+        "UpdateResourceSchema_AsMemberWithMissingId_Returns400ResourceSchemaNotFound",
+        "DeleteResourceSchema_AsMember_Returns403AndKeepsSchemaAndInstancesActive",
+        "DeleteResourceSchema_AsMemberWithMissingId_Returns400ResourceSchemaNotFound",
+        "CreateResourceInstance_AsMember_Returns403AndPersistsNothing",
+        "CreateResourceInstance_AsMemberWithMissingSchemaId_Returns400ResourceSchemaNotFound",
+        "GetResourceInstances_AsMemberFilteredBySchema_Returns200RowsCarryResourceSchemaId",
+        "GetResourceInstances_AsMemberFilteredByGroupAndSchema_Returns200WithOnlyThatSchemasInstances",
+        "GetResourceInstances_AsMemberFilteredByMissingSchema_Returns400ResourceSchemaNotFound",
+        "GetResourceInstances_AsMemberWithIncludeDeleted_Returns200IncludingSoftDeletedInstances",
+        "GetResourceInstance_AsMember_Returns200BodyCarriesResourceSchemaId"
+      ],
+      "verdict": "STRONG",
+      "clauses_unproven": [],
+      "note": "Each of baseline rows 1-15 (member column) is asserted with status, code and exact message (error envelope with exactly one error) or with the body compared against the DB. Refused writes are re-read to prove nothing changed. The DEC-3 row 14 is asserted: exactly 2 rows, the deleted one with deletedAt set."
+    },
+    {
+      "ac": "AC-11",
+      "tests": [
+        "CreateResourceSchema_AsOutsider_Returns403AndPersistsNothing",
+        "GetResourceSchemas_AsOutsider_Returns403WithoutGroupData",
+        "GetResourceSchema_AsOutsider_ExistingReturns403AndMissingReturns404",
+        "UpdateResourceSchema_AsOutsider_Returns403AndLeavesSchemaUnchanged",
+        "UpdateResourceSchema_AsOutsiderWithMissingId_Returns400ResourceSchemaNotFound",
+        "DeleteResourceSchema_AsOutsider_Returns403AndKeepsSchemaAndInstancesActive",
+        "DeleteResourceSchema_AsOutsiderWithMissingId_Returns400ResourceSchemaNotFound",
+        "CreateResourceInstance_AsOutsider_Returns403AndPersistsNothing",
+        "CreateResourceInstance_AsOutsiderWithMissingSchemaId_Returns400ResourceSchemaNotFound",
+        "GetResourceInstances_AsOutsider_EveryInstanceReadReturns403WithoutGroupData",
+        "GetResourceInstances_AsOutsiderFilteredByMissingSchema_Returns400ResourceSchemaNotFound"
+      ],
+      "verdict": "STRONG",
+      "clauses_unproven": [],
+      "note": "Baseline rows 1-15 (outsider column) are covered: rows 11, 12, 14 and 15 in one test. Each refusal asserts status, code and exact message, plus the absence of every group identifier and name in the body. The DEC-3 distinction is asserted: an existing schema answers 403 and a missing one 404 with an empty body on read, 400 'Resource schema not found.' on update, delete, create-instance and the list filter."
+    },
+    {
+      "ac": "AC-12",
+      "tests": [
+        "GetResourceInstances_AsOwnerWithOwnGroupAndForeignSchema_Returns200WithEmptyList",
+        "GetResourceInstances_AsOwnerWithForeignSchemaOnly_Returns403"
+      ],
+      "verdict": "STRONG",
+      "clauses_unproven": [],
+      "note": "Both call shapes are asserted. Own groupId plus the foreign schema gives 200 with empty items and nextCursor explicitly null, and a DB re-read shows that data exists on both sides. The foreign schema alone gives 403 resources_forbidden 'Access to this group is forbidden.' with no foreign data in the body."
+    },
+    {
+      "ac": "AC-13",
+      "tests": [
+        "ListResourcesDatabaseNames_AfterMigrations_ContainNoOldName",
+        "ListResourcesDatabaseNames_AfterMigrations_ContainTheRenamedObjects",
+        "ListResourcesIndexDefinitions_AfterMigrations_SchemaNameIndexKeepsUniqueSoftDeleteFilter"
+      ],
+      "verdict": "STRONG",
+      "clauses_unproven": [],
+      "note": "A catalog query over tables, columns, constraints, indexes and sequences of the 'resources' schema asserts, case-insensitively, that no name contains resource_type or ResourceType. The test also asserts the presence of every new name from spec AC-13, that the DataType column is untouched, and that the renamed unique index keeps its soft-delete filter."
+    },
+    {
+      "ac": "AC-14",
+      "tests": [
+        "MigrateResourcesDatabase_AfterAllMigrations_ModelHasNoPendingChanges"
+      ],
+      "verdict": "WEAK",
+      "clauses_unproven": [
+        "the application starts on a database created from main and then upgraded (the startup and no-pending-changes assertions run against the shared test database, which was migrated from empty)"
+      ],
+      "note": "The test asserts: main's last migration is applied with at least one story migration after it; no pending migrations; HasPendingModelChanges is false; and the host answers /ping with 200. The 'database created from main' precondition is exercised only in the AC-9 test, which upgrades from main but neither starts the host nor checks HasPendingModelChanges. The two tests together cover the AC only indirectly."
+    }
+  ],
+  "findings": [
+    {
+      "id": "trace-auditor-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+      "line": 26,
+      "rule_ref": "AC-7",
+      "severity": "MAJOR",
+      "type": "WEAK_ASSERTION",
+      "message": "The AC-7 clause 'a text search of the module's user-visible messages finds no \"resource type\"' has no assertion. The tests prove only the messages discovery listed. A user-visible message the list missed that still says 'resource type' would pass every mapped test.",
+      "evidence": "ResourceSchemaMessagesTests.cs:26-31 pins only the six listed texts (`private const string SchemaNotFound = \"Resource schema not found.\";` … `GroupOrSchemaRequired = \"Either GroupId or ResourceSchemaId must be provided.\";`), and each test asserts one of them, e.g. ResourceSchemaMessagesTests.cs:63 `await ResourcesResponseAssert.ErrorAsync(response, HttpStatusCode.BadRequest, DomainCode, SchemaNotFound);`. No mapped test enumerates or searches the module's messages beyond this list.",
+      "suggested_fix": "Add an assertion that enumerates every user-visible message of the Resources module and asserts that none contains 'resource type' (case-insensitive). For example: collect the messages of all Resources exception types and the error mapper's outputs through the test assembly, or add a deterministic source check over the module's message literals.",
+      "rule_candidate": {
+        "kind": "script",
+        "description": "Case-insensitive search for 'resource type' in the string literals of Resources exception messages and error-mapper outputs (excluding Migrations); fail on any hit."
+      },
+      "decision_id": "DEC-9",
+      "closed_by": "owner",
+      "chosen": "Accept the T036 journal search as the proof (Recommended)",
+      "answer_ref": "toolu_015BM7AgrkVfE6WbRetAgKCy",
+      "closed_at": "2026-10-08T09:39:02.913Z"
+    },
+    {
+      "id": "trace-auditor-1-2",
+      "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+      "line": 133,
+      "rule_ref": "AC-8",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "The step 'creates an instance of it' (the screen sends resourceSchemaId) is asserted only at the service boundary, with a payload the test builds itself. The UI code that builds the create-instance payload (create-resource modal / store) is never run, so a caller that still sends the old field name would pass. The rest of the AC-8 journey ('every step works as before') is likewise proven only per service method, not through the screens.",
+      "evidence": "resources-api.service.spec.ts:139-151: `method(service, createInstance)({ resourceSchemaId: SCHEMA_ID, name: 'Kayak 1', ... })` then `expect(body['resourceSchemaId']).toBe(SCHEMA_ID); expect(Object.keys(body)).not.toContain(LEGACY_SCHEMA_REFERENCE);`. The test supplies the field itself, so it proves only that the service forwards it.",
+      "suggested_fix": "Add a spec on the component or store that creates a resource (the create-resource modal or the group-context store). It should submit the form for a chosen schema and assert, via HttpTestingController, that POST /resources/instances carries resourceSchemaId equal to the selected schema id and does not carry the old field name.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-closing-muzcgylr",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.132Z"
+    },
+    {
+      "id": "trace-auditor-1-3",
+      "file": "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
+      "line": 116,
+      "rule_ref": "AC-8",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-8 has role: owner, but the AC-8 tests assert the renamed 'Add resource to schema <name>' buttons only with isOwner = true. That a non-owner does not get these buttons is not asserted in the AC-8 tests. It is proven only indirectly: by the backend member/outsider rejections (AC-10, AC-11) and by unmapped isOwner tests that cover other buttons (resources-panel 'Add resource', schemas-panel header 'Add schema').",
+      "evidence": "schemas-panel.component.spec.ts:117-125: `fixture.componentRef.setInput('isOwner', true); ... querySelectorAll('[aria-label^=\"Add resource\"]') ... expect(labels).toEqual(['Add resource to schema Equipment', 'Add resource to schema Room']);`. There is no counterpart with isOwner = false for these labels.",
+      "suggested_fix": "In the same describe block, render the populated panel with isOwner = false and assert that no element with an aria-label starting 'Add resource to schema' is present.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-closing-muzcgylr",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.206Z"
+    },
+    {
+      "id": "trace-auditor-1-4",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+      "line": 118,
+      "rule_ref": "AC-9",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "The AC-9 clause 'the new version of the application starts without errors' on a pre-016 database is asserted only indirectly. The test runs MigrateAsync on a context pointed at the upgraded database and reads the rows back, but it never starts an application host on that database. It relies on ASM-10 (the app migrates at startup) to stand in for startup.",
+      "evidence": "ResourcesUpgradeFromMainTests.cs:115-119: `await using (var db = CreateContextFor(scope, upgradeConnectionString)) { await db.Database.MigrateAsync(); }`, then ResourcesUpgradeFromMainTests.cs:125 `Assert.Empty(await db.Database.GetPendingMigrationsAsync());`. No host or HTTP call targets the upgraded database.",
+      "suggested_fix": "After the upgrade, start the host (or a host built with the same startup path) against the upgraded database and assert that it answers a request, for example /ping 200, plus one Resources read returning the seeded schema. Alternatively, record in the AC-matrix that ASM-10 is the accepted proxy for startup.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-closing-muzcgylr",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.268Z"
+    },
+    {
+      "id": "trace-auditor-1-5",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+      "line": 179,
+      "rule_ref": "AC-14",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-14 requires that 'a database created from main', after this story's migrations, starts the application with no pending model changes. The AC-14 test asserts startup (/ping) and HasPendingModelChanges against the shared test database, which was migrated from empty in one pass, not a database at main's state that was then upgraded. The upgrade-from-main path is exercised only in the AC-9 test, which asserts neither startup nor HasPendingModelChanges. The two tests together prove the AC only indirectly.",
+      "evidence": "ResourcesUpgradeFromMainTests.cs:173-189: `var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>(); ... var hasPendingModelChanges = db.Database.HasPendingModelChanges(); var ping = await Factory.CreateClient().GetAsync(\"/ping\"); ... Assert.Contains(LastMigrationOfMain, applied); ... Assert.Empty(pending); Assert.False(hasPendingModelChanges, ...); Assert.Equal(HttpStatusCode.OK, ping.StatusCode);`. All of these run against the shared database, not one created at LastMigrationOfMain.",
+      "suggested_fix": "In the upgrade test (database at LastMigrationOfMain, then migrated to latest), also assert HasPendingModelChanges() == false on that context and that the application answers on that database (/ping 200). Or state in the matrix that AC-14 is proven jointly by both tests.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-closing-muzcgylr",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.326Z"
+    }
+  ],
+  "summary": {
+    "blockers": 0,
+    "majors": 1,
+    "minors": 4,
+    "opinions": 0
+  }
+}

@@ -136,7 +136,7 @@ public class RemovedTypesAddressesTests : IntegrationTestBase
 
     [Fact]
     [Trait("AC", "AC-2")]
-    public async Task CallRemovedSchemaAddresses_WithoutToken_Return404()
+    public async Task CallRemovedSchemaAddresses_WithoutToken_Returns404()
     {
         // Arrange
         var owner = await _users.CreateUserAsync("r016_anon_owner@test.com");

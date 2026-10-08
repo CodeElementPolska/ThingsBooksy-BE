@@ -138,15 +138,10 @@ public class CreateResourceInstanceTests : IntegrationTestBase
     public async Task CreateResourceInstance_WithoutJwt_Returns401()
     {
         // Arrange — unauthenticated client
-        var anonClient = Factory.CreateClient();
+        var anonClient = ResourcesTestClient.Anonymous(Factory);
 
         // Act
-        var response = await anonClient.PostAsJsonAsync("/resources/instances", new
-        {
-            ResourceSchemaId = Guid.CreateVersion7(),
-            Name = "Should Not Create",
-            PropertyValues = Array.Empty<object>()
-        });
+        var response = await anonClient.CreateResourceInstanceAsync(Guid.CreateVersion7(), "Should Not Create");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

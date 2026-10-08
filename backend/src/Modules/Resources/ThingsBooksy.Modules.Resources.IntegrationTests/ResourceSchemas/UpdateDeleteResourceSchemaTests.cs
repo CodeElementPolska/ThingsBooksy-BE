@@ -98,15 +98,10 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     public async Task UpdateResourceSchema_WithoutJwt_Returns401()
     {
         // Arrange — unauthenticated client
-        var anonClient = Factory.CreateClient();
+        var anonClient = ResourcesTestClient.Anonymous(Factory);
 
         // Act
-        var response = await anonClient.PutAsJsonAsync($"/resources/schemas/{Guid.CreateVersion7()}", new
-        {
-            Name = "Attempt",
-            Description = (string?)null,
-            PropertyDefinitions = Array.Empty<object>()
-        });
+        var response = await anonClient.UpdateResourceSchemaAsync(Guid.CreateVersion7(), "Attempt");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -204,10 +199,10 @@ public class UpdateDeleteResourceSchemaTests : IntegrationTestBase
     public async Task DeleteResourceSchema_WithoutJwt_Returns401()
     {
         // Arrange — unauthenticated client
-        var anonClient = Factory.CreateClient();
+        var anonClient = ResourcesTestClient.Anonymous(Factory);
 
         // Act
-        var response = await anonClient.DeleteAsync($"/resources/schemas/{Guid.CreateVersion7()}");
+        var response = await anonClient.DeleteResourceSchemaAsync(Guid.CreateVersion7());
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

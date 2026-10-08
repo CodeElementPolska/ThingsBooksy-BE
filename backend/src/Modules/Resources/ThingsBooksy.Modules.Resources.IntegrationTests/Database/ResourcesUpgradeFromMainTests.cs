@@ -1,17 +1,26 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using ThingsBooksy.Modules.Resources.Core.DAL;
 using ThingsBooksy.Modules.Resources.Core.Domain;
+using ThingsBooksy.Modules.Resources.Core.ReadModels;
+using ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
+using ThingsBooksy.Shared.Abstractions.Events.ManagementGroups;
 using ThingsBooksy.Shared.Infrastructure.Postgres;
 using ThingsBooksy.Shared.IntegrationTests;
+using ThingsBooksy.Shared.IntegrationTests.Clients;
 using Xunit;
 
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.Database;
@@ -152,6 +161,40 @@ public class ResourcesUpgradeFromMainTests : IntegrationTestBase
                 Assert.Equal(definitionId, value.PropertyDefinitionId);
                 Assert.Equal("Red", value.Value);
             }
+
+            // AC-9 "the new version of the application starts without errors" (review finding
+            // trace-auditor-1-4): start a host of the new version on the upgraded database and read the
+            // old data back through the API.
+
+            // Arrange — the caller owns the upgraded group (group read model seeded through EF on the upgraded database)
+            var owner = await new ResourcesUserFactory(Factory).CreateUserAsync("c016_upgrade_owner@test.com");
+            using (var scope = CreateScope())
+            await using (var db = CreateContextFor(scope, upgradeConnectionString))
+            {
+                db.GroupReadModels.Add(GroupReadModel.Upsert(new GroupCreated(groupId, owner.UserId)));
+                await db.SaveChangesAsync();
+            }
+
+            // Act — the new version starts on the upgraded database and serves a Resources read
+            await using (var upgradedHost = CreateHostOn(upgradeConnectionString))
+            {
+                var ping = await upgradedHost.CreateClient().GetAsync("/ping");
+
+                var ownerOnUpgradedHost = upgradedHost.CreateClient();
+                ownerOnUpgradedHost.DefaultRequestHeaders.Authorization = owner.Client.DefaultRequestHeaders.Authorization;
+                var client = new ResourcesTestClient(Factory, new AuthenticatedUser(ownerOnUpgradedHost, owner.UserId, owner.Email));
+                var response = await client.GetResourceSchemasAsync(groupId);
+
+                // Assert — the host answers and returns the schema created before the upgrade
+                Assert.Equal(HttpStatusCode.OK, ping.StatusCode);
+                var raw = await response.Content.ReadAsStringAsync();
+                Assert.True(response.StatusCode == HttpStatusCode.OK, $"Expected 200 but got {(int)response.StatusCode}. Body: {raw}");
+                var body = JsonSerializer.Deserialize<List<SchemaListItem>>(raw, JsonOptions);
+                Assert.NotNull(body);
+                var listed = Assert.Single(body, s => s.Id == schemaId);
+                Assert.Equal(groupId, listed.GroupId);
+                Assert.Equal("Kayak", listed.Name);
+            }
         }
         finally
         {
@@ -189,9 +232,77 @@ public class ResourcesUpgradeFromMainTests : IntegrationTestBase
         Assert.Equal(HttpStatusCode.OK, ping.StatusCode);
     }
 
+    /// <summary>
+    /// AC-14 on "a database created from main" (review finding trace-auditor-1-5): a database left at
+    /// the last migration of main is upgraded by the new version's own startup path, the host answers
+    /// on it and the model reports no pending change against it.
+    /// </summary>
+    [Fact]
+    [Trait("AC", "AC-14")]
+    public async Task StartApplication_OnDatabaseAtLastMigrationOfMain_UpgradesAnswersAndHasNoPendingModelChanges()
+    {
+        // Arrange — a separate database at the last migration of main
+        var adminConnectionString = GetConnectionString();
+        var databaseName = $"resources_upgrade_{Guid.CreateVersion7():N}";
+        await ExecuteAsync(adminConnectionString, $"CREATE DATABASE \"{databaseName}\"");
+        var upgradeConnectionString = new NpgsqlConnectionStringBuilder(adminConnectionString) { Database = databaseName }.ConnectionString;
+
+        try
+        {
+            using (var scope = CreateScope())
+            await using (var db = CreateContextFor(scope, upgradeConnectionString))
+            {
+                await db.GetService<IMigrator>().MigrateAsync(LastMigrationOfMain);
+                Assert.Contains(LastMigrationOfMain, await db.Database.GetAppliedMigrationsAsync());
+                Assert.NotEmpty(await db.Database.GetPendingMigrationsAsync());
+            }
+
+            // Act — the new version starts on that database (startup runs the module migrations)
+            HttpResponseMessage ping;
+            await using (var upgradedHost = CreateHostOn(upgradeConnectionString))
+            {
+                ping = await upgradedHost.CreateClient().GetAsync("/ping");
+            }
+
+            // Assert — the host answered, the database is at latest and the model has no pending change
+            Assert.Equal(HttpStatusCode.OK, ping.StatusCode);
+            using (var scope = CreateScope())
+            await using (var db = CreateContextFor(scope, upgradeConnectionString))
+            {
+                var applied = (await db.Database.GetAppliedMigrationsAsync()).ToList();
+                Assert.Contains(LastMigrationOfMain, applied);
+                Assert.True(applied.IndexOf(LastMigrationOfMain) < applied.Count - 1,
+                    "Expected at least one Resources migration applied after the last migration of main.");
+                Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+                Assert.False(db.Database.HasPendingModelChanges(), "The Resources model has changes that no migration covers.");
+            }
+        }
+        finally
+        {
+            NpgsqlConnection.ClearAllPools();
+            await ExecuteAsync(adminConnectionString, $"DROP DATABASE IF EXISTS \"{databaseName}\" WITH (FORCE)");
+        }
+    }
+
     // -----------------------------------------------------------------------------------------
     // helpers
     // -----------------------------------------------------------------------------------------
+
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+    private record SchemaListItem(Guid Id, Guid GroupId, string Name);
+
+    /// <summary>
+    /// A second host of the application under test (same configuration and test services as the
+    /// shared fixture) whose Postgres connection string points at <paramref name="connectionString"/>.
+    /// Its startup runs the application's own initializer, which migrates every module's database.
+    /// </summary>
+    private WebApplicationFactory<Program> CreateHostOn(string connectionString)
+        => Factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["postgres:connectionString"] = connectionString,
+            })));
 
     /// <summary>
     /// SQL literal for PropertyDataType.Text as stored by the pre-016 schema (the column may store the

@@ -169,7 +169,7 @@
       },
       {
         "ac": "AC-2",
-        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.RemovedTypesAddressesTests.CallRemovedSchemaAddresses_WithoutToken_Return404",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.ResourceSchemas.RemovedTypesAddressesTests.CallRemovedSchemaAddresses_WithoutToken_Returns404",
         "kind": "be",
         "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
         "line": 139
@@ -287,24 +287,38 @@
     "AC-8": [
       {
         "ac": "AC-8",
+        "id": "create-resource-modal.component.spec.ts::submitting the form for a picked schema posts its id as resourceSchemaId to POST /resources/instances",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/create-resource-modal/create-resource-modal.component.spec.ts",
+        "line": 86
+      },
+      {
+        "ac": "AC-8",
+        "id": "create-resource-modal.component.spec.ts::submitting the form opened from",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/create-resource-modal/create-resource-modal.component.spec.ts",
+        "line": 115
+      },
+      {
+        "ac": "AC-8",
         "id": "resources-panel.component.spec.ts::shows the column header",
         "kind": "fe",
         "file": "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
-        "line": 62
+        "line": 59
       },
       {
         "ac": "AC-8",
         "id": "resources-panel.component.spec.ts::renders a table row for each resource and maps resourceSchemaId to schema name",
         "kind": "fe",
         "file": "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
-        "line": 74
+        "line": 71
       },
       {
         "ac": "AC-8",
         "id": "resources-panel.component.spec.ts::renders",
         "kind": "fe",
         "file": "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
-        "line": 91
+        "line": 88
       },
       {
         "ac": "AC-8",
@@ -319,6 +333,13 @@
         "kind": "fe",
         "file": "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
         "line": 116
+      },
+      {
+        "ac": "AC-8",
+        "id": "schemas-panel.component.spec.ts::add-resource buttons",
+        "kind": "fe",
+        "file": "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
+        "line": 128
       },
       {
         "ac": "AC-8",
@@ -369,7 +390,7 @@
         "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Database.ResourcesUpgradeFromMainTests.MigrateResourcesDatabase_FromLastMigrationOfMainWithData_KeepsEveryRow",
         "kind": "be",
         "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
-        "line": 68
+        "line": 77
       }
     ],
     "AC-10": [
@@ -596,7 +617,14 @@
         "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Database.ResourcesUpgradeFromMainTests.MigrateResourcesDatabase_AfterAllMigrations_ModelHasNoPendingChanges",
         "kind": "be",
         "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
-        "line": 169
+        "line": 212
+      },
+      {
+        "ac": "AC-14",
+        "id": "ThingsBooksy.Modules.Resources.IntegrationTests.Database.ResourcesUpgradeFromMainTests.StartApplication_OnDatabaseAtLastMigrationOfMain_UpgradesAnswersAndHasNoPendingModelChanges",
+        "kind": "be",
+        "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+        "line": 242
       }
     ]
   }

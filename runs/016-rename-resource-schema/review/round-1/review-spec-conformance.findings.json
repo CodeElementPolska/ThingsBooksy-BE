@@ -1,0 +1,130 @@
+{
+  "provenance": {
+    "author_agent": "review-spec-conformance",
+    "run_id": "016-rename-resource-schema-review-spec-conformance-muzbqhmm",
+    "story": "016-rename-resource-schema",
+    "phase": "C5",
+    "inputs": [
+      {
+        "path": "runs/016-rename-resource-schema/review/round-1/diff.patch",
+        "sha256": "28a27a18475407108ad4e0d3cf7164b1ae315175ae40dd945f33cc3ced213dab"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/review/round-1/scope.json",
+        "sha256": "ea8aeb05df0e8391209038fdc00ebe14274bc491a679f38abc7ab91f556282c2"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/story.md",
+        "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb"
+      },
+      {
+        "path": "specs/016-rename-resource-schema/spec.md",
+        "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/contract-next.json",
+        "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/ac-matrix.json",
+        "sha256": "f8a00e98a2e6c49deeab7a26aabde89d4cb1cb7f572ec8864a043b97d9fb3a2f"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/discovery/decisions.jsonl",
+        "sha256": "8f6666a679b8572d4816d6d3577bbea33ee175888065245fb8f1159f334a8d54"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "review-spec-conformance",
+  "round": 1,
+  "scope": {
+    "diff_sha": "456ecff94f591e1ee849c49a7ab4dec927b1b354",
+    "files": [
+      "runs/016-rename-resource-schema/review/round-1/diff.patch",
+      "runs/016-rename-resource-schema/contract-next.json",
+      "runs/016-rename-resource-schema/discovery/decisions.jsonl",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/ResourcesModule.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/CreateResourceInstanceRequest.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/CreateResourceSchemaRequest.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/UpdateResourceSchemaRequest.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceInstanceConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourcePropertyDefinitionConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceSchemaConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Exceptions/ResourcesExceptionToResponseMapper.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceSchema/CreateResourceSchemaCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceSchema/DeleteResourceSchemaCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/UpdateResourceSchema/UpdateResourceSchemaCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstance/GetResourceInstanceQueryResult.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/GetResourceInstancesQueryHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/ResourceInstanceRowDto.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20261007131957_RenameResourceTypeToResourceSchema.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/ResourcesDbContextModelSnapshot.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260511001231_InitResources.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/ForeignSchemaFilterTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResponseAssert.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesDatabaseNamesTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/RemovedTypesAddressesTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaContractTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/CreateResourceSchemaEndpointTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/UpdateResourceSchemaEndpointTests.cs",
+      "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+      "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/ManagementGroups/DeleteManagementGroupTests.cs",
+      "frontend/src/app/api/Resources.ts",
+      "frontend/src/app/api/data-contracts.ts",
+      "frontend/src/app/api/ManagementGroups.ts",
+      "frontend/src/app/features/groups/services/resources-api.service.ts",
+      "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+      "frontend/src/app/features/groups/create-resource-modal/create-resource-modal.component.ts",
+      "frontend/src/app/features/groups/group-context.store.ts",
+      "frontend/src/app/features/groups/group-detail-page/group-detail-page.component.ts",
+      "frontend/src/app/features/groups/resources-panel/resources-panel.component.html",
+      "frontend/src/app/features/groups/resources-panel/resources-panel.component.ts",
+      "frontend/src/app/features/groups/resources-panel/resources-panel.component.spec.ts",
+      "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.html",
+      "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
+      "frontend/src/app/features/schemas/schema-designer-page/schema-designer-page.component.ts",
+      "frontend/src/app/features/auth/auth-page/auth-page.component.html"
+    ]
+  },
+  "findings": [
+    {
+      "id": "review-spec-conformance-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs",
+      "line": 29,
+      "rule_ref": "spec:FR-009",
+      "severity": "MINOR",
+      "type": "SPEC_VIOLATION",
+      "message": "FR-009 says that after the story, a case-insensitive search for `resource[ _]?type` in backend/src finds only the historical migration files of earlier stories and their designer files. This new acceptance-test file still has one hit, in a doc comment. The comment itself claims the opposite: that the old names are built by concatenation so the search finds nothing in this file. No other file outside the migrations matches, and no production code or user-visible text is affected. Severity is MINOR, not BLOCKER, because FR-009 is a functional requirement and not an AC, decision or contract clause (AC-6, AC-7 and AC-13 do not cover test source). The file is a hashed acceptance-test file (red-first), so fixing it requires a rebaseline decision like DEC-7. Side note on the same rule: the story's own migration (20261007131957_RenameResourceTypeToResourceSchema.cs and its Designer) has to contain the old names in order to rename them. FR-009 as written ('earlier stories' only) does not allow for that. This is a gap in the spec text, not a code defect; the owner should widen FR-009 to include this story's migration.",
+      "evidence": "ResourcesApiDescriptionTests.cs:29: `/// the old name (FR-009) finds no hit in this file. \"resource type\" also covers \"resource types\";` (Grep `(?i)resource[ _]?type` over backend/src: hits only in Migrations/* and this line)",
+      "suggested_fix": "Reword the comment so it does not contain the old phrase. Apply this through the acceptance-test rebaseline path, because the file is hashed.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-r1cleanup-muzcttyu",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.384Z"
+    }
+  ],
+  "summary": {
+    "blockers": 0,
+    "majors": 0,
+    "minors": 1,
+    "opinions": 0
+  },
+  "verification_notes": [
+    "AC-1 / AC-2 / FR-001 / FR-003: ResourcesModule.cs maps all five schema operations only at /resources/schemas and /resources/schemas/{id:guid}. The operation names are Create/Get/Update/Delete resource schema(s), and POST returns Created(/resources/schemas/{id}, { id }). The /resources/types routes are removed and no alias is left. The instance list parameter, the create request and the row/single DTOs are renamed to ResourceSchemaId.",
+    "DEC-2: ResourcesExceptionToResponseMapper.cs:13 returns code RESOURCE_SCHEMA_NAME_TAKEN with the message unchanged.",
+    "AC-7: all six messages from the spec's message list are updated word for word in the handlers. Check order is unchanged (empty-name check before the owner check in CreateResourceSchemaCommandHandler). No 'resource type' text is left in Resources production code.",
+    "AC-8 / DEC-4: the three texts are changed exactly as specified (resources-panel.component.html:33, schemas-panel.component.html:22 and :53). The sign-in slogan is kept (auth-page.component.html:33). The service, store, modal, detail page and schema designer use /resources/schemas and resourceSchemaId. frontend/src has no other old-name hits.",
+    "AC-9 / AC-13 / DEC-1 / DEC-6: the migration is rename-only (RenameTable, RenameColumn x2, RenameIndex x2) plus drop/re-add of the PK and FK. The FK name FK_resource_property_definitions_resource_schemas matches ResourceSchemaConfiguration.HasConstraintName and the model snapshot. InitResources has no other old-name object, so nothing is left unrenamed.",
+    "Contract: the routes, request models, the resourceSchemaId field and the query parameter match contract-next.json. The generated client files under frontend/src/app/api were fully regenerated per DEC-8, so the unrelated ManagementGroups/ProblemDetails changes are covered by that decision and not reported.",
+    "No weak assertion found: the AC-2, AC-6, AC-7, AC-10, AC-11, AC-12, AC-13, AC-9/14 and AC-8 tests assert status, code, message, body and database state tightly enough that a violation of their AC would fail them.",
+    "Outside the diff, not a code finding: generated/capability-map.json still names /resources/types. It is a generated artifact; regenerate it at close."
+  ]
+}

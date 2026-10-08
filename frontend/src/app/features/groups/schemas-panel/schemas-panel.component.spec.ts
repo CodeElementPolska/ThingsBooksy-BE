@@ -124,6 +124,18 @@ describe('SchemasPanelComponent', () => {
 
       expect(labels).toEqual(['Add resource to schema Equipment', 'Add resource to schema Room']);
     });
+
+    it('[AC-8] add-resource buttons "Add resource to schema <name>" are not rendered for a non-owner', () => {
+      fixture.componentRef.setInput('schemas', MOCK_SCHEMAS);
+      fixture.componentRef.setInput('isOwner', false);
+      fixture.detectChanges();
+
+      const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('.schemas-panel__row');
+      const addButtons = (fixture.nativeElement as HTMLElement).querySelectorAll('[aria-label^="Add resource to schema"]');
+
+      expect(rows.length).toBe(MOCK_SCHEMAS.length);
+      expect(addButtons.length).toBe(0);
+    });
   });
 
   describe('owner visibility', () => {

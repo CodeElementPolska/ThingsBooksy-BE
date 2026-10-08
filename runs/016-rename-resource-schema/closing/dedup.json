@@ -1,0 +1,155 @@
+{
+  "story": "016-rename-resource-schema",
+  "round": 1,
+  "reviewers": [
+    "architecture-guard",
+    "trace-auditor"
+  ],
+  "verdict": "DECISIONS_REQUIRED",
+  "escalation_reason": null,
+  "summary": {
+    "blockers": 0,
+    "majors": 1,
+    "minors": 4,
+    "opinions": 1,
+    "merged_duplicates": 0,
+    "routes": {
+      "writer": 0,
+      "tester": 1,
+      "owner": 0
+    }
+  },
+  "previous_summary": null,
+  "findings": [
+    {
+      "id": "trace-auditor-1-1",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ResourceSchemas/ResourceSchemaMessagesTests.cs",
+      "line": 26,
+      "rule_ref": "AC-7",
+      "severity": "MAJOR",
+      "type": "WEAK_ASSERTION",
+      "message": "The AC-7 clause 'a text search of the module's user-visible messages finds no \"resource type\"' has no assertion. The tests prove only the messages discovery listed. A user-visible message the list missed that still says 'resource type' would pass every mapped test.",
+      "evidence": "ResourceSchemaMessagesTests.cs:26-31 pins only the six listed texts (`private const string SchemaNotFound = \"Resource schema not found.\";` … `GroupOrSchemaRequired = \"Either GroupId or ResourceSchemaId must be provided.\";`), and each test asserts one of them, e.g. ResourceSchemaMessagesTests.cs:63 `await ResourcesResponseAssert.ErrorAsync(response, HttpStatusCode.BadRequest, DomainCode, SchemaNotFound);`. No mapped test enumerates or searches the module's messages beyond this list.",
+      "suggested_fix": "Add an assertion that enumerates every user-visible message of the Resources module and asserts that none contains 'resource type' (case-insensitive). For example: collect the messages of all Resources exception types and the error mapper's outputs through the test assembly, or add a deterministic source check over the module's message literals.",
+      "rule_candidate": {
+        "kind": "script",
+        "description": "Case-insensitive search for 'resource type' in the string literals of Resources exception messages and error-mapper outputs (excluding Migrations); fail on any hit."
+      },
+      "reporters": [
+        "trace-auditor-1-1"
+      ],
+      "route": "tester",
+      "decision_id": "DEC-9",
+      "closed_by": "owner",
+      "chosen": "Accept the T036 journal search as the proof (Recommended)",
+      "answer_ref": "toolu_015BM7AgrkVfE6WbRetAgKCy",
+      "closed_at": "2026-10-08T09:39:02.913Z"
+    },
+    {
+      "id": "trace-auditor-1-4",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+      "line": 118,
+      "rule_ref": "AC-9",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "The AC-9 clause 'the new version of the application starts without errors' on a pre-016 database is asserted only indirectly. The test runs MigrateAsync on a context pointed at the upgraded database and reads the rows back, but it never starts an application host on that database. It relies on ASM-10 (the app migrates at startup) to stand in for startup.",
+      "evidence": "ResourcesUpgradeFromMainTests.cs:115-119: `await using (var db = CreateContextFor(scope, upgradeConnectionString)) { await db.Database.MigrateAsync(); }`, then ResourcesUpgradeFromMainTests.cs:125 `Assert.Empty(await db.Database.GetPendingMigrationsAsync());`. No host or HTTP call targets the upgraded database.",
+      "suggested_fix": "After the upgrade, start the host (or a host built with the same startup path) against the upgraded database and assert that it answers a request, for example /ping 200, plus one Resources read returning the seeded schema. Alternatively, record in the AC-matrix that ASM-10 is the accepted proxy for startup.",
+      "reporters": [
+        "trace-auditor-1-4"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-11",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-closing-muzcgylr",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.268Z"
+    },
+    {
+      "id": "trace-auditor-1-5",
+      "file": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+      "line": 179,
+      "rule_ref": "AC-14",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-14 requires that 'a database created from main', after this story's migrations, starts the application with no pending model changes. The AC-14 test asserts startup (/ping) and HasPendingModelChanges against the shared test database, which was migrated from empty in one pass, not a database at main's state that was then upgraded. The upgrade-from-main path is exercised only in the AC-9 test, which asserts neither startup nor HasPendingModelChanges. The two tests together prove the AC only indirectly.",
+      "evidence": "ResourcesUpgradeFromMainTests.cs:173-189: `var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>(); ... var hasPendingModelChanges = db.Database.HasPendingModelChanges(); var ping = await Factory.CreateClient().GetAsync(\"/ping\"); ... Assert.Contains(LastMigrationOfMain, applied); ... Assert.Empty(pending); Assert.False(hasPendingModelChanges, ...); Assert.Equal(HttpStatusCode.OK, ping.StatusCode);`. All of these run against the shared database, not one created at LastMigrationOfMain.",
+      "suggested_fix": "In the upgrade test (database at LastMigrationOfMain, then migrated to latest), also assert HasPendingModelChanges() == false on that context and that the application answers on that database (/ping 200). Or state in the matrix that AC-14 is proven jointly by both tests.",
+      "reporters": [
+        "trace-auditor-1-5"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-11",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-closing-muzcgylr",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.326Z"
+    },
+    {
+      "id": "trace-auditor-1-3",
+      "file": "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.spec.ts",
+      "line": 116,
+      "rule_ref": "AC-8",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "AC-8 has role: owner, but the AC-8 tests assert the renamed 'Add resource to schema <name>' buttons only with isOwner = true. That a non-owner does not get these buttons is not asserted in the AC-8 tests. It is proven only indirectly: by the backend member/outsider rejections (AC-10, AC-11) and by unmapped isOwner tests that cover other buttons (resources-panel 'Add resource', schemas-panel header 'Add schema').",
+      "evidence": "schemas-panel.component.spec.ts:117-125: `fixture.componentRef.setInput('isOwner', true); ... querySelectorAll('[aria-label^=\"Add resource\"]') ... expect(labels).toEqual(['Add resource to schema Equipment', 'Add resource to schema Room']);`. There is no counterpart with isOwner = false for these labels.",
+      "suggested_fix": "In the same describe block, render the populated panel with isOwner = false and assert that no element with an aria-label starting 'Add resource to schema' is present.",
+      "reporters": [
+        "trace-auditor-1-3"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-11",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-closing-muzcgylr",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.206Z"
+    },
+    {
+      "id": "trace-auditor-1-2",
+      "file": "frontend/src/app/features/groups/services/resources-api.service.spec.ts",
+      "line": 133,
+      "rule_ref": "AC-8",
+      "severity": "MINOR",
+      "type": "WEAK_ASSERTION",
+      "message": "The step 'creates an instance of it' (the screen sends resourceSchemaId) is asserted only at the service boundary, with a payload the test builds itself. The UI code that builds the create-instance payload (create-resource modal / store) is never run, so a caller that still sends the old field name would pass. The rest of the AC-8 journey ('every step works as before') is likewise proven only per service method, not through the screens.",
+      "evidence": "resources-api.service.spec.ts:139-151: `method(service, createInstance)({ resourceSchemaId: SCHEMA_ID, name: 'Kayak 1', ... })` then `expect(body['resourceSchemaId']).toBe(SCHEMA_ID); expect(Object.keys(body)).not.toContain(LEGACY_SCHEMA_REFERENCE);`. The test supplies the field itself, so it proves only that the service forwards it.",
+      "suggested_fix": "Add a spec on the component or store that creates a resource (the create-resource modal or the group-context store). It should submit the form for a chosen schema and assert, via HttpTestingController, that POST /resources/instances carries resourceSchemaId equal to the selected schema id and does not carry the old field name.",
+      "reporters": [
+        "trace-auditor-1-2"
+      ],
+      "route": "tester",
+      "rebaseline_authorised": "REBASELINE authorised by the owner (DEC-10 fix both MINORs and the cheap opinions; DEC-11 tester adds the four tests now): the files listed in tests/red-first.json may be edited for exactly what this finding names - no assertion weakened, no AC tag or test title changed; new tests are additive. The conductor recomputes acceptance_tests_hash (red-first-prover) and journals REBASELINE afterwards.",
+      "decision_id": "DEC-11",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-closing-muzcgylr",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:54:29.132Z"
+    },
+    {
+      "id": "architecture-guard-1-1",
+      "file": "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+      "line": 128,
+      "severity": "OPINION",
+      "type": "ARCHITECTURE",
+      "message": "The ManagementGroups integration-test project reads the Resources module's tables directly with hard-coded raw SQL, so this story's table rename in the Resources module forced an edit in another module's tests. The pattern was already there and has no project or type reference, so the module-boundary rules in constitution#I and #IV (which are about module code) are not clearly broken. Still, every later physical rename in the Resources schema will break ManagementGroups tests silently, at runtime and not at compile time. Owner to consider whether cross-module cascade assertions should go through the owning module's API or a shared end-to-end test project instead.",
+      "evidence": "ManagementGroupsTestClient.cs:106 `// --- Resources schema DB helpers (raw SQL — no cross-module type import) ---`; :128 `\"\"\"SELECT COUNT(1) FROM resources.resource_schemas WHERE \"GroupId\" = @groupId\"\"\"`; :140 `FROM resources.resource_instances`; DeleteManagementGroupTests.cs:89 `owner.Client.PostAsJsonAsync(\"/resources/schemas\", ...)`",
+      "suggested_fix": "Optional: move the GroupDeleted cascade assertions into Resources.IntegrationTests, where the module owns its table names. Or add a cross-module end-to-end test project so one module's tests do not depend on another module's physical schema.",
+      "rule_candidate": {
+        "kind": "arch-test",
+        "description": "Scan the source of each <Module>.IntegrationTests project for SQL string literals that name a schema other than the module's own snake_case schema (e.g. 'FROM resources.' inside ManagementGroups.IntegrationTests) and report them."
+      },
+      "reporters": [
+        "architecture-guard-1-1"
+      ],
+      "route": "tester"
+    }
+  ],
+  "demoted": [],
+  "rejected": [],
+  "computed_at": "2026-10-08T09:32:57.928Z",
+  "note": "Conductor 2026-10-08: rebaseline_authorised set on the tester-route findings per DEC-10/DEC-11; opinions 1-2, 1-4, 1-5 (round 1) and architecture-guard-1-1 are owner/backlog items, not for this pass."
+}

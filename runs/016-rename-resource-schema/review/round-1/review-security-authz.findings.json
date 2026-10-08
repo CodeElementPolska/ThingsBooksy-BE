@@ -1,0 +1,63 @@
+{
+  "provenance": {
+    "author_agent": "review-security-authz",
+    "run_id": "016-rename-resource-schema-review-security-authz-muzbqhoo",
+    "story": "016-rename-resource-schema",
+    "phase": "C5",
+    "inputs": [
+      { "path": "runs/016-rename-resource-schema/review/round-1/diff.patch", "sha256": "28a27a18475407108ad4e0d3cf7164b1ae315175ae40dd945f33cc3ced213dab" },
+      { "path": "runs/016-rename-resource-schema/review/round-1/scope.json", "sha256": "ea8aeb05df0e8391209038fdc00ebe14274bc491a679f38abc7ab91f556282c2" },
+      { "path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb" },
+      { "path": "specs/016-rename-resource-schema/spec.md", "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a" },
+      { "path": "runs/016-rename-resource-schema/contract-next.json", "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4" }
+    ],
+    "schema_version": "1"
+  },
+  "reviewer": "review-security-authz",
+  "round": 1,
+  "scope": {
+    "diff_sha": "456ecff94f591e1ee849c49a7ab4dec927b1b354",
+    "files": [
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/ResourcesModule.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/CreateResourceInstanceRequest.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/CreateResourceSchemaRequest.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/UpdateResourceSchemaRequest.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceInstanceConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourcePropertyDefinitionConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceSchemaConfiguration.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Exceptions/ResourcesExceptionToResponseMapper.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceSchema/CreateResourceSchemaCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceSchema/DeleteResourceSchemaCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/UpdateResourceSchema/UpdateResourceSchemaCommandHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstance/GetResourceInstanceQueryResult.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/GetResourceInstancesQueryHandler.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/DataProviders/GetResourceInstancesQueryDataProvider.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/ResourceInstanceRowDto.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20261007131957_RenameResourceTypeToResourceSchema.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260511001231_InitResources.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20260514155140_AddResourceTypeUniqueAndCursorIndexes.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/ResourcesDbContextModelSnapshot.cs",
+      "backend/src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.IntegrationTests/Clients/ManagementGroupsTestClient.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesTestClient.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Clients/ResourcesResourceInstanceFactory.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Database/ResourcesUpgradeFromMainTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/MemberAccessBaselineTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/OutsiderAccessBaselineTests.cs",
+      "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Access/ForeignSchemaFilterTests.cs",
+      "frontend/src/app/api/ManagementGroups.ts",
+      "frontend/src/app/api/Resources.ts",
+      "frontend/src/app/api/data-contracts.ts",
+      "frontend/src/app/features/groups/services/resources-api.service.ts",
+      "frontend/src/app/features/groups/create-resource-modal/create-resource-modal.component.ts",
+      "frontend/src/app/features/groups/group-context.store.ts",
+      "frontend/src/app/features/groups/group-detail-page/group-detail-page.component.ts",
+      "frontend/src/app/features/groups/resources-panel/resources-panel.component.ts",
+      "frontend/src/app/features/groups/resources-panel/resources-panel.component.html",
+      "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.html",
+      "frontend/src/app/features/schemas/schema-designer-page/schema-designer-page.component.ts"
+    ]
+  },
+  "findings": [],
+  "summary": { "blockers": 0, "majors": 0, "minors": 0, "opinions": 0 }
+}

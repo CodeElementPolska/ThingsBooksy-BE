@@ -117,15 +117,10 @@ public class CreateResourceSchemaTests : IntegrationTestBase
     public async Task CreateResourceSchema_WithoutJwt_Returns401()
     {
         // Arrange — unauthenticated client (no Bearer token)
-        var anonClient = Factory.CreateClient();
+        var anonClient = ResourcesTestClient.Anonymous(Factory);
 
         // Act
-        var response = await anonClient.PostAsJsonAsync("/resources/schemas", new
-        {
-            GroupId = Guid.CreateVersion7(),
-            Name = "Should Not Create",
-            PropertyDefinitions = Array.Empty<object>()
-        });
+        var response = await anonClient.CreateResourceSchemaAsync(Guid.CreateVersion7(), "Should Not Create");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

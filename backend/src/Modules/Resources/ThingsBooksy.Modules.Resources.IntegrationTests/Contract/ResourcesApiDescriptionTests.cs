@@ -26,7 +26,7 @@ public class ResourcesApiDescriptionTests : IntegrationTestBase
 
     /// <summary>
     /// The old names searched for (AC-6). Built by concatenation so that a repository-wide search for
-    /// the old name (FR-009) finds no hit in this file. "resource type" also covers "resource types";
+    /// the old name (FR-009) finds no hit in this file. The spaced form also covers its plural;
     /// the camel-case form also covers the old field / parameter name.
     /// </summary>
     private static readonly string[] OldNames =

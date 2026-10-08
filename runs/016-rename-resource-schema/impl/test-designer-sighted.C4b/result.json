@@ -1,0 +1,31 @@
+{
+  "provenance": {
+    "author_agent": "test-designer-sighted",
+    "run_id": "016-rename-resource-schema-test-designer-sighted-muzblrmq",
+    "story": "016-rename-resource-schema",
+    "phase": "C4b",
+    "inputs": [
+      { "path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb" },
+      { "path": "specs/016-rename-resource-schema/spec.md", "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a" },
+      { "path": "specs/016-rename-resource-schema/tasks.md", "sha256": "6a364140c211bab1dd5980c35337bb13040d45bb297ec5e1839113a314a80128" },
+      { "path": "runs/016-rename-resource-schema/coverage-gaps.json", "sha256": "1473f845360bebb9974d13744254b4963132610d917987f06318e0b6b6887111" },
+      { "path": "runs/016-rename-resource-schema/ac-matrix.json", "sha256": "f8a00e98a2e6c49deeab7a26aabde89d4cb1cb7f572ec8864a043b97d9fb3a2f" },
+      { "path": "runs/016-rename-resource-schema/tests/red-first.json", "sha256": "c3e4dccf4eb277f705c178c3965e1d21b9a669c73ccd31b9a7541c95669c9694" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T035"],
+  "tasks_remaining": [],
+  "files_changed": [],
+  "assumptions": [],
+  "decisions_needed": [],
+  "local_checks": { "build": "PASSED", "unit_tests": "PASSED", "format": "SKIPPED" },
+  "schema_changes": "NONE",
+  "notes": [
+    "coverage-gaps.json has 0 gaps: 0 uncovered lines and 0 partial branches across the 15 changed production files (32 changed lines show up in coverage). No AC, UNSPECIFIED or unreachable gap needed classifying.",
+    "tasks.md names one test task for this phase, T035 (the sighted pass over the coverage-gap report). It names no further concrete tests, so with no gaps it is done without new tests. No test files were added or changed, and the blind-pass files (red-first.json hash) are untouched.",
+    "dotnet test backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests: build succeeded; Passed 150, Failed 0, Skipped 0.",
+    "Not tested and outside this phase's scope (spec Edge Cases, behaviour through unchanged branches): (1) a stale create-instance body with resourceTypeId gets 400 'Resource schema not found.'; (2) a list call with resourceTypeId as its only filter gets 400 'Either GroupId or ResourceSchemaId must be provided.'; (3) an empty schema name sent by a non-owner gets 400, not 403. A grep of the Resources IntegrationTests found no test for (1) or (2); 401-without-token tests already exist for every Resources address. The conductor or owner may add these under AC-7 / AC-10 in a later pass if wanted."
+  ]
+}

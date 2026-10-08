@@ -4,11 +4,8 @@ import { ResourcesPanelComponent } from './resources-panel.component';
 import { ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto as ResourceRowDto } from '../../../api/data-contracts';
 import { SchemaSummary } from '../group-context.store';
 
-// Story 016: list rows carry the schema reference as `resourceSchemaId`. The intersection keeps the
-// mock valid whether or not the generated contract already declares the field.
-type ResourceRow = ResourceRowDto & { resourceSchemaId?: string };
-
-const mockResources: ResourceRow[] = [
+// Story 016: list rows carry the schema reference as `resourceSchemaId`.
+const mockResources: ResourceRowDto[] = [
   {
     id: 'res-1',
     resourceSchemaId: 'schema-a',
@@ -89,7 +86,7 @@ describe('ResourcesPanelComponent', () => {
     });
 
     it('[AC-8] renders "—" for schema when resourceSchemaId does not match any schema', () => {
-      const resources: ResourceRow[] = [
+      const resources: ResourceRowDto[] = [
         { id: 'res-x', resourceSchemaId: 'unknown-schema', name: 'Orphan' },
       ];
       fixture.componentRef.setInput('resources', resources);

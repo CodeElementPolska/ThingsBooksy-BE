@@ -67,7 +67,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/schemas — happy path list (2 types)
+    // GET /resources/schemas — happy path list (2 schemas)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -97,7 +97,7 @@ public class GetResourceSchemaTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // GET /resources/schemas/{id} — 404 when type does not exist
+    // GET /resources/schemas/{id} — 404 when schema does not exist
     // -----------------------------------------------------------------------------------------
 
     [Fact]
@@ -124,11 +124,11 @@ public class GetResourceSchemaTests : IntegrationTestBase
     public async Task GetResourceSchema_WithoutJwt_Returns401()
     {
         // Arrange — unauthenticated client
-        var anonClient = Factory.CreateClient();
+        var anonClient = ResourcesTestClient.Anonymous(Factory);
         var unknownId = Guid.CreateVersion7();
 
         // Act
-        var response = await anonClient.GetAsync($"/resources/schemas/{unknownId}");
+        var response = await anonClient.GetResourceSchemaAsync(unknownId);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -142,10 +142,10 @@ public class GetResourceSchemaTests : IntegrationTestBase
     public async Task GetResourceSchemas_WithoutJwt_Returns401()
     {
         // Arrange — unauthenticated client
-        var anonClient = Factory.CreateClient();
+        var anonClient = ResourcesTestClient.Anonymous(Factory);
 
         // Act
-        var response = await anonClient.GetAsync($"/resources/schemas?groupId={Guid.CreateVersion7()}");
+        var response = await anonClient.GetResourceSchemasAsync(Guid.CreateVersion7());
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

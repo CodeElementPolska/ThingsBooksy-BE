@@ -36,8 +36,8 @@ export class ResourcesPanelComponent {
   readonly loadMore: OutputEmitterRef<void> = output<void>();
   readonly addResource: OutputEmitterRef<void> = output<void>();
 
-  getSchemaName(resourceTypeId: string | null | undefined): string {
-    if (!resourceTypeId) return '—';
-    return this.schemas().find(s => s.id === resourceTypeId)?.name ?? '—';
+  getSchemaName(resourceSchemaId: string | null | undefined): string {
+    if (!resourceSchemaId) return '—';
+    return this.schemas().find(s => s.id === resourceSchemaId)?.name ?? '—';
   }
 }

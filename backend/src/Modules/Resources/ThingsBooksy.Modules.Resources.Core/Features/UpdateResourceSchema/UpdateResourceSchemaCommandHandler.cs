@@ -26,12 +26,12 @@ internal sealed class UpdateResourceSchemaCommandHandler : ICommandHandler<Updat
         var resourceSchema = await _dataProvider.GetResourceSchemaWithDefinitionsAsync(command.SchemaId, cancellationToken);
 
         if (resourceSchema is null)
-            throw new ResourcesDomainException("Resource type not found.");
+            throw new ResourcesDomainException("Resource schema not found.");
 
         var group = await _dataProvider.GetGroupAsync(resourceSchema.GroupId, cancellationToken);
 
         if (group is null || group.OwnerId != command.RequesterId)
-            throw new ResourcesForbiddenException("Only the group owner may update a resource type.");
+            throw new ResourcesForbiddenException("Only the group owner may update a resource schema.");
 
         var normalizedName = command.Name.Trim();
         var nameExists = await _dataProvider.ExistsByGroupAndNameAsync(resourceSchema.GroupId, normalizedName, excludeId: command.SchemaId, cancellationToken);

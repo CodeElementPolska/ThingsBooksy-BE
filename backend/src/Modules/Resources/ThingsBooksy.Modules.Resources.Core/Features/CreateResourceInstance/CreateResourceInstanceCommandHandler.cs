@@ -31,7 +31,7 @@ internal sealed class CreateResourceInstanceCommandHandler : ICommandHandler<Cre
         var resourceSchema = await _dataProvider.GetResourceSchemaAsync(command.ResourceSchemaId, cancellationToken);
 
         if (resourceSchema is null)
-            throw new ResourcesDomainException("Resource type not found.");
+            throw new ResourcesDomainException("Resource schema not found.");
 
         var group = await _dataProvider.GetGroupAsync(resourceSchema.GroupId, cancellationToken);
 

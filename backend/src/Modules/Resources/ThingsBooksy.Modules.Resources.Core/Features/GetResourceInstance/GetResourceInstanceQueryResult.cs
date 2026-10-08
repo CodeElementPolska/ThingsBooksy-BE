@@ -6,7 +6,7 @@ namespace ThingsBooksy.Modules.Resources.Core.Features.GetResourceInstance;
 
 internal record GetResourceInstanceQueryResult(
     Guid Id,
-    Guid ResourceTypeId,
+    Guid ResourceSchemaId,
     Guid GroupId,
     string Name,
     string? Description,

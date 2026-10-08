@@ -1,0 +1,12 @@
+{
+  "story": "016-rename-resource-schema",
+  "status": "CLEAR",
+  "missing_in_implementation": [],
+  "unspecified_in_contract": [],
+  "response_code_drift": [],
+  "semantic": {
+    "breaking": [],
+    "nonBreaking": [],
+    "unclassified": []
+  }
+}

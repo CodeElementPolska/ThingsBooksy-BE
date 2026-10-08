@@ -17,6 +17,16 @@ export enum ThingsBooksyModulesResourcesCoreDomainPropertyDataType {
   Value2 = 2,
 }
 
+export interface MicrosoftAspNetCoreMvcProblemDetails {
+  type?: string | null;
+  title?: string | null;
+  /** @format int32 */
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+}
+
 export interface ThingsBooksyModulesManagementGroupsApiRequestsAddGroupMemberRequest {
   email?: string | null;
 }
@@ -31,11 +41,23 @@ export interface ThingsBooksyModulesManagementGroupsApiRequestsUpdateManagementG
   description?: string | null;
 }
 
-export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupModelsResultsManagementGroupMemberResult {
+export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGetGroupMembersQueryResult {
+  items?:
+    | ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGroupMemberDto[]
+    | null;
+  /** @format uuid */
+  nextCursor?: string | null;
+}
+
+export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGroupMemberDto {
+  /** @format uuid */
+  memberId?: string;
   /** @format uuid */
   userId?: string;
+  email?: string | null;
   /** @format date-time */
   joinedAt?: string;
+  isOwner?: boolean;
 }
 
 export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupGetManagementGroupQueryResult {
@@ -54,21 +76,11 @@ export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGro
     | null;
 }
 
-export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGroupMemberDto {
-  /** @format uuid */
-  memberId?: string;
+export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupModelsResultsManagementGroupMemberResult {
   /** @format uuid */
   userId?: string;
-  email?: string | null;
   /** @format date-time */
   joinedAt?: string;
-  isOwner?: boolean;
-}
-
-export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGetGroupMembersQueryResult {
-  items?: ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGroupMemberDto[] | null;
-  /** @format uuid */
-  nextCursor?: string | null;
 }
 
 export interface ThingsBooksyModulesManagementGroupsCoreFeaturesIsGroupNameAvailableIsGroupNameAvailableQueryResult {
@@ -77,7 +89,7 @@ export interface ThingsBooksyModulesManagementGroupsCoreFeaturesIsGroupNameAvail
 
 export interface ThingsBooksyModulesResourcesApiRequestsCreateResourceInstanceRequest {
   /** @format uuid */
-  resourceTypeId?: string;
+  resourceSchemaId?: string;
   name?: string | null;
   description?: string | null;
   propertyValues?:
@@ -85,7 +97,7 @@ export interface ThingsBooksyModulesResourcesApiRequestsCreateResourceInstanceRe
     | null;
 }
 
-export interface ThingsBooksyModulesResourcesApiRequestsCreateResourceTypeRequest {
+export interface ThingsBooksyModulesResourcesApiRequestsCreateResourceSchemaRequest {
   /** @format uuid */
   groupId?: string;
   name?: string | null;
@@ -129,7 +141,7 @@ export interface ThingsBooksyModulesResourcesApiRequestsUpdateResourceInstanceRe
     | null;
 }
 
-export interface ThingsBooksyModulesResourcesApiRequestsUpdateResourceTypeRequest {
+export interface ThingsBooksyModulesResourcesApiRequestsUpdateResourceSchemaRequest {
   name?: string | null;
   description?: string | null;
   propertyDefinitions?:
@@ -145,11 +157,19 @@ export interface ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstanceMode
   value?: string | null;
 }
 
+export interface ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesGetResourceInstancesQueryResult {
+  items?:
+    | ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto[]
+    | null;
+  /** @format uuid */
+  nextCursor?: string | null;
+}
+
 export interface ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto {
   /** @format uuid */
   id?: string;
   /** @format uuid */
-  resourceTypeId?: string;
+  resourceSchemaId?: string;
   /** @format uuid */
   groupId?: string;
   name?: string | null;
@@ -163,14 +183,6 @@ export interface ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesRes
   propertyValues?:
     | ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstanceModelsPropertyValueResult[]
     | null;
-}
-
-export interface ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesGetResourceInstancesQueryResult {
-  items?:
-    | ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto[]
-    | null;
-  /** @format uuid */
-  nextCursor?: string | null;
 }
 
 export interface ThingsBooksyModulesUsersApiRequestsSignInRequest {

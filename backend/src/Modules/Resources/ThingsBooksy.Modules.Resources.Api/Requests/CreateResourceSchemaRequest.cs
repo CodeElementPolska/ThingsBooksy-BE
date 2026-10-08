@@ -6,7 +6,7 @@ namespace ThingsBooksy.Modules.Resources.Api.Requests;
 
 internal record PropertyDefinitionInputDto(string Name, PropertyDataType DataType, bool IsRequired);
 
-internal record CreateResourceTypeRequest(
+internal record CreateResourceSchemaRequest(
     Guid GroupId,
     string Name,
     string? Description,

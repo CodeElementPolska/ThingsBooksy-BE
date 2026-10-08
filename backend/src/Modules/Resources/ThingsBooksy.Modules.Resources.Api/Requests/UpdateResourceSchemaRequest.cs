@@ -6,4 +6,4 @@ namespace ThingsBooksy.Modules.Resources.Api.Requests;
 
 internal record PropertyDefinitionUpdateInputDto(Guid? Id, string Name, PropertyDataType DataType, bool IsRequired);
 
-internal record UpdateResourceTypeRequest(string Name, string? Description, IEnumerable<PropertyDefinitionUpdateInputDto>? PropertyDefinitions);
+internal record UpdateResourceSchemaRequest(string Name, string? Description, IEnumerable<PropertyDefinitionUpdateInputDto>? PropertyDefinitions);

@@ -30,12 +30,12 @@ internal sealed class DeleteResourceSchemaCommandHandler : ICommandHandler<Delet
         var resourceSchema = await _dataProvider.GetResourceSchemaAsync(command.SchemaId, cancellationToken);
 
         if (resourceSchema is null)
-            throw new ResourcesDomainException("Resource type not found.");
+            throw new ResourcesDomainException("Resource schema not found.");
 
         var group = await _dataProvider.GetGroupAsync(resourceSchema.GroupId, cancellationToken);
 
         if (group is null || group.OwnerId != command.RequesterId)
-            throw new ResourcesForbiddenException("Only the group owner may delete a resource type.");
+            throw new ResourcesForbiddenException("Only the group owner may delete a resource schema.");
 
         var now = _clock.CurrentDate();
 

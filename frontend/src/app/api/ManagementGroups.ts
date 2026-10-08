@@ -11,6 +11,7 @@
  */
 
 import {
+  MicrosoftAspNetCoreMvcProblemDetails,
   ThingsBooksyModulesManagementGroupsApiRequestsAddGroupMemberRequest,
   ThingsBooksyModulesManagementGroupsApiRequestsCreateManagementGroupRequest,
   ThingsBooksyModulesManagementGroupsApiRequestsUpdateManagementGroupRequest,
@@ -24,22 +25,23 @@ export class ManagementGroups<
   SecurityDataType = unknown,
 > extends HttpClient<SecurityDataType> {
   /**
-   * @summary Check whether a group name is available for the authenticated user.
+   * No description
    *
    * @tags ManagementGroups
    * @name IsGroupNameAvailable
+   * @summary Check whether a group name is available for the authenticated user.
    * @request GET:/management-groups/name-available
    * @secure
    */
   isGroupNameAvailable = (
-    query: {
-      name?: string | null;
+    query?: {
+      name?: string;
     },
     params: RequestParams = {},
   ) =>
     this.request<
       ThingsBooksyModulesManagementGroupsCoreFeaturesIsGroupNameAvailableIsGroupNameAvailableQueryResult,
-      any
+      MicrosoftAspNetCoreMvcProblemDetails
     >({
       path: `/management-groups/name-available`,
       method: "GET",
@@ -49,10 +51,11 @@ export class ManagementGroups<
       ...params,
     });
   /**
-   * @summary Get paginated list of members for a management group.
+   * No description
    *
    * @tags ManagementGroups
    * @name GetGroupMembers
+   * @summary Get paginated list of members for a management group.
    * @request GET:/management-groups/{id}/members
    * @secure
    */
@@ -60,21 +63,42 @@ export class ManagementGroups<
     id: string,
     query?: {
       /** @format uuid */
-      afterId?: string | null;
+      afterId?: string;
       /** @format int32 */
-      take?: number | null;
+      take?: number;
     },
     params: RequestParams = {},
   ) =>
     this.request<
       ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGetGroupMembersQueryResult,
-      any
+      MicrosoftAspNetCoreMvcProblemDetails
     >({
       path: `/management-groups/${id}/members`,
       method: "GET",
       query: query,
       secure: true,
       format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags ManagementGroups
+   * @name AddGroupMember
+   * @request POST:/management-groups/{id}/members
+   * @secure
+   */
+  addGroupMember = (
+    id: string,
+    data: ThingsBooksyModulesManagementGroupsApiRequestsAddGroupMemberRequest,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, any>({
+      path: `/management-groups/${id}/members`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       ...params,
     });
   /**
@@ -123,7 +147,7 @@ export class ManagementGroups<
   getManagementGroup = (id: string, params: RequestParams = {}) =>
     this.request<
       ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupGetManagementGroupQueryResult,
-      any
+      MicrosoftAspNetCoreMvcProblemDetails
     >({
       path: `/management-groups/${id}`,
       method: "GET",
@@ -180,27 +204,6 @@ export class ManagementGroups<
       path: `/management-groups/${id}/restore`,
       method: "POST",
       secure: true,
-      ...params,
-    });
-  /**
-   * No description
-   *
-   * @tags ManagementGroups
-   * @name AddGroupMember
-   * @request POST:/management-groups/{id}/members
-   * @secure
-   */
-  addGroupMember = (
-    id: string,
-    data: ThingsBooksyModulesManagementGroupsApiRequestsAddGroupMemberRequest,
-    params: RequestParams = {},
-  ) =>
-    this.request<void, any>({
-      path: `/management-groups/${id}/members`,
-      method: "POST",
-      body: data,
-      secure: true,
-      type: ContentType.Json,
       ...params,
     });
   /**

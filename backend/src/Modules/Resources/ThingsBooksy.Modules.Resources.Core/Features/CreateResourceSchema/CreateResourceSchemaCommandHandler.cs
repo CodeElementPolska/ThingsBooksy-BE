@@ -34,10 +34,10 @@ internal sealed class CreateResourceSchemaCommandHandler : ICommandHandler<Creat
             throw new ResourcesDomainException("Group not found.");
 
         if (string.IsNullOrWhiteSpace(command.Name))
-            throw new ResourcesDomainException("Resource type name cannot be empty.");
+            throw new ResourcesDomainException("Resource schema name cannot be empty.");
 
         if (group.OwnerId != command.CallerId)
-            throw new ResourcesForbiddenException("Only the group owner may create a resource type.");
+            throw new ResourcesForbiddenException("Only the group owner may create a resource schema.");
 
         var normalizedName = command.Name.Trim();
         var nameExists = await _dataProvider.ExistsByGroupAndNameAsync(command.GroupId, normalizedName, excludeId: null, cancellationToken);

@@ -1,0 +1,70 @@
+{
+  "story": "016-rename-resource-schema",
+  "status": "GREEN",
+  "steps": [
+    {
+      "name": "migration",
+      "status": "PASSED",
+      "detail": "migration-check REVIEW (G2b PASSED for this migration)",
+      "ms": 86
+    },
+    {
+      "name": "build",
+      "status": "PASSED",
+      "ms": 3038
+    },
+    {
+      "name": "format",
+      "status": "PASSED",
+      "ms": 12644
+    },
+    {
+      "name": "arch-tests",
+      "status": "SKIPPED",
+      "detail": "deferred epic: docs/backlog/deferred-static-analysis-sonarqube.md",
+      "ms": 0
+    },
+    {
+      "name": "tests",
+      "status": "PASSED",
+      "detail": "203 passed",
+      "ms": 17174
+    },
+    {
+      "name": "fe-build",
+      "status": "PASSED",
+      "detail": "touches_ui: true; 14 file(s) changed under frontend/ since baseline",
+      "ms": 4240
+    },
+    {
+      "name": "fe-test",
+      "status": "PASSED",
+      "detail": "Tests  240 passed (240)",
+      "ms": 8409
+    },
+    {
+      "name": "swagger",
+      "status": "PASSED",
+      "detail": "generated/ refreshed",
+      "ms": 5919
+    },
+    {
+      "name": "contract",
+      "status": "PASSED",
+      "detail": "contract-diff: CLEAR — missing 0, unspecified 0, response drift 0, breaking 0 → runs\\016-rename-resource-schema\\contract-diff.json",
+      "ms": 764
+    },
+    {
+      "name": "ac-matrix",
+      "status": "PASSED",
+      "detail": "ac-matrix: 11 AC expected, 80 tagged tests, uncovered: none → runs\\016-rename-resource-schema\\ac-matrix.json",
+      "ms": 79
+    },
+    {
+      "name": "test-hash",
+      "status": "PASSED",
+      "ms": 11
+    }
+  ],
+  "ms": 52445
+}

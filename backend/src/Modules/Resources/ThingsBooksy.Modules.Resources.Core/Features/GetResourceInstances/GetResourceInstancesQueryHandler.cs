@@ -33,13 +33,13 @@ internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResour
             var resourceSchema = await _dataProvider.GetResourceSchemaAsync(query.ResourceSchemaId.Value, cancellationToken);
 
             if (resourceSchema is null)
-                throw new ResourcesDomainException("Resource type not found.");
+                throw new ResourcesDomainException("Resource schema not found.");
 
             resolvedGroupId = resourceSchema.GroupId;
         }
         else
         {
-            throw new ResourcesDomainException("Either GroupId or ResourceTypeId must be provided.");
+            throw new ResourcesDomainException("Either GroupId or ResourceSchemaId must be provided.");
         }
 
         var isOwner = await _dataProvider.IsOwnerAsync(resolvedGroupId, query.RequesterId, cancellationToken);

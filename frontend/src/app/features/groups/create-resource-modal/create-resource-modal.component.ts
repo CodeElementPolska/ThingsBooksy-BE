@@ -38,7 +38,7 @@ export class CreateResourceModalComponent {
   readonly preselectedSchemaId = input<string | null>(null);
 
   readonly close = output<void>();
-  readonly created = output<{ id: string; resourceTypeId: string; name: string }>();
+  readonly created = output<{ id: string; resourceSchemaId: string; name: string }>();
 
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ResourcesApiService);
@@ -116,7 +116,7 @@ export class CreateResourceModalComponent {
     try {
       const result = await firstValueFrom(
         this.api.createResourceInstance({
-          resourceTypeId: this.selectedSchemaId()!,
+          resourceSchemaId: this.selectedSchemaId()!,
           name: raw.name.trim(),
           description: raw.description ?? null,
           propertyValues,
@@ -125,7 +125,7 @@ export class CreateResourceModalComponent {
       this.notifications.success('Resource created');
       this.created.emit({
         id: result.id,
-        resourceTypeId: this.selectedSchemaId()!,
+        resourceSchemaId: this.selectedSchemaId()!,
         name: raw.name.trim(),
       });
     } catch {

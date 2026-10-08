@@ -1,0 +1,63 @@
+{
+  "provenance": {
+    "author_agent": "be-writer",
+    "run_id": "016-rename-resource-schema-be-writer-muzawab2",
+    "story": "016-rename-resource-schema",
+    "phase": "C3b",
+    "inputs": [
+      {"path": "specs/016-rename-resource-schema/spec.md", "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a"},
+      {"path": "specs/016-rename-resource-schema/plan.md", "sha256": "45c7f2e96ed1f4a2dce05082f1a98a5df7dcd09fa54b8aac845d1b9c65c1bd24"},
+      {"path": "specs/016-rename-resource-schema/tasks.md", "sha256": "6a364140c211bab1dd5980c35337bb13040d45bb297ec5e1839113a314a80128"},
+      {"path": "specs/016-rename-resource-schema/data-model.md", "sha256": "f48f8fe3b6243ac42f4582609e582e1943178ba810f946468ce94e94c348b297"},
+      {"path": "specs/016-rename-resource-schema/contracts/README.md", "sha256": "fae28fc69338ede86eb66190ff0b90192026a5329a985a232a8b6eac81c09b08"},
+      {"path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb"},
+      {"path": "runs/016-rename-resource-schema/contract-next.json", "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4"},
+      {"path": "runs/016-rename-resource-schema/discovery/decisions.jsonl", "sha256": "8f6666a679b8572d4816d6d3577bbea33ee175888065245fb8f1159f334a8d54"},
+      {"path": "runs/016-rename-resource-schema/discovery/assumptions.jsonl", "sha256": "dc6c49d9c7395a1f374eeb715b154b3e9c490b17f0155b2835bb11c47d418c57"},
+      {"path": "runs/016-rename-resource-schema/tests/red-first.json", "sha256": "c3e4dccf4eb277f705c178c3965e1d21b9a669c73ccd31b9a7541c95669c9694"},
+      {"path": "runs/016-rename-resource-schema/ac-matrix.json", "sha256": "27cc5fca58780ec77025b51a47067dab3c50c4feb3e10cdc4764a669e6244a8a"}
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T023", "T024", "T025", "T026", "T027"],
+  "tasks_remaining": [],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/ResourcesModule.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/CreateResourceTypeRequest.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/UpdateResourceTypeRequest.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests/CreateResourceInstanceRequest.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstance/GetResourceInstanceQueryResult.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/ResourceInstanceRowDto.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/GetResourceInstances/GetResourceInstancesQueryHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceSchema/CreateResourceSchemaCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/UpdateResourceSchema/UpdateResourceSchemaCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/DeleteResourceSchema/DeleteResourceSchemaCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Features/CreateResourceInstance/CreateResourceInstanceCommandHandler.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/Exceptions/ResourcesExceptionToResponseMapper.cs"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-W1",
+      "made_by": "be-writer",
+      "phase": "C3b",
+      "statement": "The request records were renamed to CreateResourceSchemaRequest and UpdateResourceSchemaRequest inside their existing files, which keep the old names CreateResourceTypeRequest.cs and UpdateResourceTypeRequest.cs, because the ACL hook blocks every file move or delete (git mv, mv and rm are all denied for be-writer).",
+      "bucket": "ASSUME",
+      "status": "ACTIVE",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "default_chosen": "Rename the records in place and leave the file renames to the conductor or developer.",
+      "rationale": "This keeps the tree compiling and green at every step. The only thing left is the file name, and the content search of quickstart step 3 does not look at file names. The alternative was new files plus emptied old files, which still needs a delete and leaves empty .cs files behind if nobody removes them.",
+      "consequence_if_wrong": "Two file names do not match their record names, which breaks the naming convention. Fix: in backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/Requests run `git mv CreateResourceTypeRequest.cs CreateResourceSchemaRequest.cs` and `git mv UpdateResourceTypeRequest.cs UpdateResourceSchemaRequest.cs`. No code change is needed."
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": { "build": "PASSED", "unit_tests": "PASSED", "format": "PASSED" },
+  "schema_changes": "NONE",
+  "notes_for_conductor": [
+    "Test results. `dotnet build backend/ThingsBooksy.slnx` passed with 0 errors. Resources.IntegrationTests: 150/150 passed, which covers every test in red-first.json (AC-1, 2, 6, 7, 10, 11, 12). ManagementGroups.IntegrationTests: 43/43 passed. Users.IntegrationTests: 10/10 passed. `dotnet format backend/ThingsBooksy.slnx` was run and `--verify-no-changes` is clean.",
+    "Unit tests. `unit_tests` above stands for these integration-test runs. No unit tests were written: there are no `*.Tests.Unit` projects, and this story adds no domain logic (tasks.md T035).",
+    "File renames needed. Two request files still have their old names (see ASM-W1). Someone with permission to move files must run the two `git mv` commands given there.",
+    "T036 search will hit a test file. A case-insensitive search for `resource[ _]?type` in `backend/src`, outside the migrations, finds one hit: a doc comment in `backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/Contract/ResourcesApiDescriptionTests.cs` line 29 contains the literal \"resource type\". It is a test file and acceptance tests are read-only for me, so the T036 search will print it unless the search excludes it or the test author changes the comment.",
+    "Unexpected change. `git status` shows `tools/fleet/README.md` as modified. I did not touch that file and it is not part of this result."
+  ]
+}

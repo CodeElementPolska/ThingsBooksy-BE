@@ -1,0 +1,63 @@
+{
+  "provenance": {
+    "author_agent": "fe-writer",
+    "run_id": "016-rename-resource-schema-fe-writer-muzb6qdz",
+    "story": "016-rename-resource-schema",
+    "phase": "C3b",
+    "inputs": [
+      { "path": "specs/016-rename-resource-schema/spec.md", "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a" },
+      { "path": "specs/016-rename-resource-schema/plan.md", "sha256": "45c7f2e96ed1f4a2dce05082f1a98a5df7dcd09fa54b8aac845d1b9c65c1bd24" },
+      { "path": "specs/016-rename-resource-schema/tasks.md", "sha256": "6a364140c211bab1dd5980c35337bb13040d45bb297ec5e1839113a314a80128" },
+      { "path": "specs/016-rename-resource-schema/data-model.md", "sha256": "f48f8fe3b6243ac42f4582609e582e1943178ba810f946468ce94e94c348b297" },
+      { "path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb" },
+      { "path": "runs/016-rename-resource-schema/discovery/ui-sketch.md", "sha256": "889a571ed67670bab8db7fa51d037e59f1e4d3cb39755fba07382f22b1bf4c37" },
+      { "path": "runs/016-rename-resource-schema/contract-next.json", "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4" },
+      { "path": "runs/016-rename-resource-schema/discovery/decisions.jsonl", "sha256": "8f6666a679b8572d4816d6d3577bbea33ee175888065245fb8f1159f334a8d54" },
+      { "path": "runs/016-rename-resource-schema/discovery/assumptions.jsonl", "sha256": "dc6c49d9c7395a1f374eeb715b154b3e9c490b17f0155b2835bb11c47d418c57" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T029", "T030", "T031", "T033"],
+  "tasks_remaining": ["T032", "T034"],
+  "files_changed": [
+    "frontend/src/app/features/groups/services/resources-api.service.ts",
+    "frontend/src/app/features/groups/group-context.store.ts",
+    "frontend/src/app/features/groups/create-resource-modal/create-resource-modal.component.ts",
+    "frontend/src/app/features/groups/group-detail-page/group-detail-page.component.ts",
+    "frontend/src/app/features/groups/resources-panel/resources-panel.component.ts",
+    "frontend/src/app/features/groups/resources-panel/resources-panel.component.html",
+    "frontend/src/app/features/groups/schemas-panel/schemas-panel.component.html",
+    "frontend/src/app/features/schemas/schema-designer-page/schema-designer-page.component.ts"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-W1",
+      "made_by": "fe-writer",
+      "phase": "C3b",
+      "statement": "The delete-schema confirm text 'N loaded resource(s) of this type will also be deleted.' in group-detail-page.component.ts stays as it is, because spec.md AC-8 / DEC-4 name exactly three texts that change.",
+      "bucket": "ASSUME",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": true, "has_recommendation": true },
+      "default_chosen": "Text left unchanged. It does not match the FR-011 search 'resource type' because it says 'resource(s) of this type'.",
+      "rationale": "User-visible texts the spec does not spell out are the owner's call. AC-8 lists three changed texts and data-model.md's Frontend table names no others.",
+      "consequence_if_wrong": "The owner may want this text to say 'schema' as well. That is a one-line template change in group-detail-page.component.ts."
+    },
+    {
+      "id": "ASM-W2",
+      "made_by": "fe-writer",
+      "phase": "C3b",
+      "statement": "The CSS modifier class 'resources-panel__td--type' on the schema-name cell keeps its name, because it is a styling hook, not an identifier of the renamed concept.",
+      "bucket": "ASSUME",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "default_chosen": "Class name unchanged, so the SCSS file is not touched.",
+      "rationale": "Keeps the change to the names in data-model.md. The FR-011 search for 'resourceType' / 'resources/types' / 'resource type' does not match this class.",
+      "consequence_if_wrong": "Renaming it later is a small change to the template and the SCSS file, with no behaviour impact."
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": {
+    "build": "PASSED",
+    "unit_tests": "PASSED",
+    "format": "SKIPPED"
+  }
+}

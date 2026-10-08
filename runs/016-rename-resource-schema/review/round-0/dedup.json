@@ -37,7 +37,11 @@
       ],
       "route": "tester",
       "decision_id": "DEC-7",
-      "rebaseline_authorised": "DEC-7: owner authorised the single afterEach edit in frontend/src/app/features/groups/services/resources-api.service.spec.ts (lines 72-74); no assertion, title or AC tag may change."
+      "rebaseline_authorised": "DEC-7: owner authorised the single afterEach edit in frontend/src/app/features/groups/services/resources-api.service.spec.ts (lines 72-74); no assertion, title or AC tag may change.",
+      "closed_by": "fix",
+      "fixed_by_run_id": "016-rename-resource-schema-test-designer-sighted-c2fe2-muzaj7nm",
+      "fixed_by_agent": "test-designer-sighted",
+      "closed_at": "2026-10-08T09:07:02.741Z"
     }
   ],
   "computed_at": "2026-10-08T08:44:48.834Z"

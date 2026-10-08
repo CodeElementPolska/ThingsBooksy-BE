@@ -1,0 +1,240 @@
+{
+  "agent_type": "be-writer",
+  "run_id": "016-rename-resource-schema-be-writer-muzawab2",
+  "prompt": "Phase **C3b — behaviour** for story `016-rename-resource-schema`, module `Resources`.\n\nThe acceptance tests listed in `runs/016-rename-resource-schema/tests/red-first.json` are RED. Make them GREEN by implementing the behaviour tasks of `tasks.md` (user-story phases): handlers, endpoints, domain methods, event publishing, plus unit tests for domain logic where a `Tests.Unit` project exists.\n\nRules of this phase:\n- The acceptance tests are read-only for you (`backend/src/Modules/*/…IntegrationTests`, `frontend/**/*.spec.ts`). Read them to understand the expected behaviour; run them with `dotnet test <module IntegrationTests project>`; never edit them. A test you believe is wrong → `status: DISPUTE_TEST` with evidence, do not work around it.\n- Do not add behaviour the spec does not ask for. If a branch is needed that no AC covers (e.g. an error path), implement the minimal safe version and record it in `assumptions` with `visible_effect: true` so the reviewer sees it.\n- Constitution and conventions in your prompt are binding; keep `SaveChangesAsync` before `PublishAsync`; keep handler constructors ≤ 4 params; DataProvider per handler.\n- Do not touch migrations. If the model must change again, stop and return `status: BLOCKED_ON_DECISION` (a second migration is not allowed; the developer regenerates the single one).\n\nSteps:\n1. Read the inputs, the red tests and the current module code for the touched features.\n2. Implement task by task; after each task `dotnet build`.\n3. `dotnet test <module IntegrationTests>` — all story tests (AC filter) green and no pre-existing test regressed; `dotnet format backend/ThingsBooksy.slnx` at the end.\n4. Return the `result` JSON with `tasks_completed`, `files_changed`, `assumptions`, `local_checks`.\n\n## Input files handed to you (paths + hashes)\nThese are the files this task was built from. They are NOT a read boundary: your read scope is set by your access rules (allowed roots such as `backend/`, `frontend/src/`, `generated/`); read whatever you need inside it. If something you need is outside your scope, say so in the answer.\n- `specs/016-rename-resource-schema/spec.md`  (sha256 3add460ce38f…)\n- `specs/016-rename-resource-schema/plan.md`  (sha256 45c7f2e96ed1…)\n- `specs/016-rename-resource-schema/tasks.md`  (sha256 6a364140c211…)\n- `specs/016-rename-resource-schema/data-model.md`  (sha256 f48f8fe3b624…)\n- `specs/016-rename-resource-schema/contracts/README.md`  (sha256 fae28fc69338…)\n- `runs/016-rename-resource-schema/story.md`  (sha256 cfc1c3644793…)\n- `runs/016-rename-resource-schema/contract-next.json`  (sha256 d3585a905c51…)\n- `runs/016-rename-resource-schema/discovery/decisions.jsonl`  (sha256 8f6666a679b8…)\n- `runs/016-rename-resource-schema/discovery/assumptions.jsonl`  (sha256 dc6c49d9c739…)\n- `runs/016-rename-resource-schema/tests/red-first.json`  (sha256 c3e4dccf4eb2…)\n- `runs/016-rename-resource-schema/ac-matrix.json`  (sha256 27cc5fca5878…)\n\n## Conventions that apply to your output\n- `.specify/memory/constitution.md`\n- `.claude/conventions/domain-entity-design.md`\n- `.claude/conventions/data-provider-pattern.md`\n- `.claude/conventions/data-provider-query-syntax.md`\n- `.claude/conventions/command-construction-in-endpoints.md`\n- `.claude/conventions/minimal-api-endpoints.md`\n- `.claude/conventions/dispatcher-usage.md`\n- `.claude/conventions/naming-commands-queries-handlers-results.md`\n- `.claude/conventions/internals-visible-to.md`\n\n## Your output MUST validate against this JSON Schema\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/result\",\n  \"title\": \"result.json — output of every writer (be-writer, fe-writer, test-designer). The conductor script branches on `status`.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"provenance\",\n    \"status\",\n    \"tasks_completed\",\n    \"files_changed\",\n    \"assumptions\",\n    \"decisions_needed\"\n  ],\n  \"properties\": {\n    \"provenance\": {\n      \"$ref\": \"fleet-v4/provenance\"\n    },\n    \"status\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"DONE\",\n        \"BLOCKED_ON_DECISION\",\n        \"DISPUTE\",\n        \"DISPUTE_TEST\",\n        \"FAILED\"\n      ],\n      \"description\": \"DONE = all assigned tasks done and local checks green. BLOCKED_ON_DECISION = cannot proceed without an owner decision (decisions_needed non-empty). DISPUTE = disagrees with a review finding (dispute filled). DISPUTE_TEST = an acceptance test contradicts the spec (dispute filled, test_id set). FAILED = could not complete (error).\"\n    },\n    \"tasks_completed\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\",\n        \"pattern\": \"^T[0-9]+$\"\n      },\n      \"description\": \"script ticks these in tasks.md after the gate is green\"\n    },\n    \"tasks_remaining\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\",\n        \"pattern\": \"^T[0-9]+$\"\n      }\n    },\n    \"files_changed\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"must all be inside the agent's write-allow roots — verified by script against git diff\"\n    },\n    \"assumptions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"fleet-v4/assumption\"\n      },\n      \"description\": \"every default the writer chose; hard_list=true here fails DoD\"\n    },\n    \"decisions_needed\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"fleet-v4/decision\"\n      },\n      \"description\": \"non-empty ⇒ status must be BLOCKED_ON_DECISION\"\n    },\n    \"dispute\": {\n      \"type\": \"object\",\n      \"required\": [\n        \"target_id\",\n        \"argument\",\n        \"rule_ref\"\n      ],\n      \"properties\": {\n        \"target_id\": {\n          \"type\": \"string\",\n          \"description\": \"finding id (DISPUTE) or test id (DISPUTE_TEST)\"\n        },\n        \"argument\": {\n          \"type\": \"string\"\n        },\n        \"rule_ref\": {\n          \"type\": \"string\",\n          \"description\": \"AC-id / convention file#section / constitution article the writer relies on\"\n        },\n        \"evidence\": {\n          \"type\": \"string\"\n        }\n      }\n    },\n    \"local_checks\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"build\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"PASSED\",\n            \"FAILED\",\n            \"SKIPPED\"\n          ]\n        },\n        \"unit_tests\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"PASSED\",\n            \"FAILED\",\n            \"SKIPPED\"\n          ]\n        },\n        \"format\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"PASSED\",\n            \"FAILED\",\n            \"SKIPPED\"\n          ]\n        }\n      }\n    },\n    \"schema_changes\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"NONE\",\n        \"ADDITIVE\",\n        \"DESTRUCTIVE\"\n      ],\n      \"description\": \"be-writer in C3a; DESTRUCTIVE ⇒ conductor opens G2b\"\n    },\n    \"error\": {\n      \"type\": \"string\"\n    }\n  },\n  \"allOf\": [\n    {\n      \"if\": {\n        \"properties\": {\n          \"status\": {\n            \"const\": \"BLOCKED_ON_DECISION\"\n          }\n        }\n      },\n      \"then\": {\n        \"properties\": {\n          \"decisions_needed\": {\n            \"minItems\": 1\n          }\n        }\n      }\n    },\n    {\n      \"if\": {\n        \"properties\": {\n          \"status\": {\n            \"enum\": [\n              \"DISPUTE\",\n              \"DISPUTE_TEST\"\n            ]\n          }\n        }\n      },\n      \"then\": {\n        \"required\": [\n          \"dispute\"\n        ]\n      }\n    },\n    {\n      \"if\": {\n        \"properties\": {\n          \"status\": {\n            \"const\": \"FAILED\"\n          }\n        }\n      },\n      \"then\": {\n        \"required\": [\n          \"error\"\n        ]\n      }\n    }\n  ]\n}\n```\n\n### Referenced schema `fleet-v4/provenance` (items of the fields that `$ref` it must have this shape)\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/provenance\",\n  \"title\": \"Provenance header — common to every agent-produced artifact\",\n  \"type\": \"object\",\n  \"required\": [\n    \"author_agent\",\n    \"run_id\",\n    \"story\",\n    \"inputs\"\n  ],\n  \"properties\": {\n    \"author_agent\": {\n      \"type\": \"string\",\n      \"description\": \"agent_type that produced the artifact (as seen by hooks)\"\n    },\n    \"agent_id\": {\n      \"type\": \"string\"\n    },\n    \"run_id\": {\n      \"type\": \"string\",\n      \"description\": \"workflow run id or session id\"\n    },\n    \"story\": {\n      \"type\": \"string\",\n      \"pattern\": \"^[0-9]{3}-[a-z0-9-]+$\",\n      \"description\": \"NNN-slug (SpecKit branch/dir name)\"\n    },\n    \"phase\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"A\",\n        \"B\",\n        \"C1\",\n        \"C2\",\n        \"C3a\",\n        \"C3b\",\n        \"C4\",\n        \"C4b\",\n        \"C5\",\n        \"C6\"\n      ]\n    },\n    \"inputs\": {\n      \"type\": \"array\",\n      \"description\": \"Every file the agent was given. A consumer script rejects the artifact if any input hash changed since.\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"path\",\n          \"sha256\"\n        ],\n        \"properties\": {\n          \"path\": {\n            \"type\": \"string\"\n          },\n          \"sha256\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[a-f0-9]{64}$\"\n          }\n        }\n      }\n    },\n    \"schema_version\": {\n      \"type\": \"string\",\n      \"default\": \"1\"\n    }\n  }\n}\n```\n\n### Referenced schema `fleet-v4/assumption` (items of the fields that `$ref` it must have this shape)\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/assumption\",\n  \"title\": \"One entry of assumptions.jsonl — buckets ZAŁÓŻ and NIE PYTAJ (D-2). Everything an agent did NOT ask about.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"id\",\n    \"made_by\",\n    \"statement\",\n    \"bucket\",\n    \"score\"\n  ],\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\",\n      \"pattern\": \"^ASM-[A-Z]*[0-9]+$\",\n      \"description\": \"ASM-<n> in discovery; delivery agents prefix a letter to avoid collisions (ASM-W1 writer, ASM-T1 tester)\"\n    },\n    \"made_by\": {\n      \"type\": \"string\"\n    },\n    \"phase\": {\n      \"type\": \"string\"\n    },\n    \"statement\": {\n      \"type\": \"string\",\n      \"description\": \"one sentence: what was assumed\"\n    },\n    \"bucket\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"ASSUME\",\n        \"NO_ASK\"\n      ],\n      \"description\": \"ASSUME = sensible default chosen, owner may veto; NO_ASK = answer exists in code/docs\"\n    },\n    \"status\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"ACTIVE\",\n        \"WITHDRAWN\"\n      ],\n      \"default\": \"ACTIVE\",\n      \"description\": \"WITHDRAWN when the story is rescoped and the assumption no longer applies (keep the row: it is history)\"\n    },\n    \"withdrawn_reason\": {\n      \"type\": \"string\"\n    },\n    \"score\": {\n      \"type\": \"object\",\n      \"description\": \"the rubric answers, visible so the triage can be audited\",\n      \"required\": [\n        \"hard_list\",\n        \"reversible_cheaply\",\n        \"visible_effect\",\n        \"has_recommendation\"\n      ],\n      \"properties\": {\n        \"hard_list\": {\n          \"type\": \"boolean\",\n          \"description\": \"touches a D-1 category ⇒ MUST have been a decision; DoD grep fails the run if true here\"\n        },\n        \"hard_list_category\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"authz-security\",\n            \"data-migration\",\n            \"new-ui\"\n          ]\n        },\n        \"reversible_cheaply\": {\n          \"type\": \"boolean\",\n          \"description\": \"single-file change, no migration, no contract change\"\n        },\n        \"visible_effect\": {\n          \"type\": \"boolean\",\n          \"description\": \"options differ in something a user or another module can observe\"\n        },\n        \"has_recommendation\": {\n          \"type\": \"boolean\"\n        }\n      }\n    },\n    \"default_chosen\": {\n      \"type\": \"string\"\n    },\n    \"rationale\": {\n      \"type\": \"string\"\n    },\n    \"evidence\": {\n      \"type\": \"string\",\n      \"description\": \"required when bucket = NO_ASK (file:line or captured response)\"\n    },\n    \"consequence_if_wrong\": {\n      \"type\": \"string\"\n    },\n    \"veto\": {\n      \"type\": \"object\",\n      \"description\": \"written only by script when the owner overrides\",\n      \"required\": [\n        \"answer_ref\",\n        \"replacement_decision_id\"\n      ],\n      \"properties\": {\n        \"answer_ref\": {\n          \"type\": \"string\"\n        },\n        \"replacement_decision_id\": {\n          \"type\": \"string\",\n          \"pattern\": \"^DEC-[0-9]+$\"\n        }\n      }\n    }\n  },\n  \"allOf\": [\n    {\n      \"if\": {\n        \"properties\": {\n          \"bucket\": {\n            \"const\": \"NO_ASK\"\n          }\n        }\n      },\n      \"then\": {\n        \"required\": [\n          \"evidence\"\n        ]\n      }\n    },\n    {\n      \"if\": {\n        \"properties\": {\n          \"bucket\": {\n            \"const\": \"ASSUME\"\n          }\n        }\n      },\n      \"then\": {\n        \"required\": [\n          \"default_chosen\",\n          \"rationale\",\n          \"consequence_if_wrong\"\n        ]\n      }\n    }\n  ]\n}\n```\n\n### Referenced schema `fleet-v4/decision` (items of the fields that `$ref` it must have this shape)\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"fleet-v4/decision\",\n  \"title\": \"One entry of runs/<story>/discovery/decisions.jsonl — bucket ZAPYTAJ (D-2)\",\n  \"type\": \"object\",\n  \"required\": [\n    \"id\",\n    \"question\",\n    \"context\",\n    \"options\",\n    \"recommendation\",\n    \"argument_against\",\n    \"consequences\",\n    \"status\"\n  ],\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\",\n      \"pattern\": \"^DEC-[0-9]+$\"\n    },\n    \"asked_by\": {\n      \"type\": \"string\",\n      \"description\": \"agent_type that raised it (dev-analyst, be-writer…)\"\n    },\n    \"phase\": {\n      \"type\": \"string\"\n    },\n    \"hard_list_category\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"authz-security\",\n        \"data-migration\",\n        \"new-ui\"\n      ],\n      \"description\": \"D-1 categories. Present ⇒ the decision can never be defaulted; DoD fails without decided_by=owner\"\n    },\n    \"question\": {\n      \"type\": \"string\",\n      \"description\": \"one sentence, plain language\"\n    },\n    \"context\": {\n      \"type\": \"string\",\n      \"description\": \"why this matters, for someone who has not read the code\"\n    },\n    \"code_says\": {\n      \"type\": \"array\",\n      \"description\": \"what the code/docs already establish, with evidence\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"claim\",\n          \"evidence\"\n        ],\n        \"properties\": {\n          \"claim\": {\n            \"type\": \"string\"\n          },\n          \"evidence\": {\n            \"type\": \"string\",\n            \"description\": \"file:line or captured response\"\n          }\n        }\n      }\n    },\n    \"options\": {\n      \"type\": \"array\",\n      \"minItems\": 2,\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"label\",\n          \"consequences\"\n        ],\n        \"properties\": {\n          \"label\": {\n            \"type\": \"string\"\n          },\n          \"consequences\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    },\n    \"recommendation\": {\n      \"type\": \"string\",\n      \"description\": \"label of the recommended option + argument\"\n    },\n    \"argument_against\": {\n      \"type\": \"string\",\n      \"description\": \"the strongest argument AGAINST the recommendation (anti-anchoring, mandatory)\"\n    },\n    \"consequences\": {\n      \"type\": \"string\",\n      \"description\": \"what changes downstream once decided (spec, contract, tests)\"\n    },\n    \"status\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"OPEN\",\n        \"DECIDED\",\n        \"WITHDRAWN\"\n      ]\n    },\n    \"chosen\": {\n      \"type\": \"string\"\n    },\n    \"decided_by\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"owner\"\n      ],\n      \"description\": \"ONLY a script may write this field, from owner-answers.jsonl\"\n    },\n    \"answer_ref\": {\n      \"type\": \"string\",\n      \"description\": \"tool_use_id (AskUserQuestion) or prompt_id (typed answer) in owner-answers.jsonl\"\n    },\n    \"decided_at\": {\n      \"type\": \"string\",\n      \"format\": \"date-time\"\n    }\n  },\n  \"allOf\": [\n    {\n      \"if\": {\n        \"properties\": {\n          \"status\": {\n            \"const\": \"DECIDED\"\n          }\n        }\n      },\n      \"then\": {\n        \"required\": [\n          \"chosen\",\n          \"decided_by\",\n          \"answer_ref\",\n          \"decided_at\"\n        ]\n      }\n    }\n  ]\n}\n```\n\n## Provenance block — copy VERBATIM into the `provenance` field of your output\n```json\n{\n  \"author_agent\": \"be-writer\",\n  \"run_id\": \"016-rename-resource-schema-be-writer-muzawab2\",\n  \"story\": \"016-rename-resource-schema\",\n  \"phase\": \"C3b\",\n  \"inputs\": [\n    {\n      \"path\": \"specs/016-rename-resource-schema/spec.md\",\n      \"sha256\": \"3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a\"\n    },\n    {\n      \"path\": \"specs/016-rename-resource-schema/plan.md\",\n      \"sha256\": \"45c7f2e96ed1f4a2dce05082f1a98a5df7dcd09fa54b8aac845d1b9c65c1bd24\"\n    },\n    {\n      \"path\": \"specs/016-rename-resource-schema/tasks.md\",\n      \"sha256\": \"6a364140c211bab1dd5980c35337bb13040d45bb297ec5e1839113a314a80128\"\n    },\n    {\n      \"path\": \"specs/016-rename-resource-schema/data-model.md\",\n      \"sha256\": \"f48f8fe3b6243ac42f4582609e582e1943178ba810f946468ce94e94c348b297\"\n    },\n    {\n      \"path\": \"specs/016-rename-resource-schema/contracts/README.md\",\n      \"sha256\": \"fae28fc69338ede86eb66190ff0b90192026a5329a985a232a8b6eac81c09b08\"\n    },\n    {\n      \"path\": \"runs/016-rename-resource-schema/story.md\",\n      \"sha256\": \"cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb\"\n    },\n    {\n      \"path\": \"runs/016-rename-resource-schema/contract-next.json\",\n      \"sha256\": \"d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4\"\n    },\n    {\n      \"path\": \"runs/016-rename-resource-schema/discovery/decisions.jsonl\",\n      \"sha256\": \"8f6666a679b8572d4816d6d3577bbea33ee175888065245fb8f1159f334a8d54\"\n    },\n    {\n      \"path\": \"runs/016-rename-resource-schema/discovery/assumptions.jsonl\",\n      \"sha256\": \"dc6c49d9c7395a1f374eeb715b154b3e9c490b17f0155b2835bb11c47d418c57\"\n    },\n    {\n      \"path\": \"runs/016-rename-resource-schema/tests/red-first.json\",\n      \"sha256\": \"c3e4dccf4eb277f705c178c3965e1d21b9a669c73ccd31b9a7541c95669c9694\"\n    },\n    {\n      \"path\": \"runs/016-rename-resource-schema/ac-matrix.json\",\n      \"sha256\": \"27cc5fca58780ec77025b51a47067dab3c50c4feb3e10cdc4764a669e6244a8a\"\n    }\n  ],\n  \"schema_version\": \"1\"\n}\n```\n",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "fleet-v4/result",
+    "title": "result.json — output of every writer (be-writer, fe-writer, test-designer). The conductor script branches on `status`.",
+    "type": "object",
+    "required": [
+      "provenance",
+      "status",
+      "tasks_completed",
+      "files_changed",
+      "assumptions",
+      "decisions_needed"
+    ],
+    "properties": {
+      "provenance": {
+        "$ref": "fleet-v4/provenance"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "DONE",
+          "BLOCKED_ON_DECISION",
+          "DISPUTE",
+          "DISPUTE_TEST",
+          "FAILED"
+        ],
+        "description": "DONE = all assigned tasks done and local checks green. BLOCKED_ON_DECISION = cannot proceed without an owner decision (decisions_needed non-empty). DISPUTE = disagrees with a review finding (dispute filled). DISPUTE_TEST = an acceptance test contradicts the spec (dispute filled, test_id set). FAILED = could not complete (error)."
+      },
+      "tasks_completed": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^T[0-9]+$"
+        },
+        "description": "script ticks these in tasks.md after the gate is green"
+      },
+      "tasks_remaining": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^T[0-9]+$"
+        }
+      },
+      "files_changed": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "must all be inside the agent's write-allow roots — verified by script against git diff"
+      },
+      "assumptions": {
+        "type": "array",
+        "items": {
+          "$ref": "fleet-v4/assumption"
+        },
+        "description": "every default the writer chose; hard_list=true here fails DoD"
+      },
+      "decisions_needed": {
+        "type": "array",
+        "items": {
+          "$ref": "fleet-v4/decision"
+        },
+        "description": "non-empty ⇒ status must be BLOCKED_ON_DECISION"
+      },
+      "dispute": {
+        "type": "object",
+        "required": [
+          "target_id",
+          "argument",
+          "rule_ref"
+        ],
+        "properties": {
+          "target_id": {
+            "type": "string",
+            "description": "finding id (DISPUTE) or test id (DISPUTE_TEST)"
+          },
+          "argument": {
+            "type": "string"
+          },
+          "rule_ref": {
+            "type": "string",
+            "description": "AC-id / convention file#section / constitution article the writer relies on"
+          },
+          "evidence": {
+            "type": "string"
+          }
+        }
+      },
+      "local_checks": {
+        "type": "object",
+        "properties": {
+          "build": {
+            "type": "string",
+            "enum": [
+              "PASSED",
+              "FAILED",
+              "SKIPPED"
+            ]
+          },
+          "unit_tests": {
+            "type": "string",
+            "enum": [
+              "PASSED",
+              "FAILED",
+              "SKIPPED"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "PASSED",
+              "FAILED",
+              "SKIPPED"
+            ]
+          }
+        }
+      },
+      "schema_changes": {
+        "type": "string",
+        "enum": [
+          "NONE",
+          "ADDITIVE",
+          "DESTRUCTIVE"
+        ],
+        "description": "be-writer in C3a; DESTRUCTIVE ⇒ conductor opens G2b"
+      },
+      "error": {
+        "type": "string"
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "status": {
+              "const": "BLOCKED_ON_DECISION"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "decisions_needed": {
+              "minItems": 1
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "status": {
+              "enum": [
+                "DISPUTE",
+                "DISPUTE_TEST"
+              ]
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "dispute"
+          ]
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "status": {
+              "const": "FAILED"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "error"
+          ]
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author_agent": "be-writer",
+    "run_id": "016-rename-resource-schema-be-writer-muzawab2",
+    "story": "016-rename-resource-schema",
+    "phase": "C3b",
+    "inputs": [
+      {
+        "path": "specs/016-rename-resource-schema/spec.md",
+        "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a"
+      },
+      {
+        "path": "specs/016-rename-resource-schema/plan.md",
+        "sha256": "45c7f2e96ed1f4a2dce05082f1a98a5df7dcd09fa54b8aac845d1b9c65c1bd24"
+      },
+      {
+        "path": "specs/016-rename-resource-schema/tasks.md",
+        "sha256": "6a364140c211bab1dd5980c35337bb13040d45bb297ec5e1839113a314a80128"
+      },
+      {
+        "path": "specs/016-rename-resource-schema/data-model.md",
+        "sha256": "f48f8fe3b6243ac42f4582609e582e1943178ba810f946468ce94e94c348b297"
+      },
+      {
+        "path": "specs/016-rename-resource-schema/contracts/README.md",
+        "sha256": "fae28fc69338ede86eb66190ff0b90192026a5329a985a232a8b6eac81c09b08"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/story.md",
+        "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/contract-next.json",
+        "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/discovery/decisions.jsonl",
+        "sha256": "8f6666a679b8572d4816d6d3577bbea33ee175888065245fb8f1159f334a8d54"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/discovery/assumptions.jsonl",
+        "sha256": "dc6c49d9c7395a1f374eeb715b154b3e9c490b17f0155b2835bb11c47d418c57"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/tests/red-first.json",
+        "sha256": "c3e4dccf4eb277f705c178c3965e1d21b9a669c73ccd31b9a7541c95669c9694"
+      },
+      {
+        "path": "runs/016-rename-resource-schema/ac-matrix.json",
+        "sha256": "27cc5fca58780ec77025b51a47067dab3c50c4feb3e10cdc4764a669e6244a8a"
+      }
+    ],
+    "schema_version": "1"
+  },
+  "tools_hint": null,
+  "max_turns": 80
+}

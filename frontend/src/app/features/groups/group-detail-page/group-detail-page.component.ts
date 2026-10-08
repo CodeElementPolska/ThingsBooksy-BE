@@ -156,7 +156,7 @@ export class GroupDetailPageComponent implements OnInit {
     this.resourceModalOpen.set(false);
   }
 
-  async onResourceCreated(payload: { id: string; resourceTypeId: string; name: string }): Promise<void> {
+  async onResourceCreated(payload: { id: string; resourceSchemaId: string; name: string }): Promise<void> {
     this.resourceModalOpen.set(false);
     const id = this.groupId();
     if (!id) return;
@@ -181,7 +181,7 @@ export class GroupDetailPageComponent implements OnInit {
     if (!confirmed) return;
 
     try {
-      await firstValueFrom(this.resourcesApi.deleteResourceType(schema.id));
+      await firstValueFrom(this.resourcesApi.deleteResourceSchema(schema.id));
       this.store.removeSchema(schema.id);
       this.notifications.success('Schema deleted');
     } catch {

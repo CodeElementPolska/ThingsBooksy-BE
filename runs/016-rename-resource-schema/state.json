@@ -1,9 +1,9 @@
 {
   "story": "016-rename-resource-schema",
   "branch": "016-rename-resource-schema",
-  "computed_at": "2026-10-02T15:10:15.550Z",
-  "phase": "C1",
-  "phase_status": "NOT_STARTED",
+  "computed_at": "2026-10-07T13:25:57.469Z",
+  "phase": "C3a",
+  "phase_status": "PASSED",
   "gates": {
     "G1": {
       "status": "PASSED",
@@ -16,20 +16,24 @@
       "at": "2026-10-02T15:09:52.972Z"
     },
     "G2b": {
-      "status": "PENDING"
+      "status": "PASSED",
+      "answer_ref": "toolu_01AKecNYoxX36X3ZVcf9c88k",
+      "at": "2026-10-07T13:25:57.365Z"
     },
     "G3": {
       "status": "PENDING"
     }
   },
   "artifacts": {
+    "ac-matrix.json": "b51f76e26da4c255217decc54a16b32bcbca5ea4d88668d672827347f4337f87",
+    "baseline.json": "556266a97e4688b1e768e334920b09c1672216b7a7a11594144447ab4af3a9e5",
     "capability-report.jsonl": "fadb0962355888afa0a8605a2398cbc8ea0d9a8049c6e8cf9647dc5c3e975b3f",
     "contract-delta.overlay.json": "9857b9dfb3200a2be93de2339e98d917911d4af73b3476eaf5d123a9e1f747a8",
     "contract-next.json": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4",
     "critique/premortem-critic.json": "2c2a11581a747a8f41ea81448fcfe79a4bca93c92d976a0e108d00737972ebb2",
     "critique/scope-critic.json": "64a75fc660e6ca31ae4540adfd1d4e91491e52bc0e11914490d386448d60a3b6",
     "discovery/assumptions.jsonl": "dc6c49d9c7395a1f374eeb715b154b3e9c490b17f0155b2835bb11c47d418c57",
-    "discovery/decisions.jsonl": "537476cfe761fb814cca90e6e8ecb1ec1e93cecfcd615cab28db47b4dacb32bc",
+    "discovery/decisions.jsonl": "7ca3c8fb5eae38360b0c6ea3889ed6bc6e5374d1df52d96f9ae5fb3ab943ee08",
     "discovery/facts.jsonl": "994b1415dc4305c4201d8814abb89bede2fd84650618a20eb8cce9dc3c3fec68",
     "discovery/fleet-defects.md": "53582845910358f89ab64630939408bb92de691b656af5cc28587c6dce6e9a46",
     "discovery/questions/1.md": "2874ab8bc2f40aa8260376b507a478d6293f536a36076c25cd7f53536e373b5a",
@@ -52,8 +56,15 @@
     "discovery/round-3.md": "b0a70430141ced76f940cb6f03d250ceaa28e877a16c4555f6e2f697da6a03e5",
     "discovery/ui-sketch.md": "889a571ed67670bab8db7fa51d037e59f1e4d3cb39755fba07382f22b1bf4c37",
     "epic.md": "d1055502c9b00d0e26a99e7bd9f2f332a0662954c1e99d97e1219e761359f206",
+    "impl/be-writer.C3a/result.json": "c985301adfef89e7d268b094228bd340bbc6acf29d4b7beac96f5c82c1ca265d",
+    "impl/be-writer.C3a.dec6/result.json": "7a34cff3d6986c9b2cf66b5f45aa2d117730bda4d8d41f7ed4af712ae25418d7",
     "issue-body.md": "aaf8824ff35918144843d30dbcf0dc35f955459d949e58b80ecf6ad69dd2d916",
-    "journal.jsonl": "6000d46d6c5fdba5a4719e8b79b492574ac685a106518eb540c1ca0cfc36bdba",
+    "journal.jsonl": "fe192dd40ce1d9a3ae271960b690648ee649d364f527be82822b3e4cfce62976",
+    "migration-check.json": "b1c4986fb4565e99defa5a101f52befb744dec99b0d5479b57967fc3ad327c07",
+    "prompts/be-writer-skeleton.dec6.json": "6ff0be82b108131cd383f4cade3f7b7f5565da0b0064784ee4e55506f2561997",
+    "prompts/be-writer-skeleton.dec6.md": "4e101a818c6421501acbdc666e3b448e8f3d2e833d61601b9b375c6bf9497de9",
+    "prompts/be-writer-skeleton.json": "99892025244a5aa96203e426b251ff59c2849f0a995bcaea029dae3e83ba69e9",
+    "prompts/be-writer-skeleton.md": "65f88f217c8a6c1572530400a04e81c452b41cbcf517fa0034eec2123ff0e3d1",
     "prompts/capability-analyst.1.json": "b781cafb03179721823ba47bc70de2ac7f6612ee8debbfccd34cc0602a67d1e3",
     "prompts/capability-analyst.1.md": "faf4ec117b173c6fb4607c629f5a1595bbf016358ce469518a8b0d8eb4aa6f52",
     "prompts/capability-analyst.2.json": "3e0d3729aef44fdf13ebf9dd842d52a903724c127a1a1c0988348cd60b0561b3",
@@ -87,13 +98,14 @@
     "questions/2.md": "e15be49ba1aac39b653bc846f6a65602ad850739b945dbd746f563ae6b908b36",
     "questions/3.md": "7c7e391f45c615150d1e3f94aa308a178cffeb14bda442cbd45b13a0fce06bac",
     "questions/4.md": "672eadaaf426d87d77632f6417f58f0279859270a84ff59f3892f9fb875090b9",
+    "skeleton-check.json": "4b78a544ec4dcf0623035e448791b040b0241df7e745f8e8af7e7defd2cb30a8",
     "story.md": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb",
     "generated/swagger.base.json": "d6c98f9722415d4b8ba5e4b6d8dd07681d60b8b09a4eb066e0516790cfc16ebd",
     "generated/capability-map.json": "01040357aff3a256ea13ee13ac2d7dc16e6e41b283ac5a2827c136803735e18d",
-    "generated/core-surface.json": "72e6a5cc2c4c208beeed3f341bc57fe2d0d5908f7083891b5f7e689370f5476b",
-    "specs/spec.md": "137585e8c4239be4b5e0f5e8ecfb61d717ea8b1a4de2667dabb6576299d48bdf",
+    "generated/core-surface.json": "78f92a5c6efb1279d9e1e6929d32b55576a4af4c0aeda5e3abc1ae9d8ec78201",
+    "specs/spec.md": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a",
     "specs/plan.md": "45c7f2e96ed1f4a2dce05082f1a98a5df7dcd09fa54b8aac845d1b9c65c1bd24",
-    "specs/tasks.md": "baeb03f3ced461082b29fb815395de0f7cd5183c0d4f95b3e76593fd9bc3d5cc"
+    "specs/tasks.md": "6a364140c211bab1dd5980c35337bb13040d45bb297ec5e1839113a314a80128"
   },
   "rounds": {
     "C4": 0,
@@ -106,5 +118,6 @@
     "disputes": [],
     "unspecified_behaviour": []
   },
-  "tokens_spent": 0
+  "last_run_id": "016-rename-resource-schema-be-writer-dec6-muy4ksu8",
+  "tokens_spent": 97305
 }

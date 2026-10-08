@@ -1,0 +1,68 @@
+{
+  "provenance": {
+    "author_agent": "be-writer",
+    "run_id": "016-rename-resource-schema-be-writer-dec6-muy4ksu8",
+    "story": "016-rename-resource-schema",
+    "phase": "C3a",
+    "inputs": [
+      { "path": "specs/016-rename-resource-schema/spec.md", "sha256": "3add460ce38f1e325a5874c4638caa9aa5e2603f6d11d3bf70681c82d163a45a" },
+      { "path": "specs/016-rename-resource-schema/plan.md", "sha256": "45c7f2e96ed1f4a2dce05082f1a98a5df7dcd09fa54b8aac845d1b9c65c1bd24" },
+      { "path": "specs/016-rename-resource-schema/tasks.md", "sha256": "6a364140c211bab1dd5980c35337bb13040d45bb297ec5e1839113a314a80128" },
+      { "path": "specs/016-rename-resource-schema/data-model.md", "sha256": "f48f8fe3b6243ac42f4582609e582e1943178ba810f946468ce94e94c348b297" },
+      { "path": "specs/016-rename-resource-schema/contracts/README.md", "sha256": "fae28fc69338ede86eb66190ff0b90192026a5329a985a232a8b6eac81c09b08" },
+      { "path": "runs/016-rename-resource-schema/story.md", "sha256": "cfc1c3644793b103ee92fbc9f05d679ed32aa6c642a90d4491654819d2199acb" },
+      { "path": "runs/016-rename-resource-schema/contract-next.json", "sha256": "d3585a905c51474546c9a8f8835a92ab1e3d98fef003845c2d66df14102bfac4" },
+      { "path": "runs/016-rename-resource-schema/discovery/decisions.jsonl", "sha256": "7ca3c8fb5eae38360b0c6ea3889ed6bc6e5374d1df52d96f9ae5fb3ab943ee08" },
+      { "path": "runs/016-rename-resource-schema/discovery/assumptions.jsonl", "sha256": "dc6c49d9c7395a1f374eeb715b154b3e9c490b17f0155b2835bb11c47d418c57" }
+    ],
+    "schema_version": "1"
+  },
+  "status": "DONE",
+  "tasks_completed": ["T008"],
+  "tasks_remaining": ["T009"],
+  "files_changed": [
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceSchemaConfiguration.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourceInstanceConfiguration.cs",
+    "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/DAL/Configurations/ResourcePropertyDefinitionConfiguration.cs"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-W4",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "This run edited only ResourceSchemaConfiguration.cs. It added .HasConstraintName(\"FK_resource_property_definitions_resource_schemas\") and a one-line DEC-6 comment to the PropertyDefinitions relationship. The other two configuration files are listed because they are part of T008: the earlier C3a run removed their Step 0 pins.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "decisions.jsonl line 6: DEC-6 is DECIDED by the owner with chosen 'Explicit shorter name via HasConstraintName'. runs/016-rename-resource-schema/impl/be-writer.C3a/result.json lists all three files under T008. git diff shows the pins are already removed in ResourceInstanceConfiguration.cs and ResourcePropertyDefinitionConfiguration.cs.",
+      "consequence_if_wrong": "None for the code. If the file-list check wants only this run's edits, the two pin files belong to the earlier C3a result."
+    },
+    {
+      "id": "ASM-W5",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "I kept schema_changes as DESTRUCTIVE, as the earlier C3a result did (ASM-W1). The story is rename-only, but the old table, column and constraint names stop existing.",
+      "bucket": "ASSUME",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "default_chosen": "DESTRUCTIVE",
+      "rationale": "The enum has no RENAME value. The FK name now differs from what EF would generate by default. T009 already plans to open and close G2b for this migration.",
+      "consequence_if_wrong": "G2b is opened, which T009 requires anyway. Nothing is lost."
+    },
+    {
+      "id": "ASM-W6",
+      "made_by": "be-writer",
+      "phase": "C3a",
+      "statement": "The scaffolded migration 20261007112358_RenameResourceTypeToResourceSchema (.cs, .Designer.cs) and ResourcesDbContextModelSnapshot.cs still use the truncated name FK_resource_property_definitions_resource_schemas_ResourceSche~. They no longer match the model. As DEC-6 says, the developer must remove the migration, add it again and make it rename-only again (T009). I did not touch RES.Migrations.",
+      "bucket": "NO_ASK",
+      "score": { "hard_list": false, "reversible_cheaply": true, "visible_effect": false, "has_recommendation": true },
+      "evidence": "DEC-6 option 'Explicit shorter name via HasConstraintName', consequences: 'the migration is removed and regenerated, then corrected to rename-only again'. DEC-6 code_says points at the scaffolded AddForeignKey name in 20261007112358_RenameResourceTypeToResourceSchema.cs.",
+      "consequence_if_wrong": "If the migration is not regenerated, the AC-14 pending-model-change test and migration-check will fail."
+    }
+  ],
+  "decisions_needed": [],
+  "local_checks": {
+    "build": "PASSED",
+    "unit_tests": "SKIPPED",
+    "format": "SKIPPED"
+  },
+  "schema_changes": "DESTRUCTIVE"
+}

@@ -8,7 +8,7 @@ internal class ResourceSchemaConfiguration : IEntityTypeConfiguration<ResourceSc
 {
     public void Configure(EntityTypeBuilder<ResourceSchema> builder)
     {
-        builder.ToTable("resource_types");
+        builder.ToTable("resource_schemas");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Description).HasMaxLength(2000);
@@ -19,6 +19,8 @@ internal class ResourceSchemaConfiguration : IEntityTypeConfiguration<ResourceSc
         builder.HasMany(x => x.PropertyDefinitions)
             .WithOne()
             .HasForeignKey(x => x.ResourceSchemaId)
+            // Explicit name (story 016, DEC-6): the EF default would be 66 characters, PostgreSQL caps identifiers at 63.
+            .HasConstraintName("FK_resource_property_definitions_resource_schemas")
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

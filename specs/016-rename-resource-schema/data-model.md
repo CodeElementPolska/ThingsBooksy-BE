@@ -10,7 +10,7 @@ No entity, field, relationship, validation rule or state transition is added or 
 | column in `resource_instances` | `ResourceTypeId` | `ResourceSchemaId` |
 | column in `resource_property_definitions` | `ResourceTypeId` | `ResourceSchemaId` |
 | primary key | `PK_resource_types` | `PK_resource_schemas` |
-| foreign key | `FK_resource_property_definitions_resource_types_ResourceTypeId` | `FK_resource_property_definitions_resource_schemas_ResourceSchemaId` |
+| foreign key | `FK_resource_property_definitions_resource_types_ResourceTypeId` | `FK_resource_property_definitions_resource_schemas` (explicit `HasConstraintName`, DEC-6: the EF default would be 66 characters, PostgreSQL caps at 63) |
 | index | `IX_resource_property_definitions_ResourceTypeId` | `IX_resource_property_definitions_ResourceSchemaId` |
 | unique index (filter `"DeletedAt" IS NULL` kept) | `IX_resource_types_GroupId_Name` | `IX_resource_schemas_GroupId_Name` |
 

@@ -1,0 +1,146 @@
+{
+  "story": "016-rename-resource-schema",
+  "commit": "bd3e9e18c1055d4085118a8a98aae0365c5e3303",
+  "files": [
+    {
+      "path": "backend/src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/Migrations/20261007131957_RenameResourceTypeToResourceSchema.cs",
+      "change": "added",
+      "sha256": "79dde1bccc05f2100d92ebad88a8148db4365a24a38622f80ee82716fe631d8b",
+      "up": [
+        {
+          "op": "DropForeignKey",
+          "bucket": "REVIEW",
+          "line": 20,
+          "snippet": "migrationBuilder.DropForeignKey(\nname: \"FK_resource_property_definitions_resource_types_ResourceTypeId\",\nschema: \"resources\",\ntable: \"resource_property_definitions\")"
+        },
+        {
+          "op": "DropPrimaryKey",
+          "bucket": "REVIEW",
+          "line": 25,
+          "snippet": "migrationBuilder.DropPrimaryKey(\nname: \"PK_resource_types\",\nschema: \"resources\",\ntable: \"resource_types\")"
+        },
+        {
+          "op": "RenameTable",
+          "bucket": "REVIEW",
+          "line": 30,
+          "snippet": "migrationBuilder.RenameTable(\nname: \"resource_types\",\nschema: \"resources\",\nnewName: \"resource_schemas\",\nnewSchema: \"resources\")"
+        },
+        {
+          "op": "RenameIndex",
+          "bucket": "SAFE",
+          "line": 36,
+          "snippet": "migrationBuilder.RenameIndex(\nname: \"IX_resource_types_GroupId_Name\",\nschema: \"resources\",\ntable: \"resource_schemas\",\nnewName: \"IX_resource_schemas_GroupId_Name\")"
+        },
+        {
+          "op": "RenameColumn",
+          "bucket": "REVIEW",
+          "line": 42,
+          "snippet": "migrationBuilder.RenameColumn(\nname: \"ResourceTypeId\",\nschema: \"resources\",\ntable: \"resource_property_definitions\",\nnewName: \"ResourceSchemaId\")"
+        },
+        {
+          "op": "RenameIndex",
+          "bucket": "SAFE",
+          "line": 48,
+          "snippet": "migrationBuilder.RenameIndex(\nname: \"IX_resource_property_definitions_ResourceTypeId\",\nschema: \"resources\",\ntable: \"resource_property_definitions\",\nnewName: \"IX_resource_property_definitions_ResourceSchemaId\")"
+        },
+        {
+          "op": "RenameColumn",
+          "bucket": "REVIEW",
+          "line": 54,
+          "snippet": "migrationBuilder.RenameColumn(\nname: \"ResourceTypeId\",\nschema: \"resources\",\ntable: \"resource_instances\",\nnewName: \"ResourceSchemaId\")"
+        },
+        {
+          "op": "AddPrimaryKey",
+          "bucket": "REVIEW",
+          "line": 60,
+          "note": "AddPrimaryKey on an existing table is validated against existing rows (orphans, duplicates, NULLs)",
+          "snippet": "migrationBuilder.AddPrimaryKey(\nname: \"PK_resource_schemas\",\nschema: \"resources\",\ntable: \"resource_schemas\",\ncolumn: \"Id\")"
+        },
+        {
+          "op": "AddForeignKey",
+          "bucket": "REVIEW",
+          "line": 66,
+          "note": "AddForeignKey on an existing table is validated against existing rows (orphans, duplicates, NULLs)",
+          "snippet": "migrationBuilder.AddForeignKey(\nname: \"FK_resource_property_definitions_resource_schemas\",\nschema: \"resources\",\ntable: \"resource_property_definitions\",\ncolumn: \"ResourceSchemaId\",\nprincipalSchema: \"resources\",\nprincipalTable: \"resource_schemas\",\nprincipalColumn: \"Id\",\nonDelete: ReferentialAction.Cascade)"
+        }
+      ],
+      "down": [
+        {
+          "op": "DropForeignKey",
+          "bucket": "SAFE",
+          "line": 80,
+          "snippet": "migrationBuilder.DropForeignKey(\nname: \"FK_resource_property_definitions_resource_schemas\",\nschema: \"resources\",\ntable: \"resource_property_definitions\")"
+        },
+        {
+          "op": "DropPrimaryKey",
+          "bucket": "SAFE",
+          "line": 85,
+          "snippet": "migrationBuilder.DropPrimaryKey(\nname: \"PK_resource_schemas\",\nschema: \"resources\",\ntable: \"resource_schemas\")"
+        },
+        {
+          "op": "RenameColumn",
+          "bucket": "SAFE",
+          "line": 90,
+          "snippet": "migrationBuilder.RenameColumn(\nname: \"ResourceSchemaId\",\nschema: \"resources\",\ntable: \"resource_instances\",\nnewName: \"ResourceTypeId\")"
+        },
+        {
+          "op": "RenameIndex",
+          "bucket": "SAFE",
+          "line": 96,
+          "snippet": "migrationBuilder.RenameIndex(\nname: \"IX_resource_property_definitions_ResourceSchemaId\",\nschema: \"resources\",\ntable: \"resource_property_definitions\",\nnewName: \"IX_resource_property_definitions_ResourceTypeId\")"
+        },
+        {
+          "op": "RenameColumn",
+          "bucket": "SAFE",
+          "line": 102,
+          "snippet": "migrationBuilder.RenameColumn(\nname: \"ResourceSchemaId\",\nschema: \"resources\",\ntable: \"resource_property_definitions\",\nnewName: \"ResourceTypeId\")"
+        },
+        {
+          "op": "RenameIndex",
+          "bucket": "SAFE",
+          "line": 108,
+          "snippet": "migrationBuilder.RenameIndex(\nname: \"IX_resource_schemas_GroupId_Name\",\nschema: \"resources\",\ntable: \"resource_schemas\",\nnewName: \"IX_resource_types_GroupId_Name\")"
+        },
+        {
+          "op": "RenameTable",
+          "bucket": "SAFE",
+          "line": 114,
+          "snippet": "migrationBuilder.RenameTable(\nname: \"resource_schemas\",\nschema: \"resources\",\nnewName: \"resource_types\",\nnewSchema: \"resources\")"
+        },
+        {
+          "op": "AddPrimaryKey",
+          "bucket": "REVIEW",
+          "line": 120,
+          "note": "rollback constraint validated against existing rows",
+          "snippet": "migrationBuilder.AddPrimaryKey(\nname: \"PK_resource_types\",\nschema: \"resources\",\ntable: \"resource_types\",\ncolumn: \"Id\")"
+        },
+        {
+          "op": "AddForeignKey",
+          "bucket": "REVIEW",
+          "line": 126,
+          "note": "rollback constraint validated against existing rows",
+          "snippet": "migrationBuilder.AddForeignKey(\nname: \"FK_resource_property_definitions_resource_types_ResourceTypeId\",\nschema: \"resources\",\ntable: \"resource_property_definitions\",\ncolumn: \"ResourceTypeId\",\nprincipalSchema: \"resources\",\nprincipalTable: \"resource_types\",\nprincipalColumn: \"Id\",\nonDelete: ReferentialAction.Cascade)"
+        }
+      ],
+      "verdict": "REVIEW"
+    }
+  ],
+  "verdict": "REVIEW",
+  "migration_sha": "23a7ad19cd5f124916a81bac2ee7d5f6c80d830baba72e05dcb434c997b09e19",
+  "g2b_required": true,
+  "be_writer_claims": [
+    {
+      "path": "impl/be-writer.C3a/result.json",
+      "schema_changes": "DESTRUCTIVE"
+    },
+    {
+      "path": "impl/be-writer.C3a.dec6/result.json",
+      "schema_changes": "DESTRUCTIVE"
+    }
+  ],
+  "be_writer_claim": "DESTRUCTIVE",
+  "be_writer_claim_note": "forecast made by be-writer in C3a before the migration file existed (it cannot see Down() risks)",
+  "claim_mismatch": false,
+  "computed_at": "2026-10-07T13:20:48.630Z",
+  "hash_version": 2
+}

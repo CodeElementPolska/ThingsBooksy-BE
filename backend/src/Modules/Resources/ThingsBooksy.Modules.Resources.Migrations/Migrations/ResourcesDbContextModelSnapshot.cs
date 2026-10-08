@@ -50,7 +50,7 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ResourceTypeId")
+                    b.Property<Guid>("ResourceSchemaId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -83,12 +83,12 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<Guid>("ResourceTypeId")
+                    b.Property<Guid>("ResourceSchemaId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ResourceTypeId");
+                    b.HasIndex("ResourceSchemaId");
 
                     b.ToTable("resource_property_definitions", "resources");
                 });
@@ -116,7 +116,7 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
                     b.ToTable("resource_property_values", "resources");
                 });
 
-            modelBuilder.Entity("ThingsBooksy.Modules.Resources.Core.Domain.ResourceType", b =>
+            modelBuilder.Entity("ThingsBooksy.Modules.Resources.Core.Domain.ResourceSchema", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -149,7 +149,7 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
                         .IsUnique()
                         .HasFilter("\"DeletedAt\" IS NULL");
 
-                    b.ToTable("resource_types", "resources");
+                    b.ToTable("resource_schemas", "resources");
                 });
 
             modelBuilder.Entity("ThingsBooksy.Modules.Resources.Core.ReadModels.GroupMemberReadModel", b =>
@@ -241,11 +241,12 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
 
             modelBuilder.Entity("ThingsBooksy.Modules.Resources.Core.Domain.ResourcePropertyDefinition", b =>
                 {
-                    b.HasOne("ThingsBooksy.Modules.Resources.Core.Domain.ResourceType", null)
+                    b.HasOne("ThingsBooksy.Modules.Resources.Core.Domain.ResourceSchema", null)
                         .WithMany("PropertyDefinitions")
-                        .HasForeignKey("ResourceTypeId")
+                        .HasForeignKey("ResourceSchemaId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("FK_resource_property_definitions_resource_schemas");
                 });
 
             modelBuilder.Entity("ThingsBooksy.Modules.Resources.Core.Domain.ResourcePropertyValue", b =>
@@ -262,7 +263,7 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
                     b.Navigation("PropertyValues");
                 });
 
-            modelBuilder.Entity("ThingsBooksy.Modules.Resources.Core.Domain.ResourceType", b =>
+            modelBuilder.Entity("ThingsBooksy.Modules.Resources.Core.Domain.ResourceSchema", b =>
                 {
                     b.Navigation("PropertyDefinitions");
                 });

@@ -1,6 +1,6 @@
 {
   "story": "016-rename-resource-schema",
-  "status": "NOT_DONE",
+  "status": "DONE",
   "checks": [
     {
       "name": "gate",
@@ -44,8 +44,8 @@
     },
     {
       "name": "tasks",
-      "status": "FAILED",
-      "detail": "0/39 ticked"
+      "status": "PASSED",
+      "detail": "39/39 ticked"
     },
     {
       "name": "tests-hash",
@@ -53,5 +53,5 @@
       "detail": "PASSED"
     }
   ],
-  "computed_at": "2026-10-08T09:54:29.736Z"
+  "computed_at": "2026-10-08T10:12:26.714Z"
 }

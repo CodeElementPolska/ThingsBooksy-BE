@@ -26,7 +26,8 @@ const decisions = readJsonl('discovery/decisions.jsonl');
 const assumptions = readJsonl('discovery/assumptions.jsonl');
 const ac = readJson('ac-matrix.json');
 const gate = readJson('gate.json');
-const rounds = fs.existsSync(path.join(runDir, 'review')) ? fs.readdirSync(path.join(runDir, 'review')).filter(d => /^round-\d+$/.test(d)).length : 0;
+// review rounds = the highest existing round-N directory (round-0 may hold conductor findings before C5; a count would point at a missing round)
+const rounds = fs.existsSync(path.join(runDir, 'review')) ? Math.max(0, ...fs.readdirSync(path.join(runDir, 'review')).filter(d => /^round-\d+$/.test(d)).map(d => +d.slice(6))) : 0;
 const lastFindings = rounds ? fs.readdirSync(path.join(runDir, 'review', `round-${rounds}`)).filter(f => f.endsWith('.findings.json')).flatMap(f => readJson(`review/round-${rounds}/${f}`)?.findings || []) : [];
 // every finding of the story (all review rounds + closing guards) — rule candidates and UNSPECIFIED are counted here,
 // not on the last round, which is empty by construction when the loop converged

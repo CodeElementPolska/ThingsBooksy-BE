@@ -1,0 +1,36 @@
+{
+  "story": "016-rename-resource-schema",
+  "owner_interruptions": 1,
+  "owner_answers": 24,
+  "decisions": {
+    "total": 11,
+    "by_owner": 11,
+    "escalated_from_impl": 0
+  },
+  "assumptions": {
+    "total": 38,
+    "discovery": 19,
+    "delivery": 19,
+    "vetoed": 0,
+    "hard_list": 0
+  },
+  "repair_rounds": {
+    "C4": 1,
+    "C5": 1
+  },
+  "review": {
+    "findings_total": 16,
+    "findings_last_round": 10,
+    "closed_by_decision": 2,
+    "closed_by_fix": 9,
+    "rule_candidates": 5,
+    "unspecified_behaviour": 0
+  },
+  "agent_runs": 15,
+  "ac_coverage_percent": 100,
+  "gate_seconds": 58,
+  "tokens_spent": 1720863,
+  "wall_clock_hours": 23.86,
+  "rebaselines": 2,
+  "escalations": 0
+}

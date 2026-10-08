@@ -17,6 +17,7 @@ Dlaczego zwykła sesja: żadna persona nie ma narzędzi do budowy agentów i skr
   - `becdcc2 docs(fleet)` — `docs/agent-fleet-v4/handoff-2026-10-02/` + ten plik (pakiet przekazania).
 - **NIESKOMITOWANE w drzewie:**
   - `.claude/settings.json` — **niezwiązana zmiana (`enabledPlugins`), NIE commitować z flotą.**
+- **Stan 2026-10-08: story 016 ZAMKNIĘTA (G3 PASSED, DoD 10/10) — kroki 2–3 poniżej wykonane; aktualne „pierwsze kroki” to 4 (fail-closed ACL), etykiety `016/AC-n`, 5–6 oraz sesja A story 017. Szczegóły: `HANDOFF.md`.**
 - Story 016: G2 PASSED 2026-10-05, `status.js` pokazuje fazę C1; artefakty discovery w `specs/016-rename-resource-schema/` i `runs/016-rename-resource-schema/`.
 
 ## Decyzje właściciela z tej sesji (obowiązują)
